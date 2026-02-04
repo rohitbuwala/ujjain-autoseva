@@ -1,7 +1,6 @@
-import mongoose, { Schema } from "mongoose";
-import { TUser } from "@/types/User";
+import mongoose, { Schema, model, models } from "mongoose";
 
-const UserSchema = new Schema<TUser>(
+const UserSchema = new Schema(
   {
     name: {
       type: String,
@@ -10,14 +9,14 @@ const UserSchema = new Schema<TUser>(
     },
 
     email: {
-      type: String, // ✅ Capital S
+      type: String,
       required: true,
       unique: true,
       lowercase: true,
     },
 
     password: {
-      type: String, // ✅ Capital S
+      type: String,
       required: true,
       minlength: 6,
     },
@@ -26,6 +25,17 @@ const UserSchema = new Schema<TUser>(
       type: String,
       default: "user",
     },
+
+    // ✅ Forgot Password ke liye
+    resetToken: {
+      type: String,
+      default: null,
+    },
+
+    resetTokenExpiry: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -33,7 +43,6 @@ const UserSchema = new Schema<TUser>(
 );
 
 const User =
-  mongoose.models.User ||
-  mongoose.model<TUser>("User", UserSchema);
+  models.User || model("User", UserSchema);
 
 export default User;
