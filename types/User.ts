@@ -1,7 +1,8 @@
-import { Document } from "mongoose"
+import { Document } from "mongoose";
 
-export interface tUser extends Document {
-    name: string;
-    email: string;
-    password: string
+export interface TUser extends Document {
+  name: string;
+  email: string;
+  password: string;
+  role?: "user" | "admin" | "driver";
 }
