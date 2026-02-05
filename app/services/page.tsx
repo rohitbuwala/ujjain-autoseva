@@ -10,6 +10,25 @@ import {
 
 
 
+async function bookRide(route: string, time: string, price: string) {
+  const res = await fetch("/api/bookings", {
+    method: "POST",
+    body: JSON.stringify({
+      route,
+      time,
+      price,
+    }),
+  });
+
+  if (res.ok) {
+    alert("Booking Sent ✅ Waiting for Admin");
+  } else {
+    alert("Login First");
+  }
+}
+
+
+
 export default function ServicesPage() {
   return (
     <div className="w-full min-h-screen overflow-x-clip bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white">
@@ -21,17 +40,17 @@ export default function ServicesPage() {
         <Card className="bg-white/5 border border-white/10">
           <CardContent className="p-6 space-y-3 text-sm leading-relaxed">
             <h2 className="text-center font-extrabold uppercase contain-style text-xl gradient-text-1 mb-5 underline ">Our services</h2>
-            <p className="text-center font-bold uppercase contain-style text-xl">
+            <p className="text-center font-bold uppercase contain-style ">
               Ujjain is one of the most beautiful destinations in India. AutoSeva
               provides reliable taxi and auto services.
             </p>
-            <p className="text-center font-bold uppercase contain-style text-xl">
+            <p className="text-center font-bold uppercase contain-style ">
               Book your ride online and travel comfortably from home.
             </p>
-            <p className="text-center font-bold uppercase contain-style text-xl">
+            <p className="text-center font-bold uppercase contain-style">
               AC, Non-AC, Sedan, SUV and Auto services available.
             </p>
-            <p className="text-center font-bold uppercase contain-style text-xl">
+            <p className="text-center font-bold uppercase contain-style ">
               Safe drivers, verified vehicles and affordable prices.
             </p>
           </CardContent>
@@ -46,32 +65,39 @@ export default function ServicesPage() {
 
           <div className="border border-white/10 rounded-lg overflow-hidden">
 
-            <div className="grid grid-cols-3 bg-white/10 px-4 py-3 font-semibold text-sm">
+            <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
               <div>Route</div>
               <div>Time</div>
               <div>Price</div>
+              <div>Action</div>
             </div>
 
-            {[
-              ["Station to Mahakal", "01h 30m", "₹400"],
-              ["Statin to  Bada Ganesh Mandir", "1h 30m", "₹300"],
-              ["Station to Harshiddhi Mandir", "1h 30m", "₹400"],
-              ["Station to Vikramaditya Mandir", "30m", "₹350"],
-              ["Statin to Ramghat", "1h 30m", "₹300"],
-              ["Station to Shree Ram Mandir", "1h 30m", "₹400"],
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="grid grid-cols-3 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5"
+        {[
+            ["Station to Mahakal", "01h 30m", "₹400"],
+            ["Statin to  Bada Ganesh Mandir", "1h 30m", "₹300"],
+            ["Station to Harshiddhi Mandir", "1h 30m", "₹400"],
+            ["Station to Vikramaditya Mandir", "30m", "₹350"],
+            ["Statin to Ramghat", "1h 30m", "₹300"],
+            ["Station to Shree Ram Mandir", "1h 30m", "₹400"],
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
+            >
+              <div>{item[0]}</div>
+              <div>{item[1]}</div>
+              <div>{item[2]}</div>
+
+              {/* BOOK BUTTON */}
+              <button
+                onClick={() => bookRide(item[0], item[1], item[2])}
+                className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25 mr-0"
               >
-                <div>{item[0]}</div>
-                <div>{item[1]}</div>
-                <div>{item[2]}</div>
-                <div>{item[3]}</div>
-                <div>{item[4]}</div>
-                <div className="text-blue-400">{item[5]}</div>
-              </div>
-            ))}
+                Book Now
+              </button>
+            </div>
+          ))}
+
           </div>
         </section>
 
@@ -83,14 +109,15 @@ export default function ServicesPage() {
 
           <div className="border border-white/10 rounded-lg overflow-hidden">
 
-            <div className="grid grid-cols-3 bg-white/10 px-4 py-3 font-semibold text-sm">
+           <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
               <div>Route</div>
               <div>Time</div>
               <div>Price</div>
+              <div>Action</div>
             </div>
 
-            {[
-              ["Mahakal to Sandipani Ashram", "01h 30m", "₹700"],
+          {[
+             ["Mahakal to Sandipani Ashram", "01h 30m", "₹700"],
               ["Mahakal to Mangalnath", "2h 10m", "₹500"],
               ["Mahakal to Siddhavar Ghat", "1h 00m", "₹300"],
               ["Mahakal to Kaal-Bhairav Mandir", "01h 30m", "₹700"],
@@ -98,21 +125,25 @@ export default function ServicesPage() {
               ["Mahakal to Ganesh mandir", "3h 10m", "₹500"],
               ["Mahakal to Bharthari Gufa", "1h 00m", "₹300"],
               ["Mahakal to Rinmukteshwar Mahadev mandir", "3h 10m", "₹500"],
-            ].map((item, i) => (
-              <div
+          ].map((item, i) => (
+                <div
                 key={i}
-                className="grid grid-cols-3 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5"
+                className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
               >
                 <div>{item[0]}</div>
                 <div>{item[1]}</div>
                 <div>{item[2]}</div>
-                <div>{item[3]}</div>
-                <div>{item[4]}</div>
-                <div>{item[5]}</div>
-                <div>{item[6]}</div>
-                <div className="text-blue-400">{item[7]}</div>
+
+                {/* BOOK BUTTON */}
+                <button
+                  onClick={() => bookRide(item[0], item[1], item[2])}
+                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25"
+                >
+                  Book Now
+                </button>
               </div>
             ))}
+
           </div>
         </section>
 
@@ -124,26 +155,34 @@ export default function ServicesPage() {
 
           <div className="border border-white/10 rounded-lg overflow-hidden">
 
-            <div className="grid grid-cols-3 bg-white/10 px-4 py-3 font-semibold text-sm">
-              <div>Route</div>
-              <div>Time</div>
-              <div>Price</div>
-            </div>
+          <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
+            <div>Route</div>
+            <div>Time</div>
+            <div>Price</div>
+            <div>Action</div>
+          </div>
 
             {[
-              ["Mahakal to Shree Ashtvinayak Mandir", "01h 30m", "₹700"],
+             ["Mahakal to Shree Ashtvinayak Mandir", "01h 30m", "₹700"],
               ["Mahakal to Shree Chintaman Ganesh Mandir", "2h 10m", "₹500"],
               ["Mahakal to Navgrah Shani Mandir", "1h 00m", "₹300"],
               ["Mahakal to ISkon Mandir", "01h 30m", "₹700"],
-            ].map((item, i) => (
-              <div
+          ].map((item, i) => (
+                <div
                 key={i}
-                className="grid grid-cols-3 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5"
+                className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
               >
                 <div>{item[0]}</div>
                 <div>{item[1]}</div>
                 <div>{item[2]}</div>
-                <div className="text-blue-400">{item[4]}</div>
+
+                {/* BOOK BUTTON */}
+                <button
+                  onClick={() => bookRide(item[0], item[1], item[2])}
+                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25"
+                >
+                  Book Now
+                </button>
               </div>
             ))}
           </div>
@@ -155,32 +194,37 @@ export default function ServicesPage() {
           </h2>
 
           <div className="border border-white/10 rounded-lg overflow-hidden">
-
-            <div className="grid grid-cols-3 bg-white/10 px-4 py-3 font-semibold text-sm">
-              <div>Route</div>
-              <div>Time</div>
-              <div>Price</div>
-            </div>
+          <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
+            <div>Route</div>
+            <div>Time</div>
+            <div>Price</div>
+            <div>Action</div>
+          </div>
 
             {[
-              ["Mahakal to Bhukhi Mata Mandir", "01h 30m", "₹300"],
+             ["Mahakal to Bhukhi Mata Mandir", "01h 30m", "₹300"],
               ["Mahakal to Navgrah Shani Mandir", "1h 00m", "₹400"],
               ["Mahakal to ISkon Mandir", "01h 30m", "₹700"],
               ["Mahakal to  BangakaMukhi Mata mandir", "1h 00m", "₹300"],
               ["Mahakal to Angareshwar Mahadev Mandir", "3h 10m", "₹300"],
               ["Mahakal to Vikrant Bhairav Mandir", "1h 10m", "₹400"],
               ["Mahakal to Maa Meldi sati mata Mandir", "1h 10m", "₹400"],
-            ].map((item, i) => (
-              <div
+          ].map((item, i) => (
+                <div
                 key={i}
-                className="grid grid-cols-3 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5"
+                className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
               >
                 <div>{item[0]}</div>
                 <div>{item[1]}</div>
                 <div>{item[2]}</div>
-                <div>{item[3]}</div>
-                <div>{item[4]}</div>
-                <div className="text-blue-400">{item[5]}</div>
+
+                {/* BOOK BUTTON */}
+                <button
+                  onClick={() => bookRide(item[0], item[1], item[2])}
+                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25"
+                >
+                  Book Now
+                </button>
               </div>
             ))}
           </div>

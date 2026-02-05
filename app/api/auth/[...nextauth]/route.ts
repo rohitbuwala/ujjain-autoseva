@@ -6,16 +6,16 @@ import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 
+const ADMIN_EMAIL = "admin@gmail.com";
+
 export const authOptions: NextAuthOptions = {
   providers: [
 
-    // ✅ Google
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
 
-    // ✅ Credentials
     CredentialsProvider({
       name: "credentials",
 
@@ -25,6 +25,7 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
+
         await connectDB();
 
         if (!credentials?.email || !credentials.password) {
@@ -48,17 +49,38 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Wrong password");
         }
 
+        const isAdmin = user.email === ADMIN_EMAIL;
+
         return {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
+          role: isAdmin ? "admin" : "user",
         };
       },
     }),
   ],
 
   session: {
-    strategy: "jwt", // ✅ Ab error nahi aayega
+    strategy: "jwt",
+  },
+
+  callbacks: {
+
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = (user as any).role;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
+
   },
 
   secret: process.env.NEXTAUTH_SECRET,
@@ -67,6 +89,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
 };
+
 
 const handler = NextAuth(authOptions);
 

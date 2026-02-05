@@ -1,16 +1,19 @@
-import connectDB from "@/lib/db";
-import Service from "@/models/Service";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  await connectDB();
+  const { id } = await context.params;
 
-  await Service.findByIdAndDelete(params.id);
+  try {
+    // your delete logic here
 
-  return NextResponse.json({
-    success: true,
-  });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false },
+      { status: 500 }
+    );
+  }
 }

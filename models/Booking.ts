@@ -1,17 +1,42 @@
-import mongoose, { Schema, models, model } from "mongoose";
+// import mongoose from "mongoose";
 
-const BookingSchema = new Schema(
+// const BookingSchema = new mongoose.Schema({
+//   userId: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: "User",
+//   },
+
+//   name: String,
+//   phone: String,
+//   email: String,
+
+//   from: String,
+//   to: String,
+
+//   date: String,
+//   time: String,
+
+//   status: {
+//     type: String,
+//     default: "pending", // pending | confirmed | completed
+//   },
+
+// }, { timestamps: true });
+
+// export default mongoose.models.Booking ||
+//   mongoose.model("Booking", BookingSchema);
+
+import mongoose from "mongoose";
+
+const BookingSchema = new mongoose.Schema(
   {
-    mandir: [String],
+    userId: String,
+    name: String,
+    email: String,
 
-    date: String,
-
-    pickup: String,
-    drop: String,
-
-    carType: String,
-
-    price: Number,
+    route: String,
+    time: String,
+    price: String,
 
     status: {
       type: String,
@@ -21,6 +46,6 @@ const BookingSchema = new Schema(
   { timestamps: true }
 );
 
-const Booking = models.Booking || model("Booking", BookingSchema);
+export default mongoose.models.Booking ||
+  mongoose.model("Booking", BookingSchema);
 
-export default Booking;

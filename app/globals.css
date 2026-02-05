@@ -66,7 +66,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    animation: shine 4s linear infinite;
+  
   }
   .gradient-2 {
     background: linear-gradient(
@@ -84,7 +84,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    animation: shine 4s linear infinite;
+    /* animation: shine 4s linear infinite; */
   }
   .gradient-text-1 {
     background: linear-gradient(
@@ -102,7 +102,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    animation: shine 3s linear infinite;
+    /* animation: shine 3s linear infinite; */
   }
 
 
