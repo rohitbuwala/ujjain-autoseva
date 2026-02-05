@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/components/ui/card";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,20 +32,31 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center px-4">
 
-      <Card className="w-[350px]">
-        <CardHeader>Register</CardHeader>
+      <Card className="card-safe w-full max-w-md">
 
-        <CardContent className="space-y-4">
+        {/* Header */}
+        <CardHeader className="text-center space-y-2 pb-2">
+          <h1 className="text-3xl font-bold gradient-text">
+            Ujjain AutoSeva
+          </h1>
+
+          <p className="text-gray-400 text-sm">
+            Create your account
+          </p>
+        </CardHeader>
+
+        {/* Form */}
+        <CardContent className="space-y-5 p-6">
 
           <Input
-            placeholder="Name"
+            placeholder="Full Name"
             onChange={(e) => setName(e.target.value)}
           />
 
           <Input
-            placeholder="Email"
+            placeholder="Email Address"
             onChange={(e) => setEmail(e.target.value)}
           />
 
@@ -51,9 +66,23 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <Button onClick={handleRegister} className="w-full">
-            Register
+          <Button
+            onClick={handleRegister}
+            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90"
+          >
+            Create Account
           </Button>
+
+          {/* Login Link */}
+          <p className="text-sm text-center text-gray-400">
+            Already have an account?{" "}
+            <span
+              onClick={() => router.push("/login")}
+              className="text-blue-400 cursor-pointer hover:underline"
+            >
+              Login
+            </span>
+          </p>
 
         </CardContent>
       </Card>
