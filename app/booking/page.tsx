@@ -1,60 +1,267 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { bookingSchema } from "@/lib/validators/booking";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+
+type BookingForm = z.infer<typeof bookingSchema>;
 
 export default function BookingPage() {
 
-  const [form, setForm] = useState({
+  const router = useRouter();
+
+  const [form, setForm] = useState<BookingForm>({
     name: "",
     phone: "",
-    from: "",
-    to: "",
+    altPhone: "",
+    pickup: "",
+    drop: "",
     date: "",
+    time: "",
+    price: "",
   });
 
-  async function submit() {
+  const [errors, setErrors] = useState<any>({});
+  const [loading, setLoading] = useState(false);
 
-    const res = await fetch("/api/booking", {
-      method: "POST",
-      body: JSON.stringify(form),
+  /* ========================
+     LIVE VALIDATION
+  ========================= */
+
+  function validateField(name: string, value: string) {
+
+    const singleField = bookingSchema.pick({
+      [name]: true,
+    } as any);
+
+    const result = singleField.safeParse({
+      [name]: value,
     });
 
-    if (res.ok) {
-      alert("Booking Successful ✅");
+    if (!result.success) {
+      setErrors((prev: any) => ({
+        ...prev,
+        [name]: result.error.issues[0].message,
+      }));
+    } else {
+      setErrors((prev: any) => ({
+        ...prev,
+        [name]: "",
+      }));
     }
   }
 
+  function handleChange(e: any) {
+
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    validateField(name, value);
+  }
+
+  /* ========================
+     SUBMIT
+  ========================= */
+
+  async function handleSubmit(e: any) {
+    e.preventDefault();
+
+    setLoading(true);
+
+    const parsed = bookingSchema.safeParse(form);
+
+    if (!parsed.success) {
+
+      const newErrors: any = {};
+
+      parsed.error.issues.forEach((err) => {
+        newErrors[err.path[0]] = err.message;
+      });
+
+      setErrors(newErrors);
+      setLoading(false);
+      return;
+    }
+
+    try {
+
+      const res = await fetch("/api/booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        alert("Booking Failed");
+        return;
+      }
+
+      alert("✅ Booking Submitted!");
+      router.push("/dashboard");
+
+    } catch (err) {
+      alert("Server Error");
+    }
+
+    setLoading(false);
+  }
+
   return (
-    <div className="min-h-screen flex justify-center items-center">
+    <div className="min-h-screen bg-black flex justify-center items-center pt-24">
 
-      <div className="card-safe w-[350px] p-6 space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md bg-white/5 p-6 rounded-xl space-y-4 text-white"
+      >
 
-        <h2 className="text-xl font-bold text-center gradient-text">
-          Book Ride
-        </h2>
+        <h1 className="text-2xl font-bold text-center mb-3">
+          🚖 Book Your Ride
+        </h1>
 
-        <Input placeholder="Name"
-          onChange={e=>setForm({...form,name:e.target.value})}/>
+        <Field
+          label="Full Name"
+          name="name"
+          value={form.name}
+          error={errors.name}
+          onChange={handleChange}
+        />
 
-        <Input placeholder="Phone"
-          onChange={e=>setForm({...form,phone:e.target.value})}/>
+        <Field
+          label="Mobile Number"
+          name="phone"
+          value={form.phone}
+          error={errors.phone}
+          onChange={handleChange}
+        />
 
-        <Input placeholder="From"
-          onChange={e=>setForm({...form,from:e.target.value})}/>
+        <Field
+          label="Alternate Number"
+          name="altPhone"
+          value={form.altPhone}
+          error={errors.altPhone}
+          onChange={handleChange}
+        />
 
-        <Input placeholder="To"
-          onChange={e=>setForm({...form,to:e.target.value})}/>
+        <Field
+          label="Pickup Location"
+          name="pickup"
+          value={form.pickup}
+          error={errors.pickup}
+          onChange={handleChange}
+        />
 
-        <Input type="date"
-          onChange={e=>setForm({...form,date:e.target.value})}/>
+        <Field
+          label="Drop Location"
+          name="drop"
+          value={form.drop}
+          error={errors.drop}
+          onChange={handleChange}
+        />
 
-        <Button onClick={submit} className="w-full">
-          Book Now
-        </Button>
+        {/* DATE PICKER */}
+        <Field
+          label="Journey Date"
+          type="date"
+          name="date"
+          value={form.date}
+          error={errors.date}
+          onChange={handleChange}
+        />
 
-      </div>
+        {/* TIME PICKER */}
+        <Field
+          label="Journey Time"
+          type="time"
+          name="time"
+          value={form.time}
+          error={errors.time}
+          onChange={handleChange}
+        />
+
+        <Field
+          label="Price (₹)"
+          name="price"
+          value={form.price}
+          error={errors.price}
+          onChange={handleChange}
+        />
+
+        <button
+          disabled={loading}
+          className="
+            w-full bg-blue-600 py-2 rounded
+            hover:bg-blue-700 transition
+          "
+        >
+          {loading ? "Submitting..." : "Confirm Booking"}
+        </button>
+
+      </form>
+    </div>
+  );
+}
+
+/* ========================
+   INPUT COMPONENT
+======================== */
+function Field({
+  label,
+  name,
+  value,
+  error,
+  onChange,
+  type = "text",
+}: any) {
+
+  const isDateOrTime = type === "date" || type === "time";
+
+  return (
+    <div className="space-y-1">
+
+      <label className="text-sm text-gray-300">
+        {label}
+      </label>
+
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+
+        /* IMPORTANT FIX */
+        onFocus={(e) => {
+          if (isDateOrTime) {
+            (e.target as any).showPicker?.();
+          }
+        }}
+
+        className={`
+          w-full px-3 py-2 rounded
+          border bg-black text-white
+
+          focus:outline-none
+          focus:ring-2
+
+          ${isDateOrTime ? "cursor-pointer" : ""}
+
+          ${error
+            ? "border-red-500 ring-red-500/30"
+            : "border-white/20 ring-blue-500/30"
+          }
+        `}
+      />
+
+      {error && (
+        <p className="text-xs text-red-400">
+          {error}
+        </p>
+      )}
+
     </div>
   );
 }

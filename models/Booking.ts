@@ -1,51 +1,81 @@
-// import mongoose from "mongoose";
-
-// const BookingSchema = new mongoose.Schema({
-//   userId: {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "User",
-//   },
-
-//   name: String,
-//   phone: String,
-//   email: String,
-
-//   from: String,
-//   to: String,
-
-//   date: String,
-//   time: String,
-
-//   status: {
-//     type: String,
-//     default: "pending", // pending | confirmed | completed
-//   },
-
-// }, { timestamps: true });
-
-// export default mongoose.models.Booking ||
-//   mongoose.model("Booking", BookingSchema);
-
 import mongoose from "mongoose";
 
-const BookingSchema = new mongoose.Schema(
-  {
-    userId: String,
-    name: String,
-    email: String,
+const bookingSchema = new mongoose.Schema({
 
-    route: String,
-    time: String,
-    price: String,
-
-    status: {
-      type: String,
-      default: "pending",
-    },
+  // Logged in user
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-  { timestamps: true }
-);
+
+  // User Personal Info
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+
+  phone: {
+    type: String,
+    required: true,
+  },
+
+  altPhone: {
+    type: String,
+    default: "",
+  },
+
+  // Ride Details
+  pickup: {
+    type: String,
+    required: true,
+  },
+
+  drop: {
+    type: String,
+    required: true,
+  },
+
+  date: {
+    type: String,
+    required: true,
+  },
+
+  time: {
+    type: String,
+    required: true,
+  },
+
+  price: {
+    type: String,
+    required: true,
+  },
+
+  route: {
+    type: String,
+    required: true,
+  },
+
+  // Booking Status
+  status: {
+    type: String,
+    enum: ["pending", "confirmed", "rejected"],
+    default: "pending",
+  },
+
+  // Admin Note (optional future use)
+  adminNote: {
+    type: String,
+    default: "",
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+
+});
 
 export default mongoose.models.Booking ||
-  mongoose.model("Booking", BookingSchema);
-
+  mongoose.model("Booking", bookingSchema);

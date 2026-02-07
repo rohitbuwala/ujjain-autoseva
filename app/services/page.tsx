@@ -1,6 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { Card, CardContent } from "@/components/ui/card";
+
 import {
   Accordion,
   AccordionContent,
@@ -8,339 +11,315 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+/* ================================
+   BOOKING FUNCTION
+================================ */
 
+async function bookRide(
+      router: any,
+      route: string,
+      time: string, 
+      price: string) {
 
-async function bookRide(route: string, time: string, price: string) {
-  const res = await fetch("/api/bookings", {
+  const [from, to] = route.split(" to ");
+
+  const res = await fetch("/api/booking", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
-      route,
-      time,
-      price,
+
+      from: from || "Ujjain",
+      to: to || "Destination",
+
+      date: new Date().toISOString().split("T")[0],
+
+      phone: "9999999999",   // TEMP FIX ✅
+
+      price: price.replace("₹", ""),
     }),
   });
 
+  if (res.status === 401) {
+    router.push("/login");
+    return;
+  }
+
   if (res.ok) {
-    alert("Booking Sent ✅ Waiting for Admin");
+    alert("✅ Booking Sent. Waiting for Admin");
   } else {
-    alert("Login First");
+    alert("❌ Booking Failed");
   }
 }
 
 
+/* ================================
+   SERVICE CARD
+================================ */
+
+function ServiceCard({
+  route,
+  time,
+  price,
+  router,
+}: any) {
+  const base = Number(price.replace("₹", ""));
+  const fake = base + 150;
+
+  return (
+    <div className="card-safe p-4 flex flex-col justify-between">
+
+      {/* Info */}
+      <div className="space-y-1">
+
+        <h3 className="font-semibold text-base sm:text-lg">
+          {route}
+        </h3>
+
+        <p className="text-xs sm:text-sm text-gray-300">
+          ⏱ {time}
+        </p>
+
+        <div className="flex items-center gap-2 flex-wrap">
+
+          <span className="line-through text-gray-400 text-xs">
+            ₹{fake}
+          </span>
+
+          <span className="text-green-400 font-bold text-sm">
+            {price}
+          </span>
+
+          <span className="text-[10px] bg-red-600 px-2 py-[2px] rounded">
+            SAVE ₹150
+          </span>
+
+        </div>
+
+      </div>
+
+      {/* Button */}
+      <button
+      onClick={() => router.push("/booking")}
+
+        className="
+          mt-3 w-full
+          bg-green-600
+          hover:bg-green-700
+          active:scale-95
+          py-2
+          rounded-lg
+          text-sm
+          font-semibold
+          transition
+        "
+      >
+        Book Ride
+      </button>
+
+    </div>
+  );
+}
+
+/* ================================
+   PAGE
+================================ */
 
 export default function ServicesPage() {
-  return (
-    <div className="w-full min-h-screen overflow-x-clip bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white">
+  const router = useRouter();
 
-      {/* Main Container */}
+  return (
+    <div className="w-full min-h-screen overflow-x-hidden bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white">
+
       <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
 
-        {/* Intro */}
-        <Card className="bg-white/5 border border-white/10">
-          <CardContent className="p-6 space-y-3 text-sm leading-relaxed">
-            <h2 className="text-center font-extrabold uppercase contain-style text-xl gradient-text-1 mb-5 underline ">Our services</h2>
-            <p className="text-center font-bold uppercase contain-style ">
-              Ujjain is one of the most beautiful destinations in India. AutoSeva
-              provides reliable taxi and auto services.
+        {/* INTRO */}
+        <Card className="card-safe">
+
+          <CardContent className="p-6 text-center space-y-3">
+
+            <h1 className="text-3xl font-extrabold gradient-text-1">
+              Our Services
+            </h1>
+
+            <p className="text-gray-300">
+              Reliable taxi & auto booking in Ujjain
             </p>
-            <p className="text-center font-bold uppercase contain-style ">
-              Book your ride online and travel comfortably from home.
+
+            <p className="text-gray-400">
+              Safe drivers • Verified vehicles • Best prices
             </p>
-            <p className="text-center font-bold uppercase contain-style">
-              AC, Non-AC, Sedan, SUV and Auto services available.
-            </p>
-            <p className="text-center font-bold uppercase contain-style ">
-              Safe drivers, verified vehicles and affordable prices.
-            </p>
+
           </CardContent>
+
         </Card>
 
-        {/* Taxi Routes To */}
-        <section>
-          <h1 className="text-center text-4xl m-8 gradient-text-1 font-extrabold underline">Places to visit in Ujjain</h1>
-          <h2 className="text-3xl mb-6 gradient-text font-semibold">
-            🛺 Temple inside the city
+        {/* ================= CITY TEMPLES ================= */}
+
+        <section className="space-y-6">
+
+          <h2 className="text-3xl gradient-text font-bold">
+            🛺 Temples Inside City
           </h2>
 
-          <div className="border border-white/10 rounded-lg overflow-hidden">
+          <div className="
+            grid gap-4
+            sm:grid-cols-2
+            lg:grid-cols-3
+          ">
 
-            <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
-              <div>Route</div>
-              <div>Time</div>
-              <div>Price</div>
-              <div>Action</div>
-            </div>
+            {[
+              ["Station to Mahakal", "01h 30m", "₹400"],
+              ["Station to Bada Ganesh", "1h 30m", "₹300"],
+              ["Station to Harshiddhi", "1h 30m", "₹400"],
+              ["Station to Vikramaditya", "30m", "₹350"],
+              ["Station to Ramghat", "1h 30m", "₹300"],
+              ["Station to Shree Ram", "1h 30m", "₹400"],
+            ].map((item, i) => (
 
-        {[
-            ["Station to Mahakal", "01h 30m", "₹400"],
-            ["Statin to  Bada Ganesh Mandir", "1h 30m", "₹300"],
-            ["Station to Harshiddhi Mandir", "1h 30m", "₹400"],
-            ["Station to Vikramaditya Mandir", "30m", "₹350"],
-            ["Statin to Ramghat", "1h 30m", "₹300"],
-            ["Station to Shree Ram Mandir", "1h 30m", "₹400"],
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
-            >
-              <div>{item[0]}</div>
-              <div>{item[1]}</div>
-              <div>{item[2]}</div>
+              <ServiceCard
+                key={i}
+                route={item[0]}
+                time={item[1]}
+                price={item[2]}
+                router={router}
+              />
 
-              {/* BOOK BUTTON */}
-              <button
-                onClick={() => bookRide(item[0], item[1], item[2])}
-                className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25 mr-0"
-              >
-                Book Now
-              </button>
-            </div>
-          ))}
+            ))}
 
           </div>
+
         </section>
 
-        {/* Taxi Routes From 2*/}
-        <section>
-          <h2 className="text-3xl mb-6 gradient-text font-semibold">
-            Temple outside the city
+        {/* ================= OUTSIDE CITY ================= */}
+
+        <section className="space-y-6">
+
+          <h2 className="text-3xl gradient-text font-bold">
+            🚖 Outside City Temples
           </h2>
 
-          <div className="border border-white/10 rounded-lg overflow-hidden">
+          <div className="
+            grid gap-4
+            sm:grid-cols-2
+            lg:grid-cols-3
+          ">
 
-           <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
-              <div>Route</div>
-              <div>Time</div>
-              <div>Price</div>
-              <div>Action</div>
-            </div>
-
-          {[
-             ["Mahakal to Sandipani Ashram", "01h 30m", "₹700"],
+            {[
+              ["Mahakal to Sandipani", "01h 30m", "₹700"],
               ["Mahakal to Mangalnath", "2h 10m", "₹500"],
-              ["Mahakal to Siddhavar Ghat", "1h 00m", "₹300"],
-              ["Mahakal to Kaal-Bhairav Mandir", "01h 30m", "₹700"],
-              ["Mahakal to Gadh-kalika Mandir", "1h 00m", "₹300"],
-              ["Mahakal to Ganesh mandir", "3h 10m", "₹500"],
-              ["Mahakal to Bharthari Gufa", "1h 00m", "₹300"],
-              ["Mahakal to Rinmukteshwar Mahadev mandir", "3h 10m", "₹500"],
-          ].map((item, i) => (
-                <div
-                key={i}
-                className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
-              >
-                <div>{item[0]}</div>
-                <div>{item[1]}</div>
-                <div>{item[2]}</div>
+              ["Mahakal to Siddhavar", "1h 00m", "₹300"],
+              ["Mahakal to Kaal Bhairav", "01h 30m", "₹700"],
+              ["Mahakal to Gadh Kalika", "1h 00m", "₹300"],
+              ["Mahakal to Bharthari", "1h 00m", "₹300"],
+            ].map((item, i) => (
 
-                {/* BOOK BUTTON */}
-                <button
-                  onClick={() => bookRide(item[0], item[1], item[2])}
-                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25"
-                >
-                  Book Now
-                </button>
-              </div>
+              <ServiceCard
+                key={i}
+                route={item[0]}
+                time={item[1]}
+                price={item[2]}
+                router={router}
+              />
+
             ))}
 
           </div>
+
         </section>
 
-        {/* Taxi Routes From 3 */}
+        {/* ================= OPERATORS ================= */}
+
         <section>
-          <h2 className="text-3xl mb-6 gradient-text font-semibold">
-            Other Temples outside the city 
-          </h2>
 
-          <div className="border border-white/10 rounded-lg overflow-hidden">
-
-          <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
-            <div>Route</div>
-            <div>Time</div>
-            <div>Price</div>
-            <div>Action</div>
-          </div>
-
-            {[
-             ["Mahakal to Shree Ashtvinayak Mandir", "01h 30m", "₹700"],
-              ["Mahakal to Shree Chintaman Ganesh Mandir", "2h 10m", "₹500"],
-              ["Mahakal to Navgrah Shani Mandir", "1h 00m", "₹300"],
-              ["Mahakal to ISkon Mandir", "01h 30m", "₹700"],
-          ].map((item, i) => (
-                <div
-                key={i}
-                className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
-              >
-                <div>{item[0]}</div>
-                <div>{item[1]}</div>
-                <div>{item[2]}</div>
-
-                {/* BOOK BUTTON */}
-                <button
-                  onClick={() => bookRide(item[0], item[1], item[2])}
-                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25"
-                >
-                  Book Now
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-        {/* Taxi Routes From 4 */}
-        <section>
-          <h2 className="text-3xl mb-6 gradient-text font-semibold">
-            Some Other famous temple 
-          </h2>
-
-          <div className="border border-white/10 rounded-lg overflow-hidden">
-          <div className="grid grid-cols-4 bg-white/10 px-4 py-3 font-semibold text-sm">
-            <div>Route</div>
-            <div>Time</div>
-            <div>Price</div>
-            <div>Action</div>
-          </div>
-
-            {[
-             ["Mahakal to Bhukhi Mata Mandir", "01h 30m", "₹300"],
-              ["Mahakal to Navgrah Shani Mandir", "1h 00m", "₹400"],
-              ["Mahakal to ISkon Mandir", "01h 30m", "₹700"],
-              ["Mahakal to  BangakaMukhi Mata mandir", "1h 00m", "₹300"],
-              ["Mahakal to Angareshwar Mahadev Mandir", "3h 10m", "₹300"],
-              ["Mahakal to Vikrant Bhairav Mandir", "1h 10m", "₹400"],
-              ["Mahakal to Maa Meldi sati mata Mandir", "1h 10m", "₹400"],
-          ].map((item, i) => (
-                <div
-                key={i}
-                className="grid grid-cols-4 px-4 py-3 border-t border-white/10 text-sm hover:bg-white/5 items-center"
-              >
-                <div>{item[0]}</div>
-                <div>{item[1]}</div>
-                <div>{item[2]}</div>
-
-                {/* BOOK BUTTON */}
-                <button
-                  onClick={() => bookRide(item[0], item[1], item[2])}
-                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs font-semibold w-25"
-                >
-                  Book Now
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Operators */}
-        <section>
           <h2 className="text-3xl mb-6 gradient-text">
-            🏢 Top Operators in Ujjain
+            🏢 Top Operators
           </h2>
 
-          <Card className="card-safe bg-white/5 border border-white/10 h-[260px] overflow-y-scroll overflow-x-hidden scrollbar-hide">
+          <Card className="card-safe h-[260px] overflow-y-auto scrollbar-hide">
 
             <CardContent className="p-4 space-y-2 text-sm">
 
               {[
                 "Royal Travels",
-                "Chartered Bus",
                 "Hans Travels",
-                "Ashok Travels",
-                "Samay Shatabdi",
-                "Intercity Travels",
-                "Balaji Bus Service",
-                "GSRTC",
+                "Balaji Bus",
+                "Annapurna",
+                "Star Travels",
                 "Kabra Express",
                 "Veer Travels",
-                "Annapurna Travels",
-                "Kamla Travels",
-                "Navrang Travels",
-                "Mahalaxmi Travels",
-                "Baba Travels",
-                "SKT Ashok Travels",
-                "Shree Jain Tours",
-                "Gajraj Travels",
-                "Star Travels Ujjain",
+                "Gajraj Tours",
               ].map((op, i) => (
+
                 <div
                   key={i}
                   className="flex justify-between border-b border-white/10 py-2"
                 >
                   <span>{op}</span>
-                  <span className="text-blue-400">01234</span>
+                  <span className="text-blue-400">Available</span>
                 </div>
+
               ))}
 
             </CardContent>
+
           </Card>
+
         </section>
 
-       
-        {/* About */}
+        {/* ================= FAQ ================= */}
+
         <section>
+
           <h2 className="text-3xl mb-6 gradient-text">
-            📖 Book Ujjain Taxi on AutoSeva
+            ❓ FAQ
           </h2>
 
-          <Card className="bg-white/5 border border-white/10">
-
-            <CardContent className="p-6 text-sm leading-relaxed space-y-4">
-
-              <p className="">
-                Ujjain is one of the most beautiful destinations in India. Many
-                people visit this place every year.
-              </p>
-
-              <p>
-                Our taxis ensure safe, affordable and comfortable journeys.
-              </p>
-
-              <p>
-                Online booking makes travel easy and hassle-free.
-              </p>
-
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* FAQ */}
-        <section>
-          <h2 className="text-3xl mb-6 gradient-text">
-            ❓ Frequently Asked Questions
-          </h2>
-
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="single" collapsible>
 
             <AccordionItem value="1">
+
               <AccordionTrigger>
-                What are popular boarding points?
+                How to book?
               </AccordionTrigger>
+
               <AccordionContent>
-                Dewas Gate, Nanakheda, Mahakal Mandir, Bus Stand etc.
+                Login → Choose Ride → Click Book
               </AccordionContent>
+
             </AccordionItem>
 
             <AccordionItem value="2">
+
               <AccordionTrigger>
-                How to book taxi online?
+                Is payment safe?
               </AccordionTrigger>
+
               <AccordionContent>
-                Login → Select Route → Choose Vehicle → Pay Online.
+                Yes. All payments are secure.
               </AccordionContent>
+
             </AccordionItem>
 
             <AccordionItem value="3">
+
               <AccordionTrigger>
-                Cheapest taxi service?
+                24/7 support?
               </AccordionTrigger>
+
               <AccordionContent>
-                Local Auto and Mini Taxi services are cheapest.
+                Yes. Call or WhatsApp anytime.
               </AccordionContent>
+
             </AccordionItem>
 
           </Accordion>
+
         </section>
 
       </div>
+
     </div>
   );
 }

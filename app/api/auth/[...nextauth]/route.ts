@@ -6,9 +6,8 @@ import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 
-const ADMIN_EMAIL = "admin@gmail.com";
-
 export const authOptions: NextAuthOptions = {
+
   providers: [
 
     GoogleProvider({
@@ -49,13 +48,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Wrong password");
         }
 
-        const isAdmin = user.email === ADMIN_EMAIL;
-
+        // ✅ Return full user data
         return {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
-          role: isAdmin ? "admin" : "user",
+          role: user.role,   // IMPORTANT
         };
       },
     }),
@@ -67,20 +65,27 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
 
+    // ✅ Save id + role in token
     async jwt({ token, user }) {
+
       if (user) {
+        token.id = (user as any).id;
         token.role = (user as any).role;
       }
+
       return token;
     },
 
+    // ✅ Send id + role to session
     async session({ session, token }) {
+
       if (session.user) {
+        session.user.id = token.id as string;
         session.user.role = token.role as string;
       }
+
       return session;
     },
-
   },
 
   secret: process.env.NEXTAUTH_SECRET,
@@ -89,7 +94,6 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
 };
-
 
 const handler = NextAuth(authOptions);
 

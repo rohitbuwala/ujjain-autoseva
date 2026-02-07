@@ -1,46 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, Shield, LogOut, List } from "lucide-react";
+
+/* ======================
+   NAVBAR
+====================== */
 
 export default function Navbar() {
-
   const router = useRouter();
   const pathname = usePathname();
 
   const { data: session } = useSession();
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="
-      fixed top-0 left-0 w-full z-50
-      bg-black/70 backdrop-blur-xl
-      border-b border-white/10
-    ">
-
-      <div className="
-        max-w-7xl mx-auto px-4 py-3
-        flex items-center justify-between
-      ">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-xl border-b border-white/10 h-[64px]">
+      <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
 
         {/* LOGO */}
         <h1
           onClick={() => router.push("/")}
-          className="
-            text-xl md:text-2xl font-extrabold
-            gradient-text cursor-pointer
-            tracking-wide
-          "
+          className="text-xl md:text-2xl font-bold gradient-text cursor-pointer"
         >
           Ujjain AutoSeva
         </h1>
 
         {/* DESKTOP MENU */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-5 ml-auto">
 
           <NavBtn title="Home" link="/" active={pathname === "/"} />
 
@@ -64,50 +55,32 @@ export default function Navbar() {
                 active={pathname.startsWith("/dashboard")}
               />
 
-              <Button
-                onClick={() => signOut()}
-                className="
-                  bg-red-600/80 hover:bg-red-700
-                  rounded-full px-5
-                "
-              >
-                Logout
-              </Button>
+              {/* PROFILE */}
+              <ProfileDropdown session={session} />
+
             </>
           ) : (
             <Button
               onClick={() => router.push("/login")}
-              className="
-                btn-neon rounded-full px-6 bg-blue-400 hover:bg-blue-600
-              "
+              className="rounded-full px-6 bg-blue-500 hover:bg-blue-600"
             >
               Login
             </Button>
           )}
-
         </div>
 
-        {/* MOBILE TOGGLE */}
+        {/* MOBILE BUTTON */}
         <button
-          onClick={() => setOpen(!open)}
-          className="
-            md:hidden text-white
-            p-2 rounded-lg
-            hover:bg-white/10
-          "
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="md:hidden text-white p-2 rounded-lg hover:bg-white/10"
         >
-          {open ? <X size={26} /> : <Menu size={26} />}
+          {mobileOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
-
       </div>
 
       {/* MOBILE MENU */}
-      {open && (
-        <div className="
-          md:hidden
-          bg-black/90 backdrop-blur-xl
-          border-t border-white/10
-        ">
+      {mobileOpen && (
+        <div className="md:hidden bg-black/90 border-t border-white/10">
 
           <div className="flex flex-col p-4 gap-3">
 
@@ -115,21 +88,21 @@ export default function Navbar() {
               title="Home"
               link="/"
               active={pathname === "/"}
-              setOpen={setOpen}
+              close={setMobileOpen}
             />
 
             <MobileBtn
               title="Services"
               link="/services"
               active={pathname === "/services"}
-              setOpen={setOpen}
+              close={setMobileOpen}
             />
 
             <MobileBtn
               title="Contact"
               link="/contact"
               active={pathname === "/contact"}
-              setOpen={setOpen}
+              close={setMobileOpen}
             />
 
             {session ? (
@@ -138,105 +111,223 @@ export default function Navbar() {
                   title="Dashboard"
                   link="/dashboard"
                   active={pathname.startsWith("/dashboard")}
-                  setOpen={setOpen}
+                  close={setMobileOpen}
                 />
 
-                <Button
+                <MobileBtn
+                  title="Profile"
+                  link="/dashboard/profile"
+                  active={pathname.startsWith("/dashboard/profile")}
+                  close={setMobileOpen}
+                />
+
+                <MobileBtn
+                  title="My Bookings"
+                  link="/dashboard/booking"
+                  active={pathname.startsWith("/dashboard/booking")}
+                  close={setMobileOpen}
+                />
+
+                {/* ADMIN (Only if admin) */}
+                {session.user?.role === "admin" && (
+                  <MobileBtn
+                    title="Admin Panel"
+                    link="/admin"
+                    active={pathname.startsWith("/admin")}
+                    close={setMobileOpen}
+                  />
+                )}
+
+                {/* LOGOUT */}
+                <button
                   onClick={() => signOut()}
-                  className="bg-red-600"
+                  className="text-left px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10"
                 >
                   Logout
-                </Button>
+                </button>
               </>
             ) : (
               <Button
                 onClick={() => {
                   router.push("/login");
-                  setOpen(false);
+                  setMobileOpen(false);
                 }}
-                className="btn-neon"
               >
                 Login
               </Button>
             )}
-
           </div>
-
         </div>
       )}
-
     </nav>
   );
 }
 
-
 /* ======================
-   DESKTOP NAV BUTTON
+   PROFILE DROPDOWN
 ====================== */
 
-function NavBtn({
-  title,
-  link,
-  active,
-}: {
-  title: string;
-  link: string;
-  active: boolean;
-}) {
+function ProfileDropdown({ session }: any) {
+  const router = useRouter();
 
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  /* Close on outside click */
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const getInitials = (name: string) =>
+    name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+  return (
+    <div ref={ref} className="relative">
+
+      {/* ICON */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold hover:scale-105 transition"
+      >
+        {session.user?.image ? (
+          <img
+            src={session.user.image}
+            className="w-full h-full rounded-full object-cover"
+          />
+        ) : (
+          getInitials(session.user?.name || "U")
+        )}
+      </button>
+
+      {/* DROPDOWN */}
+      {open && (
+        <div className="absolute right-0 top-12 w-56 bg-black/95 border border-white/10 rounded-xl shadow-xl z-50">
+
+          {/* USER INFO */}
+          <div className="p-4 border-b border-white/10">
+
+            <p className="text-white font-medium text-sm">
+              {session.user?.name}
+            </p>
+
+            <p className="text-gray-400 text-xs truncate">
+              {session.user?.email}
+            </p>
+
+          </div>
+
+          {/* MENU */}
+          <div className="p-2 space-y-1">
+
+            {/* PROFILE */}
+            <MenuBtn
+              icon={<User size={16} />}
+              label="Profile"
+              onClick={() => router.push("/dashboard/profile")}
+              close={() => setOpen(false)}
+            />
+
+            {/* BOOKINGS */}
+            <MenuBtn
+              icon={<List size={16} />}
+              label="My Bookings"
+              onClick={() => router.push("/dashboard/booking")}
+              close={() => setOpen(false)}
+            />
+
+            {/* ADMIN */}
+            {session.user?.role === "admin" && (
+              <MenuBtn
+                icon={<Shield size={16} />}
+                label="Admin Panel"
+                onClick={() => router.push("/admin")}
+                close={() => setOpen(false)}
+              />
+            )}
+
+            {/* LOGOUT */}
+            <MenuBtn
+              icon={<LogOut size={16} />}
+              label="Logout"
+              danger
+              onClick={() => signOut()}
+            />
+
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ======================
+   HELPERS
+====================== */
+
+function NavBtn({ title, link, active }: any) {
   const router = useRouter();
 
   return (
     <button
       onClick={() => router.push(link)}
-      className={`
-        px-4 py-2 rounded-full text-sm font-medium
-        transition-all duration-200
-
-        ${
-          active
-            ? "bg-white/10 text-cyan-400 shadow"
-            : "text-gray-300 hover:text-cyan-400 hover:bg-white/5"
-        }
-      `}
+      className={`px-4 py-2 rounded-full text-sm transition ${
+        active
+          ? "bg-white/10 text-cyan-400"
+          : "text-gray-300 hover:text-cyan-400 hover:bg-white/5"
+      }`}
     >
       {title}
     </button>
   );
 }
 
-
-/* ======================
-   MOBILE NAV BUTTON
-====================== */
-
-function MobileBtn({
-  title,
-  link,
-  active,
-  setOpen,
-}: any) {
-
+function MobileBtn({ title, link, active, close }: any) {
   const router = useRouter();
 
   return (
     <button
       onClick={() => {
         router.push(link);
-        setOpen(false);
+        close(false);
       }}
-      className={`
-        text-left px-3 py-2 rounded-lg
-        transition
-
-        ${
-          active
-            ? "bg-white/10 text-cyan-400"
-            : "text-gray-300 hover:bg-white/5"
-        }
-      `}
+      className={`text-left px-3 py-2 rounded-lg ${
+        active
+          ? "bg-white/10 text-cyan-400"
+          : "text-gray-300 hover:bg-white/5"
+      }`}
     >
       {title}
+    </button>
+  );
+}
+
+function MenuBtn({ icon, label, onClick, close, danger }: any) {
+  return (
+    <button
+      onClick={() => {
+        onClick();
+        close && close();
+      }}
+      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+        danger
+          ? "text-red-400 hover:bg-red-500/10"
+          : "text-gray-300 hover:bg-white/10"
+      }`}
+    >
+      {icon}
+      {label}
     </button>
   );
 }

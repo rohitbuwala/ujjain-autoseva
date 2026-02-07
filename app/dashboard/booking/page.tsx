@@ -2,41 +2,97 @@
 
 import { useEffect, useState } from "react";
 
-export default function MyBookings() {
+export default function UserBookings() {
 
-  const [data, setData] = useState([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/booking/list")
-      .then(res=>res.json())
-      .then(d=>setData(d.bookings));
+
+    async function loadBookings() {
+
+      try {
+
+        const res = await fetch("/api/booking/user");
+
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setBookings(data);
+        } else {
+          setBookings([]);
+        }
+
+      } catch (err) {
+        console.error(err);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBookings();
+
   }, []);
 
-  return (
-    <div className="max-w-5xl mx-auto p-6">
+  if (loading) {
+    return <p className="p-6">Loading...</p>;
+  }
 
-      <h1 className="text-2xl mb-6 gradient-text">
+  return (
+    <div className="p-6 space-y-4 text-white">
+
+      <h1 className="text-2xl font-bold mb-4">
         My Bookings
       </h1>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      {bookings.length === 0 && (
+        <p>No bookings found</p>
+      )}
 
-        {data.map((b:any)=>(
-          <div key={b._id}
-            className="card-safe p-4 space-y-2">
+      {bookings.map((b: any) => (
 
-            <p><b>From:</b> {b.from}</p>
-            <p><b>To:</b> {b.to}</p>
-            <p><b>Date:</b> {b.date}</p>
+        <div
+          key={b._id}
+          className="card-safe p-4 space-y-2 text-sm"
+        >
 
-            <p className="text-blue-400">
+          <p>
+            <b>Route:</b> {b.route}
+          </p>
+
+          <p>
+            <b>Price:</b> ₹{b.price}
+          </p>
+
+          <p>
+            <b>Date:</b>{" "}
+            {new Date(b.createdAt).toLocaleDateString()}
+          </p>
+
+          <p>
+            <b>Status:</b>{" "}
+            <span
+              className={
+                b.status === "confirmed"
+                  ? "text-green-400"
+                  : b.status === "rejected"
+                  ? "text-red-400"
+                  : "text-yellow-400"
+              }
+            >
               {b.status}
-            </p>
+            </span>
+          </p>
 
-          </div>
-        ))}
+        </div>
+      ))}
 
-      </div>
     </div>
   );
 }

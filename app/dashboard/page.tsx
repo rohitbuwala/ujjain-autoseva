@@ -116,7 +116,7 @@ export default function DashboardPage() {
             variant="outline"
             className="border-indigo-400 text-indigo-300 hover:bg-indigo-500/20 w-full"
             onClick={() =>
-              router.push("/dashboard/bookings")
+              router.push("/dashboard/booking")
             }
           >
             View History

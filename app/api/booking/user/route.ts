@@ -1,20 +1,25 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
-import { getServerSession } from "next-auth";
 
 export async function GET() {
-  await connectDB();
 
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
-  if (!session?.user) {
-    return NextResponse.json([], { status: 401 });
+  if (!session || !session.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
 
-  const bookings = await Booking.find({
-    userId: session.user.email,
-  });
+  await connectDB();
 
-  return NextResponse.json({ bookings });
+  const bookings = await Booking.find({
+    userId: session.user.id,
+  }).sort({ createdAt: -1 });
+
+  return NextResponse.json(bookings);
 }

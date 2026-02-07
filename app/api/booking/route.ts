@@ -1,57 +1,87 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
-import { getServerSession } from "next-auth";
-import { sendWhatsApp } from "@/lib/whatsapp";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+import { bookingSchema } from "@/lib/validators/booking";
 
 export async function POST(req: Request) {
-  await connectDB();
 
-    //   // Admin Alert
-    // await sendWhatsApp(
-    //   process.env.ADMIN_PHONE!,
-    //   `🚖 New Booking!
+  try {
 
-    // Route: ${body.route}
-    // Time: ${body.time}
-    // Price: ${body.price}
+    // ✅ Session
+    const session = await getServerSession(authOptions);
 
-    // Please check admin panel.`
-    // );
+    if (!session) {
+      return NextResponse.json(
+        { error: "Login Required" },
+        { status: 401 }
+      );
+    }
 
-    // // User Alert
-    // await sendWhatsApp(
-    //   `whatsapp:${session.user.phone}`,
-    //   `✅ Booking Received!
+    // ✅ Body
+    const body = await req.json();
 
-    // Route: ${body.route}
-    // Status: Pending
+    // ✅ Zod validation
+    const parsed = bookingSchema.safeParse(body);
 
-    // We will confirm soon.`
-    // );
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
 
+    await connectDB();
 
-  const session = await getServerSession();
+    // ✅ Extract data
+    const {
+      name,
+      phone,
+      altPhone,
+      pickup,
+      drop,
+      date,
+      time,
+      price,
+    } = parsed.data;
 
-  if (!session?.user) {
+    // ✅ Build route
+    const route = `${pickup} → ${drop}`;
+
+    // ✅ Save booking (IMPORTANT FIX)
+    const booking = await Booking.create({
+
+      userId: session.user.id,
+
+      name,
+      phone,
+      altPhone,
+
+      pickup,
+      drop,
+
+      route,
+
+      date,     // ⭐ FIXED
+      time,     // ⭐ FIXED
+
+      price,
+
+      status: "pending",
+    });
+
+    return NextResponse.json(booking);
+
+  } catch (err) {
+
+    console.error("Booking Error:", err);
+
     return NextResponse.json(
-      { error: "Not logged in" },
-      { status: 401 }
+      { error: "Server Error" },
+      { status: 500 }
     );
   }
-
-  const body = await req.json();
-
-  const booking = await Booking.create({
-    userId: session.user.email,
-    name: session.user.name,
-    email: session.user.email,
-
-    route: body.route,
-    time: body.time,
-    price: body.price,
-  });
-
-  return NextResponse.json({ booking });
 }
