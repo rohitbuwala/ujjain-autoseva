@@ -201,3 +201,33 @@
 .input:focus {
   border-color: #38bdf8;
 }
+/* Fix date/time picker in dark theme */
+
+input[type="date"],
+input[type="time"] {
+  color-scheme: dark;
+}
+/* Primary Button */
+
+.btn-primary {
+  background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+  color: white;
+
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+  box-shadow: 0 0 10px rgba(56,189,248,0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(139,92,246,0.6);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}

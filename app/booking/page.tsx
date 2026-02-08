@@ -25,6 +25,7 @@ export default function BookingPage() {
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(false);
 
+
   /* ========================
      LIVE VALIDATION
   ========================= */
@@ -52,6 +53,7 @@ export default function BookingPage() {
     }
   }
 
+
   function handleChange(e: any) {
 
     const { name, value } = e.target;
@@ -64,11 +66,13 @@ export default function BookingPage() {
     validateField(name, value);
   }
 
+
   /* ========================
      SUBMIT
   ========================= */
 
   async function handleSubmit(e: any) {
+
     e.preventDefault();
 
     setLoading(true);
@@ -97,7 +101,7 @@ export default function BookingPage() {
       });
 
       if (!res.ok) {
-        alert("Booking Failed");
+        alert("Booking Failed ❌");
         return;
       }
 
@@ -105,106 +109,176 @@ export default function BookingPage() {
       router.push("/dashboard");
 
     } catch (err) {
-      alert("Server Error");
+      alert("Server Error ❌");
     }
 
     setLoading(false);
   }
 
-  return (
-    <div className="min-h-screen bg-black flex justify-center items-center pt-24">
 
+  return (
+    <div
+      className="
+        min-h-screen
+        flex items-center justify-center
+
+        px-3 sm:px-4 md:px-6
+        pt-24 pb-10
+
+        bg-black
+        overflow-x-hidden
+      "
+    >
+
+      {/* FORM CARD */}
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white/5 p-6 rounded-xl space-y-4 text-white"
+        className="
+          card-safe
+
+          w-full
+          max-w-lg lg:max-w-2xl
+
+          p-4 sm:p-6 md:p-8
+
+          rounded-xl
+
+          space-y-5
+
+          text-white
+        "
       >
 
-        <h1 className="text-2xl font-bold text-center mb-3">
-          🚖 Book Your Ride
+        {/* Heading */}
+        <h1
+          className="
+            text-xl sm:text-2xl md:text-3xl
+            font-bold text-center
+            gradient-text
+            mb-2
+          "
+        >
+           Book Your Ride
         </h1>
 
-        <Field
-          label="Full Name"
-          name="name"
-          value={form.name}
-          error={errors.name}
-          onChange={handleChange}
-        />
 
-        <Field
-          label="Mobile Number"
-          name="phone"
-          value={form.phone}
-          error={errors.phone}
-          onChange={handleChange}
-        />
+        {/* FORM GRID */}
+        <div
+          className="
+            grid
+            grid-cols-1
+            md:grid-cols-2
 
-        <Field
-          label="Alternate Number"
-          name="altPhone"
-          value={form.altPhone}
-          error={errors.altPhone}
-          onChange={handleChange}
-        />
+            gap-4
+          "
+        >
 
-        <Field
-          label="Pickup Location"
-          name="pickup"
-          value={form.pickup}
-          error={errors.pickup}
-          onChange={handleChange}
-        />
+          <Field
+            label="Full Name"
+            name="name"
+             placeholder="Enter your full name"
+            value={form.name}
+            error={errors.name}
+            onChange={handleChange}
+          />
 
-        <Field
-          label="Drop Location"
-          name="drop"
-          value={form.drop}
-          error={errors.drop}
-          onChange={handleChange}
-        />
+          <Field
+            label="Mobile Number"
+            name="phone"
+            placeholder="Enter mobile number"
+            value={form.phone}
+            error={errors.phone}
+            onChange={handleChange}
+          />
 
-        {/* DATE PICKER */}
-        <Field
-          label="Journey Date"
-          type="date"
-          name="date"
-          value={form.date}
-          error={errors.date}
-          onChange={handleChange}
-        />
+          <Field
+            label="Alternate Number"
+            name="altPhone"
+            placeholder="Optional"
+            value={form.altPhone}
+            error={errors.altPhone}
+            onChange={handleChange}
+          />
 
-        {/* TIME PICKER */}
-        <Field
-          label="Journey Time"
-          type="time"
-          name="time"
-          value={form.time}
-          error={errors.time}
-          onChange={handleChange}
-        />
+          <Field
+            label="Pickup Location"
+            name="pickup"
+            placeholder="Enter pickup point"
+            value={form.pickup}
+            error={errors.pickup}
+            onChange={handleChange}
+          />
 
-        <Field
-          label="Price (₹)"
-          name="price"
-          value={form.price}
-          error={errors.price}
-          onChange={handleChange}
-        />
+          <Field
+            label="Drop Location"
+            name="drop"
+            placeholder="Enter drop location"
+            value={form.drop}
+            error={errors.drop}
+            onChange={handleChange}
+          />
 
+          {/* DATE */}
+          <Field
+            label="Journey Date"
+            type="date"
+            name="date"
+             placeholder="Select date"
+            value={form.date}
+            error={errors.date}
+            onChange={handleChange}
+          />
+
+          {/* TIME */}
+          <Field
+            label="Journey Time"
+            type="time"
+            name="time" 
+            placeholder="Select time"
+            value={form.time}
+            error={errors.time}
+            onChange={handleChange}
+          />
+
+          <Field
+            label="Price (₹)"
+            name="price"
+            placeholder="Enter amount"
+            value={form.price}
+            error={errors.price}
+            onChange={handleChange}
+
+          />
+
+        </div>
+
+
+        {/* SUBMIT */}
         <button
           disabled={loading}
           className="
-            w-full bg-blue-600 py-2 rounded
-            hover:bg-blue-700 transition
+            btn-primary
+
+            w-full
+            py-3
+
+            text-sm sm:text-base
+            font-semibold
+
+            disabled:opacity-60
+            disabled:cursor-not-allowed
           "
         >
           {loading ? "Submitting..." : "Confirm Booking"}
         </button>
 
       </form>
+
     </div>
   );
 }
+
+
 
 /* ========================
    INPUT COMPONENT
@@ -216,12 +290,13 @@ function Field({
   error,
   onChange,
   type = "text",
+   placeholder = "",
 }: any) {
 
   const isDateOrTime = type === "date" || type === "time";
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 w-full">
 
       <label className="text-sm text-gray-300">
         {label}
@@ -232,26 +307,37 @@ function Field({
         name={name}
         value={value}
         onChange={onChange}
+       placeholder={placeholder}
 
-        /* IMPORTANT FIX */
-        onFocus={(e) => {
-          if (isDateOrTime) {
-            (e.target as any).showPicker?.();
-          }
-        }}
+        /* 🔥 IMPORTANT FIX */
+        inputMode={isDateOrTime ? "none" : "text"}
 
         className={`
-          w-full px-3 py-2 rounded
-          border bg-black text-white
+          w-full
+
+          px-3 sm:px-4
+          py-2.5
+
+          rounded-lg
+
+          border
+          bg-black/70
+          text-white
+
+          text-sm sm:text-base
 
           focus:outline-none
           focus:ring-2
 
-          ${isDateOrTime ? "cursor-pointer" : ""}
+          cursor-pointer
 
-          ${error
-            ? "border-red-500 ring-red-500/30"
-            : "border-white/20 ring-blue-500/30"
+          appearance-none
+          [-webkit-appearance:none]
+
+          ${
+            error
+              ? "border-red-500 ring-red-500/30"
+              : "border-white/20 ring-blue-500/30"
           }
         `}
       />
@@ -265,3 +351,5 @@ function Field({
     </div>
   );
 }
+
+
