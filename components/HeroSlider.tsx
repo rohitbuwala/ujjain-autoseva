@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Button } from "./ui/button";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 
 const slides = [
   {
@@ -25,52 +29,156 @@ const slides = [
 ];
 
 export default function HeroSlider() {
+
   const [current, setCurrent] = useState(0);
 
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+
+  // Login + Booking Redirect
+  function goToBooking() {
+
+    if (status === "loading") return;
+
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
+    router.push("/booking");
+  }
+
+
+  // Auto Slide
   useEffect(() => {
+
     const timer = setInterval(() => {
       setCurrent((prev) =>
         prev === slides.length - 1 ? 0 : prev + 1
       );
-    }, 4000);
+    }, 4500);
 
     return () => clearInterval(timer);
+
   }, []);
 
+
   return (
-    <div className="relative w-full h-[420px] overflow-hidden">
+    <div
+      className="
+        relative
+        w-full
+        h-64
+        sm:h-80
+        md:h-[420px]
+        lg:h-[520px]
+
+        overflow-hidden
+      "
+    >
 
       {slides.map((slide, index) => (
+
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-700
-            ${index === current ? "opacity-100" : "opacity-0"}`}
+          className={`
+            absolute inset-0
+
+            transition-opacity
+            duration-700
+
+            ${index === current ? "opacity-100" : "opacity-0"}
+          `}
         >
+
+          {/* Background Image */}
           <Image
             src={slide.img}
             alt={slide.title}
             fill
-            className="object-cover"
-            priority
+            className="object-cover object-center"
+            priority={index === 0}
           />
 
-          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center">
 
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">
+          {/* Overlay */}
+          <div
+            className="
+              absolute inset-0
+
+              bg-black/60
+
+              flex flex-col
+              items-center
+              justify-center
+
+              px-4
+              text-center
+              text-white
+            "
+          >
+
+            {/* Title */}
+            <h2
+              className="
+                font-bold
+
+                text-xl
+                sm:text-2xl
+                md:text-4xl
+                lg:text-5xl
+
+                mb-2
+                hero-text
+              "
+            >
               {slide.title}
             </h2>
 
-            <p className="mb-4 text-lg">
+
+            {/* Description */}
+            <p
+              className="
+                text-sm
+                sm:text-base
+                md:text-lg
+
+                max-w-xl
+
+                mb-4
+                text-gray-200
+              "
+            >
               {slide.desc}
             </p>
 
-            <button className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700">
-              Book Now
-            </button>
+
+            {/* CTA Button */}
+            <Button
+              disabled={status === "loading"}
+              className="
+                btn-primary
+
+                px-6
+                py-2.5
+
+                text-sm
+                sm:text-base
+
+                mt-2
+              "
+              onClick={goToBooking}
+            >
+              {status === "loading" ? "Please wait..." : "Book Now"}
+            </Button>
 
           </div>
+
         </div>
+
       ))}
+
     </div>
   );
 }

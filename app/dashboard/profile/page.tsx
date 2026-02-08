@@ -1,57 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 
+import { User, Mail, Shield } from "lucide-react";
+
+
 export default function ProfilePage() {
+
   const { data: session, status } = useSession();
   const router = useRouter();
+
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Initialize form when session loads
-  if (!formData.name && session?.user) {
-    setFormData({
-      name: session.user.name || "",
-      email: session.user.email || "",
-    });
-  }
 
-  // Loading
+  /* ================= INIT FORM ================= */
+
+  useEffect(() => {
+
+    if (session?.user) {
+      setFormData({
+        name: session.user.name || "",
+        email: session.user.email || "",
+      });
+    }
+
+  }, [session]);
+
+
+  /* ================= LOADING ================= */
+
   if (status === "loading") {
     return (
-      <p className="text-center mt-20 text-gray-300">
-        Loading...
-      </p>
+      <div className="min-h-screen flex items-center justify-center text-gray-300">
+        Loading profile...
+      </div>
     );
   }
 
-  // Not Logged In
+
+  /* ================= AUTH ================= */
+
   if (!session) {
     router.push("/login");
     return null;
   }
 
+
+  /* ================= HANDLERS ================= */
+
   const handleChange = (e: any) => {
+
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
   };
 
+
   const handleSubmit = async (e: any) => {
+
     e.preventDefault();
+
     setLoading(true);
     setMessage("");
 
     try {
+
       const response = await fetch("/api/auth/profile", {
         method: "PUT",
         headers: {
@@ -67,93 +95,210 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(`Error: ${data.message || "Failed to update profile"}`);
+        setMessage(`Error: ${data.message || "Update failed"}`);
         return;
       }
 
-      setMessage("Profile updated successfully! ✅");
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
+      setMessage("Profile updated successfully ✅");
+
+      setTimeout(() => setMessage(""), 3000);
+
     } catch (error) {
-      setMessage("Error updating profile. Please try again.");
-      console.error(error);
+
+      setMessage("Error updating profile. Try again.");
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
+
+  /* ================= UI ================= */
+
   return (
-    <div className="min-h-screen px-4 py-10 mt-10">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <section className="glass p-6 mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold text-neon">
-            Manage Your Profile
+    <div
+      className="
+        min-h-screen
+        px-4
+        sm:px-6
+        lg:px-8
+
+        py-8
+        sm:py-10
+      "
+    >
+
+      <div className="max-w-3xl mx-auto space-y-10">
+
+
+        {/* ================= HEADER ================= */}
+
+        <section
+          className="
+            card-safe
+
+            p-5
+            sm:p-6
+            lg:p-8
+
+            space-y-2
+          "
+        >
+
+          <h1
+            className="
+              text-xl
+              sm:text-2xl
+              md:text-3xl
+
+              font-bold
+              gradient-text
+            "
+          >
+            Manage Profile
           </h1>
-          <p className="text-gray-400 mt-2">
+
+          <p className="text-gray-400 text-sm sm:text-base">
             Update your personal information
           </p>
+
         </section>
 
-        {/* Profile Form */}
-        <section className="glass p-8">
+
+
+        {/* ================= FORM ================= */}
+
+        <section className="card-safe p-5 sm:p-6 lg:p-8">
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Field */}
-            <div>
-              <label className="block text-white font-semibold mb-2">
+
+
+            {/* NAME */}
+            <div className="space-y-1">
+
+              <label className="flex items-center gap-2 text-sm font-semibold">
+
+                <User size={16} />
                 Full Name
+
               </label>
+
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter your name"
+                placeholder="Enter full name"
                 className="
-                  w-full px-4 py-3 rounded-lg
-                  bg-white/5 border border-white/10
-                  text-white placeholder:text-gray-500
-                  focus:border-cyan-400 focus:outline-none
+                  w-full
+
+                  px-4
+                  py-3
+
+                  rounded-lg
+
+                  bg-black/40
+                  border
+                  border-white/15
+
+                  text-white
+                  placeholder:text-gray-500
+
+                  focus:border-cyan-400
+                  focus:ring-2
+                  focus:ring-cyan-400/20
+                  focus:outline-none
+
                   transition
                 "
               />
+
             </div>
 
-            {/* Email Field */}
-            <div>
-              <label className="block text-white font-semibold mb-2">
+
+            {/* EMAIL */}
+            <div className="space-y-1">
+
+              <label className="flex items-center gap-2 text-sm font-semibold">
+
+                <Mail size={16} />
                 Email Address
+
               </label>
+
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder="Enter email"
                 className="
-                  w-full px-4 py-3 rounded-lg
-                  bg-white/5 border border-white/10
-                  text-white placeholder:text-gray-500
-                  focus:border-cyan-400 focus:outline-none
+                  w-full
+
+                  px-4
+                  py-3
+
+                  rounded-lg
+
+                  bg-black/40
+                  border
+                  border-white/15
+
+                  text-white
+                  placeholder:text-gray-500
+
+                  focus:border-cyan-400
+                  focus:ring-2
+                  focus:ring-cyan-400/20
+                  focus:outline-none
+
                   transition
                 "
               />
+
             </div>
 
-            {/* User Info (Read-only) */}
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-2">User ID</p>
-              <p className="text-white font-mono text-sm break-all">
+
+
+            {/* USER ID */}
+            <div
+              className="
+                bg-black/30
+                border
+                border-white/10
+
+                rounded-lg
+
+                p-4
+
+                space-y-1
+              "
+            >
+
+              <p className="text-xs text-gray-400">
+                User ID
+              </p>
+
+              <p className="font-mono text-sm break-all text-white">
                 {session.user?.id}
               </p>
+
             </div>
 
-            {/* Status Message */}
+
+
+            {/* MESSAGE */}
             {message && (
+
               <div
                 className={`
-                  p-4 rounded-lg text-sm font-medium
+                  p-3
+                  rounded-lg
+                  text-sm
+
                   ${
                     message.includes("Error")
                       ? "bg-red-500/20 text-red-300 border border-red-500/30"
@@ -163,54 +308,110 @@ export default function ProfilePage() {
               >
                 {message}
               </div>
+
             )}
 
-            {/* Buttons */}
-            <div className="flex gap-3 pt-4">
+
+
+            {/* BUTTONS */}
+            <div
+              className="
+                flex
+                flex-col
+                sm:flex-row
+
+                gap-3
+                pt-4
+              "
+            >
+
               <Button
                 type="submit"
                 disabled={loading}
                 className="
-                  btn-neon px-8
-                  disabled:opacity-50 disabled:cursor-not-allowed
+                  btn-primary
+
+                  w-full
+                  sm:w-auto
+
+                  px-6
+
+                  disabled:opacity-50
                 "
               >
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
+
+
               <Button
                 type="button"
                 variant="outline"
                 className="
-                  border-gray-400 text-gray-300
-                  hover:bg-gray-500/10 px-8
+                  w-full
+                  sm:w-auto
+
+                  border-gray-400
+                  text-gray-300
+
+                  hover:bg-gray-500/10
+
+                  px-6
                 "
                 onClick={() => router.push("/dashboard")}
               >
                 Cancel
               </Button>
+
             </div>
+
           </form>
+
         </section>
 
-        {/* Additional Info */}
-        <section className="glass p-6 mt-10">
-          <h2 className="text-xl font-bold text-white mb-4">
+
+
+        {/* ================= ACCOUNT INFO ================= */}
+
+        <section className="card-safe p-5 sm:p-6 space-y-4">
+
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+
+            <Shield size={18} />
             Account Details
+
           </h2>
+
+
           <div className="space-y-3 text-sm">
+
             <div className="flex justify-between text-gray-300">
-              <span>Role:</span>
-              <span className="font-semibold capitalize">
+
+              <span>Role</span>
+
+              <span className="font-medium capitalize">
                 {session.user?.role || "User"}
               </span>
+
             </div>
-            <div className="flex justify-between text-gray-300 pt-3 border-t border-white/10">
-              <span>Email:</span>
-              <span className="font-semibold">{session.user?.email}</span>
+
+
+            <div className="flex justify-between text-gray-300 border-t border-white/10 pt-3">
+
+              <span>Email</span>
+
+              <span className="font-medium break-all">
+                {session.user?.email}
+              </span>
+
             </div>
+
           </div>
+
         </section>
+
+
       </div>
+
     </div>
   );
 }

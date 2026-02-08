@@ -231,3 +231,20 @@ input[type="time"] {
 .btn-primary:active {
   transform: scale(0.97);
 }
+/* ================= LAYOUT FIX ================= */
+
+/* Prevent shadow cutting */
+main {
+  overflow: visible;
+}
+
+/* Safe spacing under navbar */
+.page-wrapper {
+  padding-top: 90px; /* Navbar height */
+}
+
+/* Fix glow cut */
+.card-safe {
+  position: relative;
+  z-index: 1;
+}

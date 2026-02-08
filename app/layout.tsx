@@ -36,9 +36,10 @@ export default function RootLayout({
           <Navbar />
 
           {/* Page Content */}
-          <main className="min-h-screen">
-            {children}
-          </main>
+         <main className="min-h-screen page-wrapper">
+          {children}
+        </main>
+
 
           {/* Footer */}
           <Footer />
