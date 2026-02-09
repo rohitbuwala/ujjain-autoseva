@@ -2,145 +2,263 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 
-export default function AdminHomepage() {
+import {
+  FaTaxi,
+  FaUsers,
+  FaClipboardList,
+  FaHome,
+} from "react-icons/fa";
+
+
+export default function AdminDashboard() {
 
   const router = useRouter();
 
-  const [services, setServices] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    services: 0,
+    bookings: 0,
+    users: 0,
+  });
+
+  const [recentBookings, setRecentBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
 
-  // Load Services
+  /* ================= LOAD DATA ================= */
+
   useEffect(() => {
 
-    fetch("/api/services")
-      .then(res => res.json())
-      .then(data => {
-        setServices(data);
-        setLoading(false);
-      });
+    async function loadDashboard() {
+
+      try {
+
+        const res = await fetch("/api/admin/dashboard");
+        const data = await res.json();
+
+        setStats({
+          services: data.services || 0,
+          bookings: data.bookings || 0,
+          users: data.users || 0,
+        });
+
+        setRecentBookings(data.recentBookings || []);
+
+      } catch (err) {
+        console.error(err);
+      }
+
+      setLoading(false);
+    }
+
+    loadDashboard();
 
   }, []);
 
 
-  // Delete
-  async function deleteService(id: string) {
-
-    if (!confirm("Delete this service?")) return;
-
-    await fetch("/api/services", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id }),
-    });
-
-    setServices(prev => prev.filter(s => s._id !== id));
-  }
-
+  /* ================= LOADING ================= */
 
   if (loading) {
-    return <p className="p-10 text-white">Loading...</p>;
+    return (
+      <p className="text-center mt-20 text-white">
+        Loading Dashboard...
+      </p>
+    );
   }
 
 
+  /* ================= UI ================= */
+
   return (
-    <div className="p-6 text-white max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white px-4 py-10">
 
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
 
-        <h1 className="text-3xl font-bold">
-          Manage Services
+      {/* ================= HEADER ================= */}
+
+      <div className="max-w-7xl mx-auto mb-10">
+
+        <h1 className="text-3xl sm:text-4xl font-bold gradient-text">
+          Admin Dashboard
         </h1>
 
-        <Button
-          className="btn-primary"
-          onClick={() => router.push("/admin/services/add")}
-        >
-          + Add Service
-        </Button>
+        <p className="text-gray-400 mt-1">
+          Manage your system easily
+        </p>
 
       </div>
 
 
-      {/* Table */}
-      <div className="card-safe overflow-x-auto">
+      {/* ================= STATS ================= */}
 
-        <table className="w-full text-sm">
-
-          <thead className="border-b border-white/20">
-
-            <tr className="text-left">
-
-              <th className="p-3">Route</th>
-              <th>Time</th>
-              <th>Price</th>
-              <th>Category</th>
-              <th>Action</th>
-
-            </tr>
-
-          </thead>
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
 
 
-          <tbody>
+        {/* Services */}
+        <div className="card-safe p-6 flex items-center gap-5">
 
-            {services.map((s) => (
+          <FaTaxi size={40} className="text-blue-400" />
 
-              <tr
-                key={s._id}
-                className="border-b border-white/10 hover:bg-white/5"
-              >
+          <div>
+            <p className="text-gray-400 text-sm">
+              Total Services
+            </p>
 
-              <td className="p-3">
-                 {s.route || `${s.from} to ${s.to}`}
-                </td>
+            <h2 className="text-2xl font-bold">
+              {stats.services}
+            </h2>
+          </div>
 
-
-                <td>{s.time}</td>
-
-                <td>₹{s.price}</td>
-
-                <td className="capitalize">
-                {s.category || "inside"}
-              </td>
+        </div>
 
 
-                <td className="space-x-2">
+        {/* Bookings */}
+        <div className="card-safe p-6 flex items-center gap-5">
 
-                  {/* Edit */}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      router.push(`/admin/services/edit/${s._id}`)
-                    }
-                  >
-                    Edit
-                  </Button>
+          <FaClipboardList size={40} className="text-green-400" />
 
-                  {/* Delete */}
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => deleteService(s._id)}
-                  >
-                    Delete
-                  </Button>
+          <div>
+            <p className="text-gray-400 text-sm">
+              Total Bookings
+            </p>
 
-                </td>
+            <h2 className="text-2xl font-bold">
+              {stats.bookings}
+            </h2>
+          </div>
 
+        </div>
+
+
+        {/* Users */}
+        <div className="card-safe p-6 flex items-center gap-5">
+
+          <FaUsers size={40} className="text-purple-400" />
+
+          <div>
+            <p className="text-gray-400 text-sm">
+              Total Users
+            </p>
+
+            <h2 className="text-2xl font-bold">
+              {stats.users}
+            </h2>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* ================= QUICK ACTIONS ================= */}
+
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-5 mb-12">
+
+
+        <button
+          onClick={() => router.push("/admin/services")}
+          className="card-safe p-5 hover:scale-105 transition text-center"
+        >
+          <FaTaxi className="mx-auto mb-2" size={26} />
+          Manage Services
+        </button>
+
+
+        <button
+          onClick={() => router.push("/admin/bookings")}
+          className="card-safe p-5 hover:scale-105 transition text-center"
+        >
+          <FaClipboardList className="mx-auto mb-2" size={26} />
+          View Bookings
+        </button>
+
+
+        <button
+          onClick={() => router.push("/")}
+          className="card-safe p-5 hover:scale-105 transition text-center"
+        >
+          <FaHome className="mx-auto mb-2" size={26} />
+          Go to Website
+        </button>
+
+      </div>
+
+
+      {/* ================= RECENT BOOKINGS ================= */}
+
+      <div className="max-w-7xl mx-auto">
+
+        <h2 className="text-2xl font-semibold mb-5">
+          Recent Bookings
+        </h2>
+
+
+        <div className="card-safe overflow-x-auto">
+
+          <table className="w-full text-sm">
+
+            <thead className="border-b border-white/10 text-gray-400">
+
+              <tr>
+                <th className="p-3 text-left">Name</th>
+                <th className="p-3 text-left">Route</th>
+                <th className="p-3 text-left">Price</th>
+                <th className="p-3 text-left">Status</th>
               </tr>
 
-            ))}
+            </thead>
 
-          </tbody>
 
-        </table>
+            <tbody>
+
+              {recentBookings.length === 0 && (
+
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="p-4 text-center text-gray-400"
+                  >
+                    No bookings found
+                  </td>
+                </tr>
+
+              )}
+
+
+              {recentBookings.map((b, i) => (
+
+                <tr
+                  key={i}
+                  className="border-b border-white/5 hover:bg-white/5"
+                >
+
+                  <td className="p-3">{b.name}</td>
+                  <td className="p-3">{b.route}</td>
+                  <td className="p-3">₹{b.price}</td>
+
+                  <td className="p-3">
+
+                    <span
+                      className={`
+                        px-2 py-1 rounded text-xs
+                        ${b.status === "completed"
+                          ? "bg-green-600"
+                          : "bg-yellow-600"}
+                      `}
+                    >
+                      {b.status}
+                    </span>
+
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
 
       </div>
 

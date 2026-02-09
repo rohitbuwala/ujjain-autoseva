@@ -1,6 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  CheckCircle,
+  XCircle,
+  Phone,
+  User,
+  Calendar,
+  Clock,
+  IndianRupee,
+  MapPin,
+  ClipboardList,
+} from "lucide-react";
+
 
 export default function AdminBookings() {
 
@@ -8,22 +20,28 @@ export default function AdminBookings() {
   const [loading, setLoading] = useState(true);
 
 
-  // Fetch bookings
+  /* ================= LOAD ================= */
+
   useEffect(() => {
 
     async function load() {
+
       try {
+
         const res = await fetch("/api/admin/bookings");
         const data = await res.json();
 
         setBookings(Array.isArray(data) ? data : []);
 
       } catch (err) {
+
         console.error(err);
         setBookings([]);
 
       } finally {
+
         setLoading(false);
+
       }
     }
 
@@ -32,7 +50,8 @@ export default function AdminBookings() {
   }, []);
 
 
-  // Update status
+  /* ================= UPDATE ================= */
+
   async function updateStatus(id: string, status: string) {
 
     try {
@@ -56,36 +75,42 @@ export default function AdminBookings() {
         )
       );
 
-      alert("Updated Successfully ✅");
+      alert("Updated ✅");
 
     } catch (err) {
+
       console.error(err);
       alert("Server Error ❌");
+
     }
   }
 
 
-  // Loading UI
+  /* ================= LOADING ================= */
+
   if (loading) {
     return (
-      <div className="p-6 text-center text-white">
+      <p className="text-center mt-20 text-white">
         Loading...
-      </div>
+      </p>
     );
   }
 
 
-  return (
-    <div className="container py-6 px-3 sm:px-4 text-white overflow-x-hidden">
+  /* ================= UI ================= */
 
-      {/* Header */}
-      <h1 className="
-        text-2xl md:text-3xl
+  return (
+    <div className="w-full min-h-screen px-3 sm:px-6 py-6 text-white">
+
+      {/* Heading */}
+      <h1 className=" flex items-center justify-center
+        text-2xl sm:text-3xl
         font-bold mb-6
         gradient-text
-        text-center md:text-left
+        text-center sm:text-left
       ">
-        📋 Admin Booking Panel
+        <ClipboardList size={28} />
+         Admin Bookings
       </h1>
 
 
@@ -97,8 +122,8 @@ export default function AdminBookings() {
       )}
 
 
-      {/* Cards Wrapper */}
-      <div className="space-y-4 max-w-4xl mx-auto px-1 sm:px-0">
+      {/* Wrapper */}
+      <div className="space-y-4 max-w-5xl mx-auto">
 
 
         {bookings.map((b) => (
@@ -107,23 +132,20 @@ export default function AdminBookings() {
             key={b._id}
             className="
               card-safe
-              p-3 sm:p-4
               rounded-xl
-
-              w-full
-              max-w-full
-              overflow-hidden
+              p-4
 
               grid
               grid-cols-1
-              md:grid-cols-[1fr_auto]
+              md:grid-cols-[1fr_160px]
 
               gap-4
-              items-center
+              items-start
             "
           >
 
-            {/* INFO */}
+            {/* ================= INFO ================= */}
+
             <div
               className="
                 text-sm
@@ -134,48 +156,58 @@ export default function AdminBookings() {
                 lg:grid-cols-3
 
                 gap-x-6
-                gap-y-1
+                gap-y-2
               "
             >
 
-              <p><b>Name:</b> {b.name}</p>
+            <p className="flex items-center gap-1">
+                <User size={14} /> <b>Name:</b> {b.name}
+              </p>
 
-              <p><b>Phone:</b> {b.phone}</p>
+              <p className="flex items-center gap-1">
+                <Phone size={14} /> <b>Phone:</b> {b.phone}
+              </p>
 
               {b.altPhone && (
-                <p><b>Alt:</b> {b.altPhone}</p>
+                <p className="flex items-center gap-1">
+                  <Phone size={14} /> <b>Alt:</b> {b.altPhone}
+                </p>
               )}
 
-              <p>
-                <b>Route:</b>{" "}
-                <span className="text-blue-400">
+              <p className="flex items-center gap-1 sm:col-span-2">
+                <MapPin size={14} />
+                <b>Route:</b>
+                <span className="text-blue-400 ml-1">
                   {b.pickup} → {b.drop}
                 </span>
               </p>
 
-              <p><b>Date:</b> {b.date}</p>
+              <p className="flex items-center gap-1">
+                <Calendar size={14} /> <b>Date:</b> {b.date}
+              </p>
 
-              <p><b>Time:</b> {b.time}</p>
+              <p className="flex items-center gap-1">
+                <Clock size={14} /> <b>Time:</b> {b.time}
+              </p>
 
-              <p>
-                <b>Price:</b>{" "}
-                <span className="text-green-400 font-semibold">
+              <p className="flex items-center gap-1">
+                <IndianRupee size={14} />
+                <b>Price:</b>
+                <span className="text-green-400 font-semibold ml-1">
                   ₹{b.price}
                 </span>
               </p>
 
-              <p>
-                <b>Status:</b>{" "}
+              <p className="flex items-center gap-1">
+                <b>Status:</b>
                 <span
-                  className={`font-semibold
-                    ${
-                      b.status === "pending"
-                        ? "text-yellow-400"
-                        : b.status === "confirmed"
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }
-                  `}
+                  className={`ml-1 font-semibold ${
+                    b.status === "pending"
+                      ? "text-yellow-400"
+                      : b.status === "confirmed"
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
                 >
                   {b.status}
                 </span>
@@ -187,72 +219,71 @@ export default function AdminBookings() {
                 </p>
               )}
 
+              
+
             </div>
 
 
-            {/* BUTTONS */}
+            {/* ================= BUTTONS ================= */}
+
             <div
               className="
                 flex
-                flex-col
-                sm:flex-row
+                flex-row
                 md:flex-col
 
                 gap-2
 
                 w-full
                 md:w-auto
-
-                items-stretch
-                justify-center
               "
             >
 
               {b.status === "pending" && (
+
                 <>
 
-                  {/* Accept */}
-                  <button
-                    onClick={() =>
-                      updateStatus(b._id, "confirmed")
-                    }
-                    className="
-                      btn-primary
-                      bg-green-600 hover:bg-green-700
-                      rounded-xl
-                      w-full
-                      py-2
-                      text-sm
-                      text-center
+                 <button
+                      onClick={() => updateStatus(b._id, "confirmed")}
+                      className="
+                        w-full
+                        py-2
+                        rounded-lg
+                        text-sm
+                        bg-green-600
+                        hover:bg-green-700
+                        flex
+                        items-center
+                        justify-center
+                        gap-1
+                      "
+                    >
+                      <CheckCircle size={16} />
+                      Accept
+                    </button>
 
-                      sm:min-w-[90px]
-                    "
-                  >
-                    Accept
-                  </button>
+                    <button
+                      onClick={() => updateStatus(b._id, "rejected")}
+                      className="
+                        w-full
+                        py-2
+                        rounded-lg
+                        text-sm
+                        bg-red-600
+                        hover:bg-red-700
+                        flex
+                        items-center
+                        justify-center
+                        gap-1
+                      "
+                    >
+                      <XCircle size={16} />
+                      Reject
+                    </button>
 
-
-                  {/* Reject */}
-                  <button
-                    onClick={() =>
-                      updateStatus(b._id, "rejected")
-                    }
-                    className="
-                      btn-primary
-                      bg-red-600 hover:bg-red-700
-                      rounded-xl
-                      w-full
-                      py-2
-                      text-sm
-                      text-center
-
-                      sm:min-w-[90px]
-                    "
-                  >
-                    Reject
-                  </button>
 
                 </>
+
               )}
 
             </div>

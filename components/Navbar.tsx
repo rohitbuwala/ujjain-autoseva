@@ -31,7 +31,7 @@ export default function Navbar() {
         </h1>
 
         {/* DESKTOP MENU */}
-        <div className="hidden md:flex items-center gap-5 ml-auto">
+        <div className="hidden md:flex items-center gap-4 ml-auto">
 
           <NavBtn title="Home" link="/" active={pathname === "/"} />
 
@@ -55,7 +55,7 @@ export default function Navbar() {
                 active={pathname.startsWith("/dashboard")}
               />
 
-              {/* PROFILE */}
+              {/* PROFILE ONLY */}
               <ProfileDropdown session={session} />
 
             </>
@@ -128,16 +128,6 @@ export default function Navbar() {
                   close={setMobileOpen}
                 />
 
-                {/* ADMIN (Only if admin) */}
-                {session.user?.role === "admin" && (
-                  <MobileBtn
-                    title="Admin Panel"
-                    link="/admin"
-                    active={pathname.startsWith("/admin")}
-                    close={setMobileOpen}
-                  />
-                )}
-
                 {/* LOGOUT */}
                 <button
                   onClick={() => signOut()}
@@ -173,7 +163,6 @@ function ProfileDropdown({ session }: any) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  /* Close on outside click */
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -213,7 +202,7 @@ function ProfileDropdown({ session }: any) {
 
       {/* DROPDOWN */}
       {open && (
-        <div className="absolute right-0 top-12 w-56 bg-black/95 border border-white/10 rounded-xl shadow-xl z-50">
+        <div className="absolute right-0 top-12 w-60 bg-black/95 border border-white/10 rounded-xl shadow-xl z-50">
 
           {/* USER INFO */}
           <div className="p-4 border-b border-white/10">
@@ -231,7 +220,6 @@ function ProfileDropdown({ session }: any) {
           {/* MENU */}
           <div className="p-2 space-y-1">
 
-            {/* PROFILE */}
             <MenuBtn
               icon={<User size={16} />}
               label="Profile"
@@ -239,7 +227,6 @@ function ProfileDropdown({ session }: any) {
               close={() => setOpen(false)}
             />
 
-            {/* BOOKINGS */}
             <MenuBtn
               icon={<List size={16} />}
               label="My Bookings"
@@ -247,17 +234,32 @@ function ProfileDropdown({ session }: any) {
               close={() => setOpen(false)}
             />
 
-            {/* ADMIN */}
+            {/* ADMIN ONLY */}
             {session.user?.role === "admin" && (
-              <MenuBtn
-                icon={<Shield size={16} />}
-                label="Admin Panel"
-                onClick={() => router.push("/admin")}
-                close={() => setOpen(false)}
-              />
+              <>
+                <MenuBtn
+                  icon={<Shield size={16} />}
+                  label="Admin Dashboard"
+                  onClick={() => router.push("/admin")}
+                  close={() => setOpen(false)}
+                />
+
+                <MenuBtn
+                  icon={<List size={16} />}
+                  label="Admin Bookings"
+                  onClick={() => router.push("/admin/bookings")}
+                  close={() => setOpen(false)}
+                />
+
+                <MenuBtn
+                  icon={<Shield size={16} />}
+                  label="Admin Services"
+                  onClick={() => router.push("/admin/services")}
+                  close={() => setOpen(false)}
+                />
+              </>
             )}
 
-            {/* LOGOUT */}
             <MenuBtn
               icon={<LogOut size={16} />}
               label="Logout"
