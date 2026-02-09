@@ -252,3 +252,55 @@ main {
   width: 100%;
   overflow-x: hidden;
 }
+/* ================= MOBILE + DESKTOP FIX ================= */
+
+@media (max-width: 640px) {
+
+  /* Remove extra top gap */
+  .page-wrapper {
+    padding-top: 60px !important;
+  }
+
+  /* Hero mobile height */
+  .hero-text {
+    font-size: 1.3rem !important;
+  }
+
+  .section-box {
+    padding: 1rem !important;
+  }
+
+  /* Cards mobile */
+  .card-safe {
+    padding: 12px !important;
+    border-radius: 10px;
+  }
+
+  /* Grid mobile fix */
+  .mobile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Buttons mobile */
+  .btn-primary {
+    font-size: 14px;
+    min-height: 40px;
+  }
+
+}
+
+
+/* Desktop optimization */
+
+@media (min-width: 1024px) {
+
+  .section-box {
+    padding: 2.5rem;
+  }
+
+  .hero-text {
+    font-size: 3rem;
+  }
+
+}

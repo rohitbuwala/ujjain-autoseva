@@ -47,7 +47,7 @@ function goToBooking() {
 
 
   return (
-    <div className="min-h-screen bg-transparent pt-20 overflow-x-hidden">
+    <div className="min-h-screen bg-transparent overflow-x-hidden">
 
 
       {/* ================= HERO ================= */}
