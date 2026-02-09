@@ -248,3 +248,7 @@ main {
   position: relative;
   z-index: 1;
 }
+#__next {
+  width: 100%;
+  overflow-x: hidden;
+}

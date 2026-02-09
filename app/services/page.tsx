@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -11,52 +12,54 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { Clock, IndianRupee } from "lucide-react";
+import { Clock } from "lucide-react";
+
+
+// /* ================================
+//    DEFAULT SERVICES (OLD DATA SAFE)
+// ================================ */
+
+// const defaultInside = [
+//   ["Station to Mahakal", "01h 30m", "₹400"],
+//   ["Station to Bada Ganesh", "1h 30m", "₹300"],
+//   ["Station to Harshiddhi", "1h 30m", "₹400"],
+//   ["Station to Vikramaditya", "30m", "₹350"],
+//   ["Station to Ramghat", "1h 30m", "₹300"],
+//   ["Station to Shree Ram", "1h 30m", "₹400"],
+// ];
+
+// const defaultOutside = [
+//   ["Mahakal to Sandipani", "01h 30m", "₹700"],
+//   ["Mahakal to Mangalnath", "2h 10m", "₹500"],
+//   ["Mahakal to Siddhavar", "1h 00m", "₹300"],
+//   ["Mahakal to Kaal Bhairav", "01h 30m", "₹700"],
+//   ["Mahakal to Gadh Kalika", "1h 00m", "₹300"],
+//   ["Mahakal to Bharthari", "1h 00m", "₹300"],
+// ];
 
 
 /* ================================
    SERVICE CARD
 ================================ */
 
-function ServiceCard({
-  route,
-  time,
-  price,
-  router,
-}: any) {
+function ServiceCard({ route, time, price, router }: any) {
 
   const base = Number(price.replace("₹", ""));
   const fake = base + 150;
 
   return (
-    <div
-      className="
-        card-safe
+    <div className="card-safe p-4 sm:p-5 flex flex-col justify-between space-y-3">
 
-        p-4
-        sm:p-5
-
-        flex
-        flex-col
-        justify-between
-
-        space-y-3
-      "
-    >
-
-      {/* INFO */}
       <div className="space-y-2">
 
         <h3 className="font-semibold text-sm sm:text-base md:text-lg">
           {route}
         </h3>
 
-
         <p className="flex items-center gap-1 text-xs sm:text-sm text-gray-300">
           <Clock size={14} />
           {time}
         </p>
-
 
         <div className="flex items-center gap-2 flex-wrap">
 
@@ -76,25 +79,12 @@ function ServiceCard({
 
       </div>
 
-
-      {/* BUTTON */}
       <button
         onClick={() => router.push("/booking")}
         className="
-          w-full
-
-          bg-green-600
-          hover:bg-green-700
-
-          py-2.5
-
-          rounded-lg
-
-          text-sm
-          font-semibold
-
-          transition
-          active:scale-95
+          w-full bg-green-600 hover:bg-green-700
+          py-2.5 rounded-lg text-sm font-semibold
+          transition active:scale-95
         "
       >
         Book Ride
@@ -113,43 +103,55 @@ export default function ServicesPage() {
 
   const router = useRouter();
 
+  const [dbServices, setDbServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+
+  /* Load Admin Services */
+
+  useEffect(() => {
+
+    async function loadServices() {
+
+      try {
+
+        const res = await fetch("/api/services");
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setDbServices(data);
+        }
+
+      } catch (err) {
+        console.error("Service Load Error:", err);
+      }
+
+      setLoading(false);
+    }
+
+    loadServices();
+
+  }, []);
+
+
+  if (loading) {
+    return (
+      <p className="text-center mt-20 text-gray-300">
+        Loading services...
+      </p>
+    );
+  }
+
+
   return (
-    <div
-      className="
-      mt-0
-      pt-0
-        w-full
-        min-h-screen
+    <div className="w-full min-h-screen bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white">
 
-        bg-gradient-to-br
-        from-black
-        via-blue-950
-        to-purple-950
-
-        text-white
-      "
-    >
-
-      <div
-        className="
-          max-w-7xl
-          mx-auto
-
-          px-4
-          sm:px-6
-          lg:px-8
-
-          py-10
-          sm:py-14
-
-          space-y-16
-        "
-      >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16">
 
 
         {/* ================= INTRO ================= */}
 
-        <Card className="card-safe ">
+        <Card className="card-safe">
 
           <CardContent className="p-5 sm:p-6 text-center space-y-3">
 
@@ -170,8 +172,7 @@ export default function ServicesPage() {
         </Card>
 
 
-
-        {/* ================= CITY TEMPLES ================= */}
+        {/* ================= INSIDE CITY ================= */}
 
         <section className="space-y-6">
 
@@ -179,43 +180,27 @@ export default function ServicesPage() {
             Temples Inside City
           </h2>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
-          <div
-            className="
-              grid
 
-              grid-cols-1
-              sm:grid-cols-2
-              lg:grid-cols-3
-
-              gap-4
-              sm:gap-5
-            "
-          >
-
-            {[
-              ["Station to Mahakal", "01h 30m", "₹400"],
-              ["Station to Bada Ganesh", "1h 30m", "₹300"],
-              ["Station to Harshiddhi", "1h 30m", "₹400"],
-              ["Station to Vikramaditya", "30m", "₹350"],
-              ["Station to Ramghat", "1h 30m", "₹300"],
-              ["Station to Shree Ram", "1h 30m", "₹400"],
-            ].map((item, i) => (
+          {dbServices
+            .filter(s => s.category === "inside")
+            .map((s, i) => (
 
               <ServiceCard
-                key={i}
-                route={item[0]}
-                time={item[1]}
-                price={item[2]}
+                key={s._id || i}
+                route={s.route}
+                time={s.time}
+                price={`₹${s.price}`}
                 router={router}
               />
 
-            ))}
+          ))}
+
 
           </div>
 
         </section>
-
 
 
         {/* ================= OUTSIDE CITY ================= */}
@@ -226,43 +211,27 @@ export default function ServicesPage() {
             Outside City Temples
           </h2>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
-          <div
-            className="
-              grid
 
-              grid-cols-1
-              sm:grid-cols-2
-              lg:grid-cols-3
+          {dbServices
+        .filter(s => s.category === "outside")
+        .map((s, i) => (
 
-              gap-4
-              sm:gap-5
-            "
-          >
+          <ServiceCard
+            key={s._id || i}
+            route={s.route}
+            time={s.time}
+            price={`₹${s.price}`}
+            router={router}
+          />
 
-            {[
-              ["Mahakal to Sandipani", "01h 30m", "₹700"],
-              ["Mahakal to Mangalnath", "2h 10m", "₹500"],
-              ["Mahakal to Siddhavar", "1h 00m", "₹300"],
-              ["Mahakal to Kaal Bhairav", "01h 30m", "₹700"],
-              ["Mahakal to Gadh Kalika", "1h 00m", "₹300"],
-              ["Mahakal to Bharthari", "1h 00m", "₹300"],
-            ].map((item, i) => (
+      ))}
 
-              <ServiceCard
-                key={i}
-                route={item[0]}
-                time={item[1]}
-                price={item[2]}
-                router={router}
-              />
-
-            ))}
 
           </div>
 
         </section>
-
 
 
         {/* ================= OPERATORS ================= */}
@@ -272,7 +241,6 @@ export default function ServicesPage() {
           <h2 className="text-xl sm:text-2xl md:text-3xl gradient-text font-bold">
             Top Operators
           </h2>
-
 
           <Card className="card-safe max-h-[260px] overflow-y-auto scrollbar-hide">
 
@@ -291,15 +259,7 @@ export default function ServicesPage() {
 
                 <div
                   key={i}
-                  className="
-                    flex
-                    justify-between
-
-                    border-b
-                    border-white/10
-
-                    py-2
-                  "
+                  className="flex justify-between border-b border-white/10 py-2"
                 >
                   <span>{op}</span>
 
@@ -318,7 +278,6 @@ export default function ServicesPage() {
         </section>
 
 
-
         {/* ================= FAQ ================= */}
 
         <section className="space-y-5">
@@ -327,8 +286,8 @@ export default function ServicesPage() {
             FAQ
           </h2>
 
-
           <Accordion type="single" collapsible className="w-full">
+
 
             <AccordionItem value="1">
 
@@ -371,7 +330,6 @@ export default function ServicesPage() {
           </Accordion>
 
         </section>
-
 
       </div>
 
