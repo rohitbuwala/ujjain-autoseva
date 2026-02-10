@@ -8,6 +8,7 @@ import {
   Car,
   Landmark,
 } from "lucide-react";
+import { MdTempleHindu } from "react-icons/md";
 
 export default function Footer() {
 
@@ -65,7 +66,7 @@ export default function Footer() {
           >
             <Car size={22} />
             Ujjain AutoSeva
-            <Landmark size={22} />
+           <MdTempleHindu size={23} className="text-purple-400 m-2" />
           </h2>
 
           <p>

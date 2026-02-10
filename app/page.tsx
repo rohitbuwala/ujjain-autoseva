@@ -13,7 +13,6 @@ import { MdTempleHindu } from "react-icons/md";
 /* Icons */
 import {
   Car,
-  Landmark,
   FileText,
   PhoneCall,
   Package,
@@ -73,7 +72,7 @@ function goToBooking() {
 
           {[
             { title: "Taxi Booking", icon: Car, link: "/booking" },
-           { title: "Darshan", icon: MdTempleHindu, link: "/packages" },
+            { title: "Darshan", icon: MdTempleHindu, link: "/packages" },
             { title: "My Trips", icon: FileText, link: "/dashboard/bookings" },
             { title: "Support", icon: PhoneCall, link: "/contact" },
           ].map((item) => (

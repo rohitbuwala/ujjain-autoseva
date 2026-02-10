@@ -3,21 +3,30 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+/* Icons */
+import {
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaClock,
+  FaPaperPlane,
+} from "react-icons/fa";
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen w-full overflow-x-hidden pt-24 pb-20">
 
-      <div className="max-w-7xl mx-auto px-4 space-y-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-14">
 
 
-        {/* Header */}
-        <section className="text-center space-y-4">
+        {/* ================= HEADER ================= */}
+        <section className="text-center space-y-3">
 
-          <h1 className="text-4xl md:text-5xl font-bold gradient-text hero-text">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text hero-text">
             Contact Ujjain AutoSeva
           </h1>
 
-          <p className="text-gray-300 max-w-2xl mx-auto">
+          <p className="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
             Have questions? Need help with booking?
             Our support team is always ready to help you.
           </p>
@@ -25,25 +34,70 @@ export default function ContactPage() {
         </section>
 
 
-        {/* Contact Grid */}
-        <section className="grid md:grid-cols-2 gap-8">
+        {/* ================= CONTACT GRID ================= */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
 
-          {/* Info Card */}
-          <Card className="card-safe p-6 space-y-6 text-sm">
+          {/* ================= INFO CARD ================= */}
+          <Card className="card-safe p-5 sm:p-6 space-y-6 text-sm">
 
-            <h2 className="text-2xl gradient-2 font-semibold">
+            <h2 className="text-xl sm:text-2xl gradient-2 font-semibold">
               Get in Touch
             </h2>
 
-            <div className="space-y-3">
 
-              <p>📍 <b>Address:</b> Ujjain, MP, India</p>
-              <p>📞 <b>Phone:</b> +91 62631 89202</p>
-              <p>📧 <b>Email:</b> support@ujjainautoseva.com</p>
-              <p>⏰ <b>Support:</b> 24/7 Available</p>
+            <div className="space-y-4 text-gray-200">
+
+
+              {/* Address */}
+              <div className="flex items-start gap-3">
+
+                <FaMapMarkerAlt className="text-blue-400 mt-1" />
+
+                <p>
+                  <b>Address:</b> Ujjain, MP, India
+                </p>
+
+              </div>
+
+
+              {/* Phone */}
+              <div className="flex items-center gap-3">
+
+                <FaPhoneAlt className="text-green-400" />
+
+                <p>
+                  <b>Phone:</b> +91 62631 89202
+                </p>
+
+              </div>
+
+
+              {/* Email */}
+              <div className="flex items-center gap-3">
+
+                <FaEnvelope className="text-purple-400" />
+
+                <p>
+                  <b>Email:</b> support@ujjainautoseva.com
+                </p>
+
+              </div>
+
+
+              {/* Time */}
+              <div className="flex items-center gap-3">
+
+                <FaClock className="text-pink-400" />
+
+                <p>
+                  <b>Support:</b> 24/7 Available
+                </p>
+
+              </div>
 
             </div>
+
 
             <p className="pt-4 border-t border-white/10 text-xs text-gray-400">
               We usually reply within 24 hours.
@@ -52,10 +106,10 @@ export default function ContactPage() {
           </Card>
 
 
-          {/* Form Card */}
-          <Card className="card-safe p-6 space-y-6">
+          {/* ================= FORM CARD ================= */}
+          <Card className="card-safe p-5 sm:p-6 space-y-6">
 
-            <h2 className="text-2xl gradient-text-1 font-semibold">
+            <h2 className="text-xl sm:text-2xl gradient-text-1 font-semibold">
               Send Message
             </h2>
 
@@ -63,36 +117,45 @@ export default function ContactPage() {
             <form className="space-y-4">
 
 
+              {/* Name */}
               <input
                 type="text"
                 placeholder="Your Name"
-                className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
 
 
+              {/* Email */}
               <input
                 type="email"
                 placeholder="Your Email"
-                className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-purple-500"
+                className="input"
               />
 
 
+              {/* Phone */}
               <input
                 type="tel"
                 placeholder="Mobile Number"
-                className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-pink-500"
+                className="input"
               />
 
 
+              {/* Message */}
               <textarea
                 rows={4}
                 placeholder="Your Message..."
-                className="w-full rounded-lg bg-black/40 border border-white/20 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                className="input resize-none"
               ></textarea>
 
 
-              <Button className="btn-neon w-full bg-blue-400">
-                Send Message 🚀
+              {/* Button */}
+              <Button className="btn-primary w-full flex items-center justify-center gap-2">
+
+                <FaPaperPlane size={14} />
+
+                Send Message
+
               </Button>
 
 
@@ -103,14 +166,15 @@ export default function ContactPage() {
         </section>
 
 
-        {/* Map */}
-        <section className="section-box text-center space-y-6">
+        {/* ================= MAP ================= */}
+        <section className="section-box text-center space-y-5">
 
-          <h2 className="text-3xl gradient-text">
+          <h2 className="text-xl sm:text-2xl md:text-3xl gradient-text font-bold">
             Visit Our Office
           </h2>
 
-          <div className="w-full h-[300px] rounded-xl overflow-hidden border border-white/10">
+
+          <div className="w-full h-[220px] sm:h-[280px] md:h-[320px] rounded-xl overflow-hidden border border-white/10">
 
             <iframe
               src="https://maps.google.com/maps?q=ujjain&t=&z=13&ie=UTF8&iwloc=&output=embed"
@@ -124,6 +188,7 @@ export default function ContactPage() {
 
 
       </div>
+
     </div>
   );
 }
