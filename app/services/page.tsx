@@ -13,29 +13,9 @@ import {
 } from "@/components/ui/accordion";
 
 import { Clock } from "lucide-react";
+import ServiceSkeleton from "@/components/ServiceSkeleton";
 
 
-// /* ================================
-//    DEFAULT SERVICES (OLD DATA SAFE)
-// ================================ */
-
-// const defaultInside = [
-//   ["Station to Mahakal", "01h 30m", "₹400"],
-//   ["Station to Bada Ganesh", "1h 30m", "₹300"],
-//   ["Station to Harshiddhi", "1h 30m", "₹400"],
-//   ["Station to Vikramaditya", "30m", "₹350"],
-//   ["Station to Ramghat", "1h 30m", "₹300"],
-//   ["Station to Shree Ram", "1h 30m", "₹400"],
-// ];
-
-// const defaultOutside = [
-//   ["Mahakal to Sandipani", "01h 30m", "₹700"],
-//   ["Mahakal to Mangalnath", "2h 10m", "₹500"],
-//   ["Mahakal to Siddhavar", "1h 00m", "₹300"],
-//   ["Mahakal to Kaal Bhairav", "01h 30m", "₹700"],
-//   ["Mahakal to Gadh Kalika", "1h 00m", "₹300"],
-//   ["Mahakal to Bharthari", "1h 00m", "₹300"],
-// ];
 
 
 /* ================================
@@ -43,6 +23,8 @@ import { Clock } from "lucide-react";
 ================================ */
 
 function ServiceCard({ route, time, price, router }: any) {
+
+  
 
   const base = Number(price.replace("₹", ""));
   const fake = base + 150;
@@ -134,13 +116,6 @@ export default function ServicesPage() {
   }, []);
 
 
-  if (loading) {
-    return (
-      <p className="text-center mt-20 text-gray-300">
-        Loading services...
-      </p>
-    );
-  }
 
 
   return (
@@ -180,25 +155,32 @@ export default function ServicesPage() {
             Temples Inside City
           </h2>
 
+          {loading ? (
+
+          <ServiceSkeleton />
+
+        ) : (
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
+            {dbServices
+              .filter(s => s.category === "inside")
+              .map((s, i) => (
 
-          {dbServices
-            .filter(s => s.category === "inside")
-            .map((s, i) => (
+                <ServiceCard
+                  key={s._id || i}
+                  route={s.route}
+                  time={s.time}
+                  price={`₹${s.price}`}
+                  router={router}
+                />
 
-              <ServiceCard
-                key={s._id || i}
-                route={s.route}
-                time={s.time}
-                price={`₹${s.price}`}
-                router={router}
-              />
-
-          ))}
-
+            ))}
 
           </div>
+
+        )}
+
 
         </section>
 
@@ -211,25 +193,32 @@ export default function ServicesPage() {
             Outside City Temples
           </h2>
 
+         {loading ? (
+
+        <ServiceSkeleton />
+
+        ) : (
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
+            {dbServices
+              .filter(s => s.category === "outside")
+              .map((s, i) => (
 
-          {dbServices
-        .filter(s => s.category === "outside")
-        .map((s, i) => (
+                <ServiceCard
+                  key={s._id || i}
+                  route={s.route}
+                  time={s.time}
+                  price={`₹${s.price}`}
+                  router={router}
+                />
 
-          <ServiceCard
-            key={s._id || i}
-            route={s.route}
-            time={s.time}
-            price={`₹${s.price}`}
-            router={router}
-          />
-
-      ))}
-
+            ))}
 
           </div>
+
+        )}
+
 
         </section>
 
