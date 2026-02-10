@@ -108,7 +108,10 @@ export default function ServicesPage() {
         console.error("Service Load Error:", err);
       }
 
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000); // 1 second delay
+
     }
 
     loadServices();
@@ -157,7 +160,7 @@ export default function ServicesPage() {
 
           {loading ? (
 
-          <ServiceSkeleton />
+          <ServiceSkeleton  />
 
         ) : (
 

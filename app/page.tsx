@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useSession } from "next-auth/react";
 
 import HeroSlider from "@/components/HeroSlider";
+import { MdTempleHindu } from "react-icons/md";
+
 
 /* Icons */
 import {
@@ -71,7 +73,7 @@ function goToBooking() {
 
           {[
             { title: "Taxi Booking", icon: Car, link: "/booking" },
-            { title: "Darshan", icon: Landmark, link: "/packages" },
+           { title: "Darshan", icon: MdTempleHindu, link: "/packages" },
             { title: "My Trips", icon: FileText, link: "/dashboard/bookings" },
             { title: "Support", icon: PhoneCall, link: "/contact" },
           ].map((item) => (
@@ -129,11 +131,12 @@ function goToBooking() {
               desc: "Safe pickup and drop with professional drivers",
               icon: Car,
             },
-            {
+           {
               title: "Temple Darshan",
               desc: "Easy booking for Mahakal & nearby temples",
-              icon: Landmark,
+              icon: MdTempleHindu,
             },
+
             {
               title: "Tour Packages",
               desc: "Customized pilgrimage tour plans",
