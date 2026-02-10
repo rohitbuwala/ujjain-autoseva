@@ -51,6 +51,7 @@ export const config = {
   matcher: [
     "/booking/:path*",
     "/dashboard/:path*",
+    "/admin/:path*", 
   ],
 };
 

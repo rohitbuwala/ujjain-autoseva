@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error("No user found");
+           throw new Error("EMAIL_NOT_FOUND");
         }
 
         const isMatch = await bcrypt.compare(
@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isMatch) {
-          throw new Error("Wrong password");
+            throw new Error("WRONG_PASSWORD");
         }
 
         // ✅ Return full user data
