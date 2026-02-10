@@ -6,190 +6,86 @@ import {
   Mail,
   MapPin,
   Car,
-  Landmark,
+  Facebook,
+  Twitter,
+  Instagram
 } from "lucide-react";
-import { MdTempleHindu } from "react-icons/md";
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer
-      className="
-        bg-gradient-to-r
-        from-black
-        via-blue-950
-        to-purple-950
+    <footer className="bg-muted/50 border-t border-border mt-auto">
+      <div className="container-custom py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
 
-        border-t
-        border-white/10
-
-        mt-20
-      "
-    >
-
-      {/* MAIN FOOTER */}
-      <div
-        className="
-          max-w-7xl
-          mx-auto
-
-          px-4
-          sm:px-6
-          lg:px-8
-
-          py-10
-
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          md:grid-cols-3
-
-          gap-8
-
-          text-sm
-          text-gray-300
-        "
-      >
-
-        {/* ================= BRAND ================= */}
-        <div className="space-y-3">
-
-          <h2
-            className="
-              text-xl
-              font-bold
-              gradient-text
-              flex
-              items-center
-              gap-2
-            "
-          >
-            <Car size={22} />
-            Ujjain AutoSeva
-           <MdTempleHindu size={23} className="text-purple-400 m-2" />
-          </h2>
-
-          <p>
-            Online Taxi & Darshan Booking Platform
-          </p>
-
-          <p className="text-gray-400 text-sm">
-            Safe • Fast • Reliable
-          </p>
-
-        </div>
-
-
-        {/* ================= LINKS ================= */}
-        <div className="space-y-3">
-
-          <h3 className="font-semibold text-white">
-            Quick Links
-          </h3>
-
-          <ul className="space-y-2">
-
-            <li>
-              <Link
-                href="/"
-                className="hover:text-blue-400 transition"
-              >
-                Home
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/services"
-                className="hover:text-blue-400 transition"
-              >
-                Services
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/contact"
-                className="hover:text-blue-400 transition"
-              >
-                Contact
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/dashboard"
-                className="hover:text-blue-400 transition"
-              >
-                Dashboard
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/booking"
-                className="hover:text-blue-400 transition"
-              >
-                Book Now
-              </Link>
-            </li>
-
-          </ul>
-
-        </div>
-
-
-        {/* ================= CONTACT ================= */}
-        <div className="space-y-3">
-
-          <h3 className="font-semibold text-white">
-            Contact Us
-          </h3>
-
-
-          <div className="space-y-2">
-
-            <p className="flex items-center gap-2">
-              <Phone size={16} className="text-blue-400" />
-              +91 6263189202
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-primary tracking-tight">
+                Ujjain<span className="text-foreground">AutoSeva</span>
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              Your trusted partner for safe and reliable taxi services and temple darshan in Ujjain.
+              Available 24/7.
             </p>
+            <div className="flex items-center gap-4 text-muted-foreground">
+              <Link href="#" className="hover:text-primary transition-colors"><Facebook size={20} /></Link>
+              <Link href="#" className="hover:text-primary transition-colors"><Twitter size={20} /></Link>
+              <Link href="#" className="hover:text-primary transition-colors"><Instagram size={20} /></Link>
+            </div>
+          </div>
 
-            <p className="flex items-center gap-2">
-              <Mail size={16} className="text-purple-400" />
-               ankitbuwala@gmail.com
-            </p>
+          {/* Quick Links */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+              <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
+              <li><Link href="/packages" className="hover:text-primary transition-colors">Darshan Packages</Link></li>
+              <li><Link href="/booking" className="hover:text-primary transition-colors">Book a Ride</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
 
-            <p className="flex items-center gap-2">
-              <MapPin size={16} className="text-green-400" />
-              Ujjain, MP (India)
-            </p>
+          {/* Legal */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-4">Support</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/dashboard" className="hover:text-primary transition-colors">My Profile</Link></li>
+              <li><Link href="/dashboard/bookings" className="hover:text-primary transition-colors">My Bookings</Link></li>
+              <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+            </ul>
+          </div>
 
+          {/* Contact */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-4">Contact</h3>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li className="flex items-start gap-3">
+                <MapPin size={16} className="mt-1 text-primary shrink-0" />
+                <span>Ujjain, Madhya Pradesh,<br />India 456010</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Phone size={16} className="text-primary shrink-0" />
+                <a href="tel:+916263189202" className="hover:text-primary transition-colors">+91 62631 89202</a>
+              </li>
+              <li className="flex items-center gap-3">
+                <Mail size={16} className="text-primary shrink-0" />
+                <a href="mailto:ankitbuwala@gmail.com" className="hover:text-primary transition-colors">ankitbuwala@gmail.com</a>
+              </li>
+            </ul>
           </div>
 
         </div>
 
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+          <p>© {currentYear} Ujjain AutoSeva. All rights reserved.</p>
+          <p>Made with ❤️ in Ujjain</p>
+        </div>
       </div>
-
-
-      {/* ================= BOTTOM BAR ================= */}
-      <div
-        className="
-          text-center
-
-          py-4
-
-          border-t
-          border-white/10
-
-          text-gray-400
-          text-xs
-        "
-      >
-
-        © {new Date().getFullYear()} Ujjain AutoSeva • All Rights Reserved
-
-      </div>
-
     </footer>
   );
 }

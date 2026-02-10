@@ -2,329 +2,195 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-import { Card, CardContent } from "@/components/ui/card";
-
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
-import { Clock } from "lucide-react";
-import ServiceSkeleton from "@/components/ServiceSkeleton";
-
-
-
-
-/* ================================
-   SERVICE CARD
-================================ */
+import { Clock, MapPin, Loader2 } from "lucide-react";
 
 function ServiceCard({ route, time, price, router }: any) {
-
-  
-
-  const base = Number(price.replace("₹", ""));
-  const fake = base + 150;
-
   return (
-    <div className="card-safe p-4 sm:p-5 flex flex-col justify-between space-y-3">
-
-      <div className="space-y-2">
-
-        <h3 className="font-semibold text-sm sm:text-base md:text-lg">
-          {route}
-        </h3>
-
-        <p className="flex items-center gap-1 text-xs sm:text-sm text-gray-300">
+    <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300">
+      <CardHeader>
+        <div className="flex justify-between items-start gap-2">
+          <CardTitle className="text-lg lg:text-xl line-clamp-2">{route}</CardTitle>
+          <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+            Save ₹150
+          </div>
+        </div>
+        <CardDescription className="flex items-center gap-1">
           <Clock size={14} />
           {time}
-        </p>
+        </CardDescription>
+      </CardHeader>
 
-        <div className="flex items-center gap-2 flex-wrap">
-
-          <span className="line-through text-gray-400 text-xs">
-            ₹{fake}
+      <CardContent className="mt-auto pt-0">
+        <div className="flex items-end gap-2 mb-4">
+          <span className="text-2xl font-bold text-primary">{price}</span>
+          <span className="text-sm text-muted-foreground line-through mb-1">
+            ₹{Number(price.replace(/[^0-9]/g, "")) + 150}
           </span>
-
-          <span className="text-green-400 font-bold text-sm">
-            {price}
-          </span>
-
-          <span className="text-[10px] bg-red-600 px-2 py-[2px] rounded">
-            SAVE ₹150
-          </span>
-
         </div>
+        <Button
+          className="w-full"
+          onClick={() => router.push("/booking")}
+        >
+          Book Ride
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
-      </div>
-
-      <button
-        onClick={() => router.push("/booking")}
-        className="
-          w-full bg-green-600 hover:bg-green-700
-          py-2.5 rounded-lg text-sm font-semibold
-          transition active:scale-95
-        "
-      >
-        Book Ride
-      </button>
-
+function ServiceSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <Card key={i} className="h-[200px] animate-pulse bg-muted" />
+      ))}
     </div>
   );
 }
 
-
-/* ================================
-   PAGE
-================================ */
-
 export default function ServicesPage() {
-
   const router = useRouter();
-
   const [dbServices, setDbServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-
-  /* Load Admin Services */
-
   useEffect(() => {
-
     async function loadServices() {
-
       try {
-
         const res = await fetch("/api/services");
         const data = await res.json();
-
-        if (Array.isArray(data)) {
-          setDbServices(data);
-        }
-
+        if (Array.isArray(data)) setDbServices(data);
       } catch (err) {
         console.error("Service Load Error:", err);
+      } finally {
+        setTimeout(() => setLoading(false), 500);
       }
-
-      setTimeout(() => {
-        setLoading(false);
-      }, 1000); // 1 second delay
-
     }
-
     loadServices();
-
   }, []);
 
-
-
-
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white">
+    <div className="min-h-screen pb-20">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-16">
+      {/* Header */}
+      <div className="bg-muted/30 py-12 md:py-20">
+        <div className="container-custom text-center space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Our Services</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Explore our wide range of taxi and darshan packages tailored for your comfort and budget.
+          </p>
+        </div>
+      </div>
 
+      <div className="container-custom py-12 space-y-16">
 
-        {/* ================= INTRO ================= */}
-
-        <Card className="card-safe">
-
-          <CardContent className="p-5 sm:p-6 text-center space-y-3">
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold gradient-text-1">
-              Our Services
-            </h1>
-
-            <p className="text-gray-300 text-sm sm:text-base">
-              Reliable taxi & auto booking in Ujjain
-            </p>
-
-            <p className="text-gray-400 text-xs sm:text-sm">
-              Safe drivers • Verified vehicles • Best prices
-            </p>
-
-          </CardContent>
-
-        </Card>
-
-
-        {/* ================= INSIDE CITY ================= */}
-
-        <section className="space-y-6">
-
-          <h2 className="text-xl sm:text-2xl md:text-3xl gradient-text font-bold">
-            Temples Inside City
-          </h2>
+        {/* Inside City */}
+        <section>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-8 w-1 bg-primary rounded-full" />
+            <h2 className="text-2xl md:text-3xl font-bold">Temples Inside City</h2>
+          </div>
 
           {loading ? (
-
-          <ServiceSkeleton  />
-
-        ) : (
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-
-            {dbServices
-              .filter(s => s.category === "inside")
-              .map((s, i) => (
-
-                <ServiceCard
-                  key={s._id || i}
-                  route={s.route}
-                  time={s.time}
-                  price={`₹${s.price}`}
-                  router={router}
-                />
-
-            ))}
-
-          </div>
-
-        )}
-
-
+            <ServiceSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dbServices
+                .filter(s => s.category === "inside")
+                .map((s, i) => (
+                  <ServiceCard
+                    key={s._id || i}
+                    route={s.route}
+                    time={s.time}
+                    price={`₹${s.price}`}
+                    router={router}
+                  />
+                ))}
+            </div>
+          )}
         </section>
 
-
-        {/* ================= OUTSIDE CITY ================= */}
-
-        <section className="space-y-6">
-
-          <h2 className="text-xl sm:text-2xl md:text-3xl gradient-text font-bold">
-            Outside City Temples
-          </h2>
-
-         {loading ? (
-
-        <ServiceSkeleton />
-
-        ) : (
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-
-            {dbServices
-              .filter(s => s.category === "outside")
-              .map((s, i) => (
-
-                <ServiceCard
-                  key={s._id || i}
-                  route={s.route}
-                  time={s.time}
-                  price={`₹${s.price}`}
-                  router={router}
-                />
-
-            ))}
-
+        {/* Outside City */}
+        <section>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-8 w-1 bg-secondary rounded-full" />
+            <h2 className="text-2xl md:text-3xl font-bold">Outside City Temples</h2>
           </div>
 
-        )}
-
-
+          {loading ? (
+            <ServiceSkeleton />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dbServices
+                .filter(s => s.category === "outside")
+                .map((s, i) => (
+                  <ServiceCard
+                    key={s._id || i}
+                    route={s.route}
+                    time={s.time}
+                    price={`₹${s.price}`}
+                    router={router}
+                  />
+                ))}
+            </div>
+          )}
         </section>
 
-
-        {/* ================= OPERATORS ================= */}
-
-        <section className="space-y-5">
-
-          <h2 className="text-xl sm:text-2xl md:text-3xl gradient-text font-bold">
-            Top Operators
-          </h2>
-
-          <Card className="card-safe max-h-[260px] overflow-y-auto scrollbar-hide">
-
-            <CardContent className="p-4 space-y-2 text-sm">
-
-              {[
-                "Royal Travels",
-                "Hans Travels",
-                "Balaji Bus",
-                "Annapurna",
-                "Star Travels",
-                "Kabra Express",
-                "Veer Travels",
-                "Gajraj Tours",
-              ].map((op, i) => (
-
-                <div
-                  key={i}
-                  className="flex justify-between border-b border-white/10 py-2"
-                >
-                  <span>{op}</span>
-
-                  <span className="text-blue-400 text-xs sm:text-sm">
-                    Available
-                  </span>
-
-                </div>
-
-              ))}
-
+        {/* Operators */}
+        <section>
+          <h2 className="text-2xl font-bold mb-6">Trusted Operators</h2>
+          <Card>
+            <CardContent className="p-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border">
+                {[
+                  "Royal Travels", "Hans Travels", "Balaji Bus", "Annapurna",
+                  "Star Travels", "Kabra Express", "Veer Travels", "Gajraj Tours"
+                ].map((op, i) => (
+                  <div key={i} className="p-4 flex justify-between items-center hover:bg-muted/50 transition-colors">
+                    <span className="font-medium">{op}</span>
+                    <span className="text-xs font-bold text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                      Verified
+                    </span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
-
           </Card>
-
         </section>
 
-
-        {/* ================= FAQ ================= */}
-
-        <section className="space-y-5">
-
-          <h2 className="text-xl sm:text-2xl md:text-3xl gradient-text font-bold">
-            FAQ
-          </h2>
-
+        {/* FAQ */}
+        <section className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Frequently Asked Questions</h2>
           <Accordion type="single" collapsible className="w-full">
-
-
-            <AccordionItem value="1">
-
-              <AccordionTrigger>
-                How to book?
-              </AccordionTrigger>
-
+            <AccordionItem value="item-1">
+              <AccordionTrigger>How do I book a ride?</AccordionTrigger>
               <AccordionContent>
-                Login → Choose Ride → Click Book
+                Simply choose your service from the list above and click "Book Ride", or go to the Booking page directly. You can also call our support number.
               </AccordionContent>
-
             </AccordionItem>
-
-
-            <AccordionItem value="2">
-
-              <AccordionTrigger>
-                Is payment safe?
-              </AccordionTrigger>
-
+            <AccordionItem value="item-2">
+              <AccordionTrigger>Is there any advance payment?</AccordionTrigger>
               <AccordionContent>
-                Yes. All payments are secure.
+                For most city rides, you can pay after the trip. For outstation or packages, a small token amount might be required.
               </AccordionContent>
-
             </AccordionItem>
-
-
-            <AccordionItem value="3">
-
-              <AccordionTrigger>
-                24/7 support?
-              </AccordionTrigger>
-
+            <AccordionItem value="item-3">
+              <AccordionTrigger>Are the drivers verified?</AccordionTrigger>
               <AccordionContent>
-                Yes. Call or WhatsApp anytime.
+                Yes, all our drivers are background verified and trained for professional conduct.
               </AccordionContent>
-
             </AccordionItem>
-
           </Accordion>
-
         </section>
 
       </div>
-
     </div>
   );
 }

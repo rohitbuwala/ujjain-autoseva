@@ -1,329 +1,194 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { useSession } from "next-auth/react";
-
-import HeroSlider from "@/components/HeroSlider";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Hero from "@/components/Hero";
 import { MdTempleHindu } from "react-icons/md";
-
-
-/* Icons */
 import {
   Car,
-  FileText,
-  PhoneCall,
-  Package,
-  Hotel,
-  Map,
+  MapPin,
   ShieldCheck,
   Clock,
   IndianRupee,
-  Zap,
-  Lock,
-  Route,
+  PhoneCall,
+  ArrowRight,
+  Star,
 } from "lucide-react";
 
 export default function HomePage() {
+  const router = useRouter();
 
-   const router = useRouter();
-  const { data: session, status } = useSession();
+  const services = [
+    {
+      title: "City Taxi",
+      desc: "Fast & affordable city rides.",
+      icon: Car,
+      link: "/booking",
+      color: "text-blue-500",
+      bg: "bg-blue-500/10",
+    },
+    {
+      title: "Temple Darshan",
+      desc: "Mahakal & Omkareshwar trips.",
+      icon: MdTempleHindu,
+      link: "/packages",
+      color: "text-orange-500",
+      bg: "bg-orange-500/10",
+    },
+    {
+      title: "Outstation",
+      desc: "Round trips to nearby cities.",
+      icon: MapPin,
+      link: "/booking?type=outstation",
+      color: "text-green-500",
+      bg: "bg-green-500/10",
+    },
+  ];
 
-
-
-function goToBooking() {
-
-  if (status === "loading") return; // wait
-
-  if (status === "unauthenticated") {
-    router.push("/login");
-    return;
-  }
-
-  // authenticated
-  router.push("/booking");
-}
-
+  const features = [
+    {
+      title: "Verified Drivers",
+      desc: "Background checked and trained professionals.",
+      icon: ShieldCheck,
+    },
+    {
+      title: "Transparent Pricing",
+      desc: "No hidden charges. Pay what you see.",
+      icon: IndianRupee,
+    },
+    {
+      title: "24/7 Support",
+      desc: "Always here to help you during your journey.",
+      icon: Clock,
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-transparent overflow-x-hidden">
+    <div className="flex flex-col min-h-screen">
 
+      {/* HERO SECTION */}
+      <Hero />
 
-      {/* ================= HERO ================= */}
-      <HeroSlider />
+      {/* QUICK ACTIONS / SERVICES */}
+      <section className="py-16 bg-muted/30">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Our Services</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Choose from our wide range of transport services tailored for your needs in Ujjain.
+            </p>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {services.map((service) => (
+              <Card
+                key={service.title}
+                className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/20 cursor-pointer"
+                onClick={() => router.push(service.link)}
+              >
+                <CardHeader>
+                  <div className={`w-12 h-12 rounded-lg ${service.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <service.icon className={`h-6 w-6 ${service.color}`} />
+                  </div>
+                  <CardTitle>{service.title}</CardTitle>
+                  <CardDescription>{service.desc}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center text-sm font-medium text-primary">
+                    Book Now <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      {/* ================= QUICK SERVICES ================= */}
-      <section className="section-box my-12 md:my-16">
+      {/* WHY CHOOSE US */}
+      <section className="py-16 md:py-24">
+        <div className="container-custom">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Why Ride with <br />
+                <span className="text-primary">Ujjain AutoSeva?</span>
+              </h2>
+              <p className="text-muted-foreground text-lg mb-8">
+                We are committed to providing the safest and most reliable transport service in the city of Mahakal.
+              </p>
 
-        <h2 className="text-xl md:text-2xl font-bold mb-6 text-center gradient-text">
-          Quick Services
-        </h2>
+              <div className="space-y-6">
+                {features.map((feature) => (
+                  <div key={feature.title} className="flex gap-4">
+                    <div className="mt-1 bg-primary/10 p-2 rounded-full h-fit">
+                      <feature.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{feature.title}</h3>
+                      <p className="text-muted-foreground">{feature.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        <div className="
-          grid
-          grid-cols-2
-          sm:grid-cols-3
-          md:grid-cols-4
-          gap-4 sm:gap-6
-        ">
+            {/* Stats / Trust Box */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted p-6 rounded-2xl text-center">
+                <h3 className="text-4xl font-bold text-primary mb-2">5k+</h3>
+                <p className="text-sm font-medium text-muted-foreground">Happy Riders</p>
+              </div>
+              <div className="bg-muted p-6 rounded-2xl text-center">
+                <h3 className="text-4xl font-bold text-primary mb-2">500+</h3>
+                <p className="text-sm font-medium text-muted-foreground">Drivers</p>
+              </div>
+              <div className="bg-muted p-6 rounded-2xl text-center">
+                <h3 className="text-4xl font-bold text-primary mb-2">4.8</h3>
+                <div className="flex justify-center text-orange-500 mb-1">
+                  <Star size={16} fill="currentColor" />
+                  <Star size={16} fill="currentColor" />
+                  <Star size={16} fill="currentColor" />
+                  <Star size={16} fill="currentColor" />
+                  <Star size={16} fill="currentColor" />
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">Rating</p>
+              </div>
+              <div className="bg-primary p-6 rounded-2xl text-center text-primary-foreground flex flex-col justify-center items-center">
+                <PhoneCall className="h-8 w-8 mb-2" />
+                <p className="text-sm font-bold">24/7 Support</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {[
-            { title: "Taxi Booking", icon: Car, link: "/booking" },
-            { title: "Darshan", icon: MdTempleHindu, link: "/packages" },
-            { title: "My Trips", icon: FileText, link: "/dashboard/bookings" },
-            { title: "Support", icon: PhoneCall, link: "/contact" },
-          ].map((item) => (
-
-            <Card
-              key={item.title}
-              onClick={() => router.push(item.link)}
-              className="
-                card-safe
-                cursor-pointer
-                hover:scale-105
-                transition
-              "
+      {/* CTA SECTION */}
+      <section className="py-20 bg-primary text-primary-foreground">
+        <div className="container-custom text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to start your journey?</h2>
+          <p className="text-primary-foreground/80 max-w-2xl mx-auto mb-8 text-lg">
+            Book your taxi now and experience the best travel service in Ujjain.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="font-semibold h-12 px-8"
+              onClick={() => router.push("/booking")}
             >
-              <CardContent className="p-4 text-center space-y-2">
-
-                <item.icon
-                  size={32}
-                  className="mx-auto text-blue-400"
-                />
-
-                <h3 className="font-semibold text-sm">
-                  {item.title}
-                </h3>
-
-              </CardContent>
-            </Card>
-
-          ))}
-
+              Book Now
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary h-12 px-8"
+              onClick={() => router.push("/contact")}
+            >
+              Contact Us
+            </Button>
+          </div>
         </div>
-
-      </section>
-
-
-
-      {/* ================= PREMIUM SERVICES ================= */}
-      <section className="section-box">
-
-        <h2 className="text-2xl md:text-3xl text-center mb-10 gradient-text font-bold">
-          Our Premium Services
-        </h2>
-
-        <div className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          md:grid-cols-3
-          gap-5
-        ">
-
-          {[
-            {
-              title: "Taxi Service",
-              desc: "Safe pickup and drop with professional drivers",
-              icon: Car,
-            },
-           {
-              title: "Temple Darshan",
-              desc: "Easy booking for Mahakal & nearby temples",
-              icon: MdTempleHindu,
-            },
-
-            {
-              title: "Tour Packages",
-              desc: "Customized pilgrimage tour plans",
-              icon: Package,
-            },
-            {
-              title: "Hotel Booking",
-              desc: "Comfortable stay near temples",
-              icon: Hotel,
-            },
-            {
-              title: "Local Guide",
-              desc: "City guide for pilgrims & tourists",
-              icon: Map,
-            },
-          ].map((item) => (
-
-            <Card key={item.title} className="card-safe">
-
-              <CardContent className="p-5 text-center space-y-3">
-
-                <item.icon
-                  size={36}
-                  className="mx-auto text-purple-400"
-                />
-
-                <h3 className="font-semibold text-lg">
-                  {item.title}
-                </h3>
-
-                <p className="text-sm text-gray-300">
-                  {item.desc}
-                </p>
-
-              </CardContent>
-            </Card>
-
-          ))}
-
-        </div>
-
-      </section>
-
-
-
-      {/* ================= POPULAR PACKAGES ================= */}
-      <section className="section-box mt-16 md:mt-20">
-
-        <h2 className="text-2xl md:text-3xl text-center mb-10 gradient-text font-bold">
-          Popular Packages
-        </h2>
-
-        <div className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          md:grid-cols-3
-          gap-5
-        ">
-
-          {[
-            {
-              title: "1 Day Darshan",
-              price: "999",
-              desc: "Mahakal, Kaal Bhairav, Mangalnath",
-            },
-            {
-              title: "2 Day Tour",
-              price: "1999",
-              desc: "Ujjain + Omkareshwar",
-            },
-            {
-              title: "Custom Trip",
-              price: "On Request",
-              desc: "Personalized travel plan",
-            },
-          ].map((pkg) => (
-
-            <Card key={pkg.title} className="card-safe">
-
-              <CardContent className="p-5 space-y-3 text-center">
-
-                <h3 className="font-semibold text-lg">
-                  {pkg.title}
-                </h3>
-
-                <p className="flex justify-center items-center gap-1 text-blue-400 font-bold">
-
-                  {pkg.price !== "On Request" && (
-                    <IndianRupee size={16} />
-                  )}
-
-                  {pkg.price}
-
-                </p>
-
-                <p className="text-sm text-gray-300">
-                  {pkg.desc}
-                </p>
-
-               <Button
-                className="btn-primary w-full mt-2"
-                onClick={goToBooking}
-                  >
-                Book Now
-              </Button>
-
-              </CardContent>
-            </Card>
-
-          ))}
-
-        </div>
-
-      </section>
-
-
-
-      {/* ================= WHY CHOOSE US ================= */}
-      <section className="section-box mt-16 md:mt-20">
-
-        <h2 className="text-2xl md:text-3xl text-center mb-10 gradient-text font-bold">
-          Why Choose Ujjain AutoSeva?
-        </h2>
-
-        <div className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          md:grid-cols-4
-          gap-5
-        ">
-
-          {[
-            { text: "Verified Drivers", icon: ShieldCheck },
-            { text: "24/7 Support", icon: Clock },
-            { text: "Affordable Pricing", icon: IndianRupee },
-            { text: "Fast Booking", icon: Zap },
-            { text: "Secure Payments", icon: Lock },
-            { text: "Trusted Platform", icon: ShieldCheck },
-            { text: "Local Expertise", icon: Map },
-            { text: "Best Routes", icon: Route },
-          ].map((item) => (
-
-            <Card key={item.text} className="card-safe">
-
-              <CardContent className="p-4 text-center space-y-2">
-
-                <item.icon
-                  size={22}
-                  className="mx-auto text-green-400"
-                />
-
-                <p className="text-sm font-medium">
-                  {item.text}
-                </p>
-
-              </CardContent>
-            </Card>
-
-          ))}
-
-        </div>
-
-      </section>
-
-
-
-      {/* ================= CTA ================= */}
-      <section className="section-box text-center mt-20 md:mt-24 mb-16">
-
-        <h2 className="text-2xl md:text-3xl mb-4 gradient-text font-bold">
-          Ready for Your Journey?
-        </h2>
-
-        <p className="mb-6 text-gray-300 max-w-xl mx-auto">
-          Register now and book taxi, darshan, hotel & tours easily
-        </p>
-
-      <Button
-        disabled={status === "loading"}
-        className="btn-primary px-8"
-        onClick={goToBooking}
-      >
-        {status === "loading" ? "Please wait..." : "Get Started"}
-      </Button>
-
-
       </section>
 
     </div>
