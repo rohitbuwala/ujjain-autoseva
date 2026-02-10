@@ -69,11 +69,11 @@ export default function HeroSlider() {
         className="
           relative
           w-full
-
-          h-[240px]
+          md:8
+          h-[320px]
           sm:h-[300px]
           md:h-[420px]
-          lg:h-[520px]
+          lg:h-[420px]
 
           overflow-hidden
         "
