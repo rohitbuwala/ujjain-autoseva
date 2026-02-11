@@ -49,7 +49,7 @@ export default function Hero() {
                             size="lg"
                             variant="outline"
                             className="h-14 px-8 text-lg border-primary/20 hover:bg-accent transition-all hover:scale-105"
-                            onClick={() => router.push("/packages")}
+                            onClick={() => router.push("/services")}
                         >
                             <Calendar className="mr-2 h-5 w-5 text-secondary" />
                             View Darshan Packages
