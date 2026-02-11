@@ -1,55 +1,40 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { Moon, Sun, Monitor } from "lucide-react";
-import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import * as React from "react"
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
+
+import { Button } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-    const { setTheme, theme } = useTheme();
-    const [mounted, setMounted] = React.useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) {
-        return (
-            <Button variant="ghost" size="icon" className="w-10 h-10">
-                <span className="sr-only">Toggle theme</span>
-            </Button>
-        );
-    }
+    const { setTheme } = useTheme()
 
     return (
-        <div className="flex items-center gap-1 border border-border rounded-full p-1 bg-card">
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme("light")}
-                className={`w-8 h-8 rounded-full ${theme === "light" ? "bg-accent text-accent-foreground shadow-sm" : "hover:bg-muted"}`}
-            >
-                <Sun className="h-4 w-4" />
-                <span className="sr-only">Light</span>
-            </Button>
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme("dark")}
-                className={`w-8 h-8 rounded-full ${theme === "dark" ? "bg-accent text-accent-foreground shadow-sm" : "hover:bg-muted"}`}
-            >
-                <Moon className="h-4 w-4" />
-                <span className="sr-only">Dark</span>
-            </Button>
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme("system")}
-                className={`w-8 h-8 rounded-full ${theme === "system" ? "bg-accent text-accent-foreground shadow-sm" : "hover:bg-muted"}`}
-            >
-                <Monitor className="h-4 w-4" />
-                <span className="sr-only">System</span>
-            </Button>
-        </div>
-    );
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full w-9 h-9 border-border/60 bg-background/50 backdrop-blur-sm shadow-sm hover:bg-accent">
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="sr-only">Toggle theme</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                    Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
+                    System
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
 }

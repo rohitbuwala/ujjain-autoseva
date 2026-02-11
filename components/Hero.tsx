@@ -1,15 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, MapPin, Calendar, Search } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, Calendar, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Hero() {
     const router = useRouter();
 
     return (
-        <section className="relative w-full overflow-hidden bg-background pt-8 pb-16 md:pt-16 md:pb-24 lg:pb-32">
+        <section className="relative w-full overflow-hidden bg-background pt-16 pb-24 lg:pt-32 lg:pb-48">
 
             {/* Background decoration */}
             <div className="absolute top-0 right-0 -z-10 w-full h-full overflow-hidden opacity-10 dark:opacity-5 pointer-events-none">
@@ -17,97 +16,59 @@ export default function Hero() {
                 <div className="absolute bottom-[0%] left-[0%] w-[400px] h-[400px] rounded-full bg-secondary/20 blur-3xl" />
             </div>
 
-            <div className="container-custom grid lg:grid-cols-2 gap-12 items-center">
+            <div className="container-custom flex flex-col items-center text-center">
 
-                {/* Left: Content */}
-                <div className="flex flex-col gap-6 text-center lg:text-left z-10">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-sm font-medium w-fit mx-auto lg:mx-0">
+                {/* Content */}
+                <div className="max-w-3xl flex flex-col items-center gap-6 z-10">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-sm font-medium w-fit animate-in fade-in slide-in-from-bottom-3 duration-700">
                         <MapPin size={14} className="text-secondary" />
                         <span>Trust of Ujjain • Safe & Reliable</span>
                     </div>
 
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.15]">
-                        Easy Taxi & Auto <br className="hidden lg:block" />
+                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                        Easy Taxi & Auto <br />
                         Booking in <span className="text-primary">Ujjain</span>
                     </h1>
 
-                    <p className="text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                    <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
                         Book taxis for Mahakal Darshan, Omkareshwar, or local city travel.
                         Safe rides, professional drivers, and fair prices.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-4">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
                         <Button
                             size="lg"
-                            className="h-12 px-8 text-base bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                            className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-105"
                             onClick={() => router.push("/booking")}
                         >
                             Book a Ride
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
 
                         <Button
                             size="lg"
                             variant="outline"
-                            className="h-12 px-8 text-base border-primary/20 hover:bg-accent"
+                            className="h-14 px-8 text-lg border-primary/20 hover:bg-accent transition-all hover:scale-105"
                             onClick={() => router.push("/packages")}
                         >
-                            <Calendar className="mr-2 h-4 w-4 text-secondary" />
+                            <Calendar className="mr-2 h-5 w-5 text-secondary" />
                             View Darshan Packages
                         </Button>
                     </div>
 
                     {/* Trust Indicators */}
-                    <div className="pt-8 mt-4 flex flex-wrap justify-center lg:justify-start gap-8 text-sm font-medium text-muted-foreground border-t border-border">
-                        <div className="flex items-center gap-2">
+                    <div className="pt-10 mt-6 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm font-medium text-muted-foreground animate-in fade-in zoom-in duration-700 delay-500">
+                        <div className="flex items-center gap-2 bg-accent/50 px-4 py-2 rounded-full">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
                             Verified Drivers
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 bg-accent/50 px-4 py-2 rounded-full">
                             <div className="w-2 h-2 rounded-full bg-blue-500" />
                             24/7 Availability
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 bg-accent/50 px-4 py-2 rounded-full">
                             <div className="w-2 h-2 rounded-full bg-orange-500" />
                             Top Rated Service
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right: Mockup/Image */}
-                <div className="relative mx-auto w-full max-w-[500px] lg:max-w-none lg:mr-0">
-                    {/* Abstract Shape or Image Placeholder */}
-                    <div className="relative aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl bg-muted border border-border group">
-                        {/* Replace with actual image later */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center">
-                            <div className="text-center p-8">
-                                <p className="text-muted-foreground mb-4">Traveler Image / Map Illustration</p>
-                                <div className="w-24 h-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                                    <MapPin className="text-primary w-10 h-10" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Floating Card Mockup */}
-                        <div className="absolute -bottom-6 -left-6 bg-card border border-border p-4 rounded-xl shadow-xl max-w-[200px] hidden md:block animate-in slide-in-from-bottom-5 duration-1000">
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center">
-                                    ✓
-                                </span>
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Status</p>
-                                    <p className="text-sm font-bold text-foreground">Ride Confirmed</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="absolute -top-6 -right-6 bg-card border border-border p-4 rounded-xl shadow-xl max-w-[200px] hidden md:block animate-in slide-in-from-top-5 duration-1000 delay-300">
-                            <div className="flex items-center gap-3">
-                                <div className="text-left">
-                                    <p className="text-xs text-muted-foreground">Driver Arriving</p>
-                                    <p className="text-sm font-bold text-foreground">5 mins</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
