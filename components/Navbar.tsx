@@ -29,7 +29,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border h-16">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-background/95 backdrop-blur-md border-b border-border h-16">
       <div className="container-custom h-full flex items-center justify-between">
 
         {/* LOGO */}
@@ -51,8 +51,8 @@ export default function Navbar() {
                 variant="ghost"
                 onClick={() => router.push(nav.link)}
                 className={`text-sm font-medium ${pathname === nav.link
-                    ? "text-primary bg-accent/50"
-                    : "text-muted-foreground hover:text-primary"
+                  ? "text-primary bg-accent/50"
+                  : "text-muted-foreground hover:text-primary"
                   }`}
               >
                 {nav.title}

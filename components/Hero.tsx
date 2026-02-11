@@ -8,7 +8,7 @@ export default function Hero() {
     const router = useRouter();
 
     return (
-        <section className="relative w-full overflow-hidden bg-background pt-16 pb-24 lg:pt-32 lg:pb-48">
+        <section className="relative w-full overflow-hidden bg-background pt-28 pb-24 lg:pt-32 lg:pb-48">
 
             {/* Background decoration */}
             <div className="absolute top-0 right-0 -z-10 w-full h-full overflow-hidden opacity-10 dark:opacity-5 pointer-events-none">

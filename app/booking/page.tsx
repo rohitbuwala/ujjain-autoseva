@@ -34,6 +34,24 @@ export default function BookingPage() {
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [discount, setDiscount] = useState<{ saved: number, original: number, percent: number } | null>(null);
+  const [minDate, setMinDate] = useState("");
+  const [minTime, setMinTime] = useState("");
+
+  // Update min date and time
+  useEffect(() => {
+    const now = new Date();
+    // Use local time for Ujjain (assuming server/client local is fine or use UTC offset if needed)
+    // For now, simple local date
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    setMinDate(dateStr);
+
+    const hh = String(now.getHours()).padStart(2, "0");
+    const min = String(now.getMinutes()).padStart(2, "0");
+    setMinTime(`${hh}:${min}`);
+  }, []);
 
   // Fetch Routes from DB
   useEffect(() => {
@@ -112,6 +130,49 @@ export default function BookingPage() {
       return;
     }
 
+    // Date & Time Validation
+    if (name === "date") {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      if (value < todayStr) {
+        setErrors((prev: any) => ({ ...prev, date: "Please select a future date." }));
+        return;
+      }
+
+      // If today is selected, and previous time choice is now past, clear it
+      if (value === todayStr && form.time) {
+        const hh = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const currentTime = `${hh}:${minutes}`;
+        if (form.time < currentTime) {
+          setForm(prev => ({ ...prev, time: "" }));
+          setErrors((prev: any) => ({ ...prev, time: "Please select a future time for today." }));
+        }
+      }
+    }
+
+    if (name === "time") {
+      const currentDate = new Date();
+      const yyyy = currentDate.getFullYear();
+      const mm = String(currentDate.getMonth() + 1).padStart(2, "0");
+      const dd = String(currentDate.getDate()).padStart(2, "0");
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+
+      if (form.date === todayStr) {
+        const hh = String(currentDate.getHours()).padStart(2, "0");
+        const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+        const currentTime = `${hh}:${minutes}`;
+        if (value < currentTime) {
+          setErrors((prev: any) => ({ ...prev, time: "Please select a future time." }));
+          return;
+        }
+      }
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
     validateField(name, value);
   }
@@ -126,6 +187,14 @@ export default function BookingPage() {
     setLoading(true);
 
     const parsed = bookingSchema.safeParse(form);
+    const now = new Date();
+    const selectedDateTime = new Date(`${form.date}T${form.time}`);
+
+    if (selectedDateTime < now) {
+      alert("You cannot book for a past date or time. Current time: " + now.toLocaleTimeString());
+      setLoading(false);
+      return;
+    }
 
     if (!parsed.success) {
       const newErrors: any = {};
@@ -193,7 +262,7 @@ export default function BookingPage() {
                     <SelectValue placeholder="Choose a route..." />
                   </SelectTrigger>
                   <SelectContent
-                    className="max-h-[300px] z-[100] bg-white dark:bg-zinc-950 border-border shadow-2xl overflow-hidden"
+                    className="max-h-[300px] z-[100] bg-popover text-popover-foreground border-border shadow-2xl overflow-hidden"
                     position="popper"
                     sideOffset={5}
                   >
@@ -305,6 +374,7 @@ export default function BookingPage() {
                   label="Date"
                   name="date"
                   type="date"
+                  min={minDate}
                   icon={<CalendarIcon size={16} />}
                   value={form.date}
                   onChange={handleChange}
@@ -315,6 +385,7 @@ export default function BookingPage() {
                   label="Time"
                   name="time"
                   type="time"
+                  min={form.date === minDate ? minTime : undefined}
                   icon={<Clock size={16} />}
                   value={form.time}
                   onChange={handleChange}
@@ -357,7 +428,7 @@ export default function BookingPage() {
 }
 
 
-function FormInput({ label, name, type = "text", value, onChange, placeholder, error, toggleParams, icon, maxLength }: any) {
+function FormInput({ label, name, type = "text", value, onChange, placeholder, error, toggleParams, icon, maxLength, ...props }: any) {
   return (
     <div className="space-y-2 group">
       <Label htmlFor={name} className={`flex items-center gap-2 font-medium transition-colors ${error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"}`}>
@@ -371,6 +442,7 @@ function FormInput({ label, name, type = "text", value, onChange, placeholder, e
         value={value}
         onChange={onChange}
         maxLength={maxLength}
+        {...props}
         className={`h-12 border-input bg-background/50 focus:bg-background transition-all shadow-sm ${error ? "border-destructive focus-visible:ring-destructive" : "hover:border-primary/40 focus-visible:ring-primary"}`}
       />
       {error && <p className="text-xs text-destructive font-medium animate-in slide-in-from-top-1">{error}</p>}
