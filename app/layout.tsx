@@ -36,9 +36,9 @@ export default function RootLayout({
           <Navbar />
 
           {/* Page Content */}
-         <main className="min-h-screen page-wrapper w-full overflow-x-hidden">
-          {children}
-        </main>
+          <main className="min-h-screen page-wrapper w-full overflow-x-hidden pt-16">
+            {children}
+          </main>
 
 
           {/* Footer */}

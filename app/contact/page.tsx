@@ -16,7 +16,7 @@ import {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen py-16 md:py-24">
+    <div className="min-h-screen py-12 md:py-16">
 
       {/* Header */}
       <div className="container-custom text-center mb-16 space-y-4">

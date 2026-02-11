@@ -81,7 +81,7 @@ export default function ServicesPage() {
     <div className="min-h-screen pb-20">
 
       {/* Header */}
-      <div className="bg-muted/30 py-12 md:py-20">
+      <div className="bg-muted/30 py-8 md:py-12">
         <div className="container-custom text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Our Services</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

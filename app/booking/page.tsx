@@ -232,7 +232,7 @@ export default function BookingPage() {
 
 
   return (
-    <div className="min-h-screen py-12 md:py-20 px-4 flex items-start sm:items-center justify-center bg-muted/20">
+    <div className="min-h-screen py-8 md:py-12 px-4 flex items-start sm:items-center justify-center bg-muted/20">
 
       <Card className="w-full max-w-2xl shadow-2xl border-border/60 bg-card overflow-hidden">
 
