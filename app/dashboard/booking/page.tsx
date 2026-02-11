@@ -45,54 +45,70 @@ export default function UserBookings() {
   }
 
   return (
-    <div className="p-6 space-y-4 text-white">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          My Bookings
+        </h1>
+        <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
+          Total: {bookings.length}
+        </span>
+      </div>
 
-      <h1 className="text-2xl font-bold mb-4">
-        My Bookings
-      </h1>
-
-      {bookings.length === 0 && (
-        <p>No bookings found</p>
-      )}
-
-      {bookings.map((b: any) => (
-
-        <div
-          key={b._id}
-          className="card-safe p-4 space-y-2 text-sm"
-        >
-
-          <p>
-            <b>Route:</b> {b.route}
-          </p>
-
-          <p>
-            <b>Price:</b> ₹{b.price}
-          </p>
-
-          <p>
-            <b>Date:</b>{" "}
-            {new Date(b.createdAt).toLocaleDateString()}
-          </p>
-
-          <p>
-            <b>Status:</b>{" "}
-            <span
-              className={
-                b.status === "confirmed"
-                  ? "text-green-400"
-                  : b.status === "rejected"
-                  ? "text-red-400"
-                  : "text-yellow-400"
-              }
-            >
-              {b.status}
-            </span>
-          </p>
-
+      {bookings.length === 0 ? (
+        <div className="card-safe p-10 text-center space-y-2">
+          <p className="text-lg font-medium text-muted-foreground">No bookings found</p>
+          <p className="text-sm text-muted-foreground/70">When you book a ride, it will appear here.</p>
         </div>
-      ))}
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {bookings.map((b: any) => (
+            <div
+              key={b._id}
+              className="card-safe p-5 flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="flex justify-between items-start border-b border-border/50 pb-2 mb-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-primary">
+                    Ride Details
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-md font-medium capitalize ${b.status === "confirmed"
+                        ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                        : b.status === "rejected"
+                          ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                          : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                      }`}
+                  >
+                    {b.status}
+                  </span>
+                </div>
 
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2 text-foreground font-medium">
+                    <span className="text-muted-foreground shrink-0 w-16 text-xs uppercase">Route</span>
+                    <span className="truncate">{b.route}</span>
+                  </p>
+
+                  <p className="flex items-center gap-2 text-foreground">
+                    <span className="text-muted-foreground shrink-0 w-16 text-xs uppercase">Price</span>
+                    <span className="font-semibold text-lg">₹{b.price}</span>
+                  </p>
+
+                  <p className="flex items-center gap-2 text-foreground/80 text-sm">
+                    <span className="text-muted-foreground shrink-0 w-16 text-xs uppercase">Date</span>
+                    {new Date(b.createdAt).toLocaleDateString(undefined, {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

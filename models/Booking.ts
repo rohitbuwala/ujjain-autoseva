@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const bookingSchema = new mongoose.Schema({
 
   // Logged in user
+  // Logged in user
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    type: String,
     required: true,
   },
 

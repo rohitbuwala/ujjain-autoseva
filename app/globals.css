@@ -89,3 +89,7 @@
 .section-padding {
   @apply py-16 md:py-24;
 }
+
+.card-safe {
+  @apply bg-card text-card-foreground border border-border rounded-xl shadow-sm transition-all hover:shadow-md;
+}
