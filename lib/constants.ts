@@ -6,6 +6,7 @@ export const PREDEFINED_ROUTES = [
         pickup: "Ujjain Railway Station",
         drop: "Mahakaleshwar Temple",
         price: "150",
+        originalPrice: "200", // ~25% off
     },
     {
         id: "r2",
@@ -13,6 +14,7 @@ export const PREDEFINED_ROUTES = [
         pickup: "Ujjain Railway Station",
         drop: "Nanakheda Bus Stand",
         price: "200",
+        originalPrice: "300", // ~33% off
     },
     {
         id: "r3",
@@ -20,6 +22,7 @@ export const PREDEFINED_ROUTES = [
         pickup: "Mahakaleshwar Temple",
         drop: "Omkareshwar",
         price: "2500",
+        originalPrice: "3500", // ~28% off
     },
     {
         id: "r4",
@@ -27,6 +30,7 @@ export const PREDEFINED_ROUTES = [
         pickup: "Anywhere in City",
         drop: "Anywhere in City",
         price: "1500",
+        originalPrice: "2200", // ~32% off
     },
     {
         id: "r5",
@@ -34,5 +38,6 @@ export const PREDEFINED_ROUTES = [
         pickup: "Ujjain Railway Station",
         drop: "Hotel (City Area)",
         price: "100",
+        originalPrice: "150", // ~33% off
     },
 ];

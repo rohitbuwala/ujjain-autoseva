@@ -12,14 +12,15 @@ import {
 } from "@/components/ui/accordion";
 import { Clock, MapPin, Loader2 } from "lucide-react";
 
-function ServiceCard({ route, time, price, router }: any) {
+
+function ServiceCard({ route, time, price, originalPrice, saveAmount, router }: any) {
   return (
-    <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300">
+    <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-border/60">
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
-          <CardTitle className="text-lg lg:text-xl line-clamp-2">{route}</CardTitle>
+          <CardTitle className="text-lg lg:text-xl line-clamp-2 leading-tight">{route}</CardTitle>
           <div className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-            Save ₹150
+            {saveAmount}
           </div>
         </div>
         <CardDescription className="flex items-center gap-1">
@@ -31,12 +32,12 @@ function ServiceCard({ route, time, price, router }: any) {
       <CardContent className="mt-auto pt-0">
         <div className="flex items-end gap-2 mb-4">
           <span className="text-2xl font-bold text-primary">{price}</span>
-          <span className="text-sm text-muted-foreground line-through mb-1">
-            ₹{Number(price.replace(/[^0-9]/g, "")) + 150}
+          <span className="text-sm text-muted-foreground line-through mb-1 decoration-destructive/40">
+            {originalPrice}
           </span>
         </div>
         <Button
-          className="w-full"
+          className="w-full font-semibold"
           onClick={() => router.push("/booking")}
         >
           Book Ride
@@ -91,6 +92,7 @@ export default function ServicesPage() {
 
       <div className="container-custom py-12 space-y-16">
 
+
         {/* Inside City */}
         <section>
           <div className="flex items-center gap-3 mb-8">
@@ -104,15 +106,25 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {dbServices
                 .filter(s => s.category === "inside")
-                .map((s, i) => (
-                  <ServiceCard
-                    key={s._id || i}
-                    route={s.route}
-                    time={s.time}
-                    price={`₹${s.price}`}
-                    router={router}
-                  />
-                ))}
+                .map((s, i) => {
+                  // Dynamic Discount Logic
+                  const price = s.price;
+                  // Add ~25-30% markup for original price to show discount
+                  const originalPrice = Math.round(price * 1.3);
+                  const saveAmount = originalPrice - price;
+
+                  return (
+                    <ServiceCard
+                      key={s._id || i}
+                      route={s.route || s.from + " to " + s.to}
+                      time={s.time || "2-3 Hours"}
+                      price={`₹${price}`}
+                      originalPrice={`₹${originalPrice}`}
+                      saveAmount={`Save ₹${saveAmount}`}
+                      router={router}
+                    />
+                  );
+                })}
             </div>
           )}
         </section>
@@ -130,15 +142,23 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {dbServices
                 .filter(s => s.category === "outside")
-                .map((s, i) => (
-                  <ServiceCard
-                    key={s._id || i}
-                    route={s.route}
-                    time={s.time}
-                    price={`₹${s.price}`}
-                    router={router}
-                  />
-                ))}
+                .map((s, i) => {
+                  const price = s.price;
+                  const originalPrice = Math.round(price * 1.25);
+                  const saveAmount = originalPrice - price;
+
+                  return (
+                    <ServiceCard
+                      key={s._id || i}
+                      route={s.route || s.from + " to " + s.to}
+                      time={s.time || "Full Day"}
+                      price={`₹${price}`}
+                      originalPrice={`₹${originalPrice}`}
+                      saveAmount={`Save ₹${saveAmount}`}
+                      router={router}
+                    />
+                  );
+                })}
             </div>
           )}
         </section>

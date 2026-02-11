@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CalendarIcon, Clock, MapPin, IndianRupee } from "lucide-react";
-import { PREDEFINED_ROUTES } from "@/lib/constants";
+import { Loader2, CalendarIcon, Clock, MapPin, Phone, User, TicketPercent, AlertCircle } from "lucide-react";
 
 type BookingForm = z.infer<typeof bookingSchema>;
 
@@ -29,23 +28,61 @@ export default function BookingPage() {
     price: "",
   });
 
+  const [routes, setRoutes] = useState<any[]>([]);
+  const [loadingRoutes, setLoadingRoutes] = useState(true);
   const [selectedRouteId, setSelectedRouteId] = useState<string>("");
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [discount, setDiscount] = useState<{ saved: number, original: number, percent: number } | null>(null);
+
+  // Fetch Routes from DB
+  useEffect(() => {
+    async function fetchRoutes() {
+      try {
+        const res = await fetch("/api/services");
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setRoutes(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch routes", error);
+      } finally {
+        setLoadingRoutes(false);
+      }
+    }
+    fetchRoutes();
+  }, []);
 
 
   // Handle Route Selection
   const handleRouteChange = (routeId: string) => {
     setSelectedRouteId(routeId);
-    const route = PREDEFINED_ROUTES.find(r => r.id === routeId);
+    const route = routes.find(r => (r._id || r.id) === routeId);
 
     if (route) {
       setForm(prev => ({
         ...prev,
-        pickup: route.pickup,
-        drop: route.drop,
-        price: route.price
+        pickup: route.from || "Ujjain", // Fallback if missing
+        drop: route.to || route.route, // Use 'to' or route name
+        price: String(route.price)
       }));
+
+      // Calculate Discount (Same logic as Service Page)
+      const price = Number(route.price);
+      // Dynamic markup logic based on category/price to match service page
+      let markup = 1.3; // Default 30%
+      if (route.category === "outside") markup = 1.25; // 25% for outside
+
+      const original = Math.round(price * markup);
+      const saved = original - price;
+      const percent = Math.round((saved / original) * 100);
+
+      if (saved > 0) {
+        setDiscount({ saved, original, percent });
+      } else {
+        setDiscount(null);
+      }
+
       // Clear errors for these fields if any
       setErrors((prev: any) => ({ ...prev, pickup: "", drop: "", price: "" }));
     }
@@ -126,151 +163,190 @@ export default function BookingPage() {
 
 
   return (
-    <div className="min-h-screen py-20 px-4 bg-muted/30 flex items-center justify-center">
+    <div className="min-h-screen py-12 md:py-20 px-4 flex items-start sm:items-center justify-center bg-muted/20">
 
-      <Card className="w-full max-w-2xl shadow-xl border-border/60 bg-card">
+      <Card className="w-full max-w-2xl shadow-2xl border-border/60 bg-card overflow-hidden">
 
-        <CardHeader className="text-center pb-8 border-b border-border/40 mb-6 bg-accent/20 rounded-t-xl">
-          <CardTitle className="text-3xl font-bold tracking-tight text-primary">Book Your Ride</CardTitle>
-          <CardDescription className="text-base text-muted-foreground mt-2">
-            Select your route and schedule your journey in seconds.
+        <div className="bg-gradient-to-r from-primary to-blue-600 h-2 w-full" />
+
+        <CardHeader className="pb-8 border-b border-border/40 mb-6 bg-accent/10">
+          <CardTitle className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground text-center">
+            Book a Ride
+          </CardTitle>
+          <CardDescription className="text-base sm:text-lg text-muted-foreground mt-2 text-center">
+            Select a service and book instantly.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="px-6 sm:px-8">
+        <CardContent className="px-6 sm:px-10 pb-10">
           <form onSubmit={handleSubmit} className="space-y-8">
 
             {/* Route Selection */}
-            <div className="space-y-4">
-              <Label className="text-base font-semibold">Select Route</Label>
-              <Select onValueChange={handleRouteChange} value={selectedRouteId}>
-                <SelectTrigger className="h-12 text-base bg-background">
-                  <SelectValue placeholder="Choose a route..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {PREDEFINED_ROUTES.map((route) => (
-                    <SelectItem key={route.id} value={route.id} className="cursor-pointer py-3">
-                      <span className="font-medium">{route.label}</span>
-                      <span className="ml-2 text-muted-foreground text-sm">- ₹{route.price}</span>
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="custom" className="text-muted-foreground italic" disabled>
-                    Custom Route (Contact Admin)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-3 relative z-30">
+              <Label className="text-base font-semibold text-foreground">Select Service / Route</Label>
+
+              {loadingRoutes ? (
+                <div className="h-14 w-full bg-muted animate-pulse rounded-md border border-input" />
+              ) : (
+                <Select onValueChange={handleRouteChange} value={selectedRouteId}>
+                  <SelectTrigger className="h-14 text-base bg-background shadow-sm border-input hover:border-primary/50 transition-colors">
+                    <SelectValue placeholder="Choose a route..." />
+                  </SelectTrigger>
+                  <SelectContent
+                    className="max-h-[300px] z-[100] bg-white dark:bg-zinc-950 border-border shadow-2xl overflow-hidden"
+                    position="popper"
+                    sideOffset={5}
+                  >
+                    {routes.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground text-sm">
+                        No routes available. Please contact support.
+                      </div>
+                    ) : (
+                      routes.map((route) => {
+                        const price = Number(route.price);
+                        let markup = 1.3;
+                        if (route.category === "outside") markup = 1.25;
+                        const original = Math.round(price * markup);
+                        const off = Math.round(((original - price) / original) * 100);
+
+                        const label = route.route || `${route.from} to ${route.to}`;
+
+                        return (
+                          <SelectItem key={route._id || route.id} value={route._id || route.id} className="cursor-pointer py-3 px-4 focus:bg-accent focus:text-accent-foreground border-b border-border/30 last:border-0">
+                            <div className="flex flex-col gap-1 items-start text-left w-full">
+                              <span className="font-semibold text-foreground text-base pr-8">{label}</span>
+                              <div className="flex justify-between w-full items-center mt-1">
+                                <span className="text-xs text-muted-foreground flex gap-2 items-center">
+                                  <span className="line-through opacity-70">₹{original}</span>
+                                  <span className="font-bold text-primary">₹{price}</span>
+                                </span>
+                                {off > 0 && (
+                                  <span className="text-[10px] font-bold text-green-600 bg-green-100 dark:bg-green-900/40 px-2 py-0.5 rounded-full">
+                                    {off}% OFF
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </SelectItem>
+                        );
+                      })
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              <FormInput
-                label="Full Name"
-                name="name"
-                placeholder="Ex. Rahul Sharma"
-                value={form.name}
-                onChange={handleChange}
-                error={errors.name}
-              />
-
-              <FormInput
-                label="Mobile Number"
-                name="phone"
-                placeholder="9876543210"
-                type="number"
-                value={form.phone}
-                onChange={handleChange}
-                error={errors.phone}
-                maxLength={10}
-              />
-
-            </div>
-
-            {/* Auto-Filled Details (Read Only) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-muted/40 p-4 rounded-lg border border-border/50">
-
-              <div className="md:col-span-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-[-10px]">
-                Route Details
-              </div>
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin size={16} /> Pickup Point
-                </Label>
-                <Input
-                  value={form.pickup}
-                  readOnly
-                  className="bg-muted text-muted-foreground focus-visible:ring-0 border-transparent shadow-none font-medium"
-                  placeholder="Auto-filled"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-muted-foreground">
-                  <MapPin size={16} /> Drop Point
-                </Label>
-                <Input
-                  value={form.drop}
-                  readOnly
-                  className="bg-muted text-muted-foreground focus-visible:ring-0 border-transparent shadow-none font-medium"
-                  placeholder="Auto-filled"
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label className="flex items-center gap-2 text-muted-foreground">
-                  <IndianRupee size={16} /> Estimated Fare
-                </Label>
-                <div className="text-2xl font-bold text-primary px-3 py-2">
-                  {form.price ? `₹${form.price}` : "₹0"}
+            {/* Price Summary Panel */}
+            {selectedRouteId && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 flex flex-col sm:flex-row justify-between items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="text-center sm:text-left">
+                  <p className="text-sm text-muted-foreground font-medium mb-1">Total Fare</p>
+                  <div className="flex items-baseline gap-2 justify-center sm:justify-start">
+                    <h3 className="text-3xl font-bold text-primary">₹{form.price}</h3>
+                    {discount && <span className="text-lg text-muted-foreground line-through decoration-destructive/50">₹{discount.original}</span>}
+                  </div>
                 </div>
+                {discount && (
+                  <div className="bg-white dark:bg-slate-900 shadow-sm border border-border/50 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <TicketPercent className="h-5 w-5 text-green-500" />
+                    <div>
+                      <p className="text-xs text-muted-foreground font-semibold uppercase">You Save</p>
+                      <p className="text-green-600 font-bold">₹{discount.saved} ({discount.percent}%)</p>
+                    </div>
+                  </div>
+                )}
               </div>
+            )}
 
+            {/* Personal Details */}
+            <div className="space-y-4 pt-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-2">Passenger Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput
+                  label="Full Name"
+                  name="name"
+                  placeholder="Ex. Rahul Sharma"
+                  icon={<User size={16} />}
+                  value={form.name}
+                  onChange={handleChange}
+                  error={errors.name}
+                />
+
+                <FormInput
+                  label="Mobile Number"
+                  name="phone"
+                  placeholder="10-digit number"
+                  type="number"
+                  icon={<Phone size={16} />}
+                  value={form.phone}
+                  onChange={handleChange}
+                  error={errors.phone}
+                  maxLength={10}
+                />
+                <FormInput
+                  label="Alternate Number"
+                  name="altPhone"
+                  placeholder="Optional"
+                  type="number"
+                  icon={<Phone size={16} />}
+                  value={form.altPhone}
+                  onChange={handleChange}
+                  error={errors.altPhone}
+                  maxLength={10}
+                />
+              </div>
             </div>
 
+            {/* Schedule */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b pb-2">Schedule Ride</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput
+                  label="Date"
+                  name="date"
+                  type="date"
+                  icon={<CalendarIcon size={16} />}
+                  value={form.date}
+                  onChange={handleChange}
+                  error={errors.date}
+                />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormInput
-                label="Date"
-                name="date"
-                type="date"
-                icon={<CalendarIcon size={16} />}
-                value={form.date}
-                onChange={handleChange}
-                error={errors.date}
-              />
-
-              <FormInput
-                label="Time"
-                name="time"
-                type="time"
-                icon={<Clock size={16} />}
-                value={form.time}
-                onChange={handleChange}
-                error={errors.time}
-              />
-            </div>
-
-            <div className="pt-2">
-              <FormInput
-                label="Alternate Number (Optional)"
-                name="altPhone"
-                placeholder="Secondary mobile"
-                type="number"
-                value={form.altPhone}
-                onChange={handleChange}
-                error={errors.altPhone}
-                maxLength={10}
-              />
+                <FormInput
+                  label="Time"
+                  name="time"
+                  type="time"
+                  icon={<Clock size={16} />}
+                  value={form.time}
+                  onChange={handleChange}
+                  error={errors.time}
+                />
+              </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full text-lg h-14 mt-4 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all font-semibold"
+              className="w-full text-lg h-14 mt-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all font-bold rounded-xl active:scale-[0.99]"
               disabled={loading || !selectedRouteId}
             >
-              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-              {loading ? "Confirming Booking..." : "Confirm Booking"}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                  </span>
+                  Processing...
+                </div>
+              ) : (
+                "Confirm Booking"
+              )}
             </Button>
+
+            {!selectedRouteId && (
+              <div className="flex items-center justify-center gap-2 text-muted-foreground mt-4 text-sm bg-muted/50 p-2 rounded-lg">
+                <AlertCircle size={16} />
+                <p>Select a route above to see pricing and book.</p>
+              </div>
+            )}
 
           </form>
         </CardContent>
@@ -283,8 +359,8 @@ export default function BookingPage() {
 
 function FormInput({ label, name, type = "text", value, onChange, placeholder, error, toggleParams, icon, maxLength }: any) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={name} className={`flex items-center gap-2 ${error ? "text-destructive" : ""}`}>
+    <div className="space-y-2 group">
+      <Label htmlFor={name} className={`flex items-center gap-2 font-medium transition-colors ${error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"}`}>
         {icon} {label}
       </Label>
       <Input
@@ -295,11 +371,9 @@ function FormInput({ label, name, type = "text", value, onChange, placeholder, e
         value={value}
         onChange={onChange}
         maxLength={maxLength}
-        className={`h-11 ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
+        className={`h-12 border-input bg-background/50 focus:bg-background transition-all shadow-sm ${error ? "border-destructive focus-visible:ring-destructive" : "hover:border-primary/40 focus-visible:ring-primary"}`}
       />
       {error && <p className="text-xs text-destructive font-medium animate-in slide-in-from-top-1">{error}</p>}
     </div>
   );
 }
-
-
