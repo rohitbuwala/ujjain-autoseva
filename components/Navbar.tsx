@@ -38,7 +38,7 @@ export default function Navbar() {
           className="flex items-center gap-2 cursor-pointer"
         >
           <span className="text-xl md:text-2xl font-bold text-primary tracking-tight">
-            Ujjain<span className="text-foreground">AutoSeva</span>
+            Ujjain <span className="text-foreground">AutoSeva</span>
           </span>
         </div>
 
