@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 
 interface FeedbackModalProps {
     trigger?: React.ReactNode;
