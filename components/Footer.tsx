@@ -7,9 +7,10 @@ import {
   MapPin,
   Car,
   Facebook,
-  Twitter,
-  Instagram
+  Instagram,
+  
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -23,7 +24,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-primary tracking-tight">
-                Ujjain<span className="text-foreground">AutoSeva</span>
+                Ujjain <span className="text-foreground">AutoSeva</span>
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
@@ -31,9 +32,15 @@ export default function Footer() {
               Available 24/7.
             </p>
             <div className="flex items-center gap-4 text-muted-foreground">
-              <Link href="#" className="hover:text-primary transition-colors"><Facebook size={20} /></Link>
-              <Link href="#" className="hover:text-primary transition-colors"><Twitter size={20} /></Link>
-              <Link href="#" className="hover:text-primary transition-colors"><Instagram size={20} /></Link>
+             <a
+                href="https://wa.me/916263189202"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-green-400 transition-colors"
+              >
+                <FaWhatsapp size={23} />
+              </a>
+              <Link href="https://www.instagram.com/ujjain_autoseva/" className="hover:text-primary transition-colors"><Instagram size={20} /></Link>
             </div>
           </div>
 
@@ -43,7 +50,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
               <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
-              <li><Link href="/packages" className="hover:text-primary transition-colors">Darshan Packages</Link></li>
+              <li><Link href="/services" className="hover:text-primary transition-colors">Darshan Packages</Link></li>
               <li><Link href="/booking" className="hover:text-primary transition-colors">Book a Ride</Link></li>
               <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
             </ul>
@@ -54,7 +61,7 @@ export default function Footer() {
             <h3 className="font-semibold text-foreground mb-4">Support</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/dashboard" className="hover:text-primary transition-colors">My Profile</Link></li>
-              <li><Link href="/dashboard/bookings" className="hover:text-primary transition-colors">My Bookings</Link></li>
+              <li><Link href="/dashboard/booking" className="hover:text-primary transition-colors">My Bookings</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
             </ul>
@@ -81,9 +88,8 @@ export default function Footer() {
 
         </div>
 
-        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-center items-center gap-4 text-sm text-muted-foreground">
           <p>© {currentYear} Ujjain AutoSeva. All rights reserved.</p>
-          <p>Made with ❤️ in Ujjain</p>
         </div>
       </div>
     </footer>

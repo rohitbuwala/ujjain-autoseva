@@ -6,6 +6,8 @@ import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 
+
+
 export const authOptions: NextAuthOptions = {
 
   providers: [
@@ -15,7 +17,9 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
 
+
     CredentialsProvider({
+
       name: "credentials",
 
       credentials: {
@@ -23,49 +27,61 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
 
+
       async authorize(credentials) {
 
         await connectDB();
 
+
         if (!credentials?.email || !credentials.password) {
-          throw new Error("Missing fields");
+          return Promise.reject("MISSING_FIELDS");
         }
 
-        const user = await User.findOne({
-          email: credentials.email,
-        });
+
+        const email = credentials.email.toLowerCase().trim();
+
+
+        const user = await User.findOne({ email });
+
 
         if (!user) {
-           throw new Error("EMAIL_NOT_FOUND");
+          return Promise.reject("EMAIL_NOT_FOUND");
         }
 
-        const isMatch = await bcrypt.compare(
+
+        const valid = await bcrypt.compare(
           credentials.password,
           user.password
         );
 
-        if (!isMatch) {
-            throw new Error("WRONG_PASSWORD");
+
+        if (!valid) {
+          return Promise.reject("INVALID_PASSWORD");
         }
 
-        // ✅ Return full user data
+
         return {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
-          role: user.role,   // IMPORTANT
+          role: user.role || "user",
         };
       },
+
     }),
+
   ],
+
+
 
   session: {
     strategy: "jwt",
   },
 
+
+
   callbacks: {
 
-    // ✅ Save id + role in token
     async jwt({ token, user }) {
 
       if (user) {
@@ -76,7 +92,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    // ✅ Send id + role to session
+
     async session({ session, token }) {
 
       if (session.user) {
@@ -86,14 +102,24 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
+
+
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+
 
   pages: {
     signIn: "/login",
+    error: "/login",
   },
+
+
+  secret: process.env.NEXTAUTH_SECRET,
+
 };
+
+
+
 
 const handler = NextAuth(authOptions);
 
