@@ -12,8 +12,8 @@ export default function Hero() {
 
             {/* Background decoration */}
             <div className="absolute top-0 right-0 -z-10 w-full h-full overflow-hidden opacity-10 dark:opacity-5 pointer-events-none">
-                <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/20 blur-3xl" />
-                <div className="absolute bottom-[0%] left-[0%] w-[400px] h-[400px] rounded-full bg-secondary/20 blur-3xl" />
+                <div className="absolute top-[-10%] right-[-5%] w-125 h-100 rounded-full bg-primary/20 blur-3xl" />
+                <div className="absolute bottom-[0%] left-[0%] w-100 h-100 rounded-full bg-secondary/20 blur-3xl" />
             </div>
 
             <div className="container-custom flex flex-col items-center text-center">

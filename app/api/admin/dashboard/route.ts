@@ -11,14 +11,12 @@ export async function GET() {
 
     await connectDB();
 
-    const services = await Service.countDocuments();
-    const bookings = await Booking.countDocuments();
-    const users = await User.countDocuments();
-
-    const recentBookings = await Booking.find()
-      .sort({ createdAt: -1 })
-      .limit(5);
-
+    const [services, bookings, users, recentBookings] = await Promise.all([
+      Service.countDocuments(),
+      Booking.countDocuments(),
+      User.countDocuments(),
+      Booking.find().sort({ createdAt: -1 }).limit(5),
+    ]);
 
     return NextResponse.json({
       services,

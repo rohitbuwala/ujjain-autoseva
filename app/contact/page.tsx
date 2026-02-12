@@ -82,7 +82,7 @@ export default function ContactPage() {
           </Card>
 
           {/* Map Embed */}
-          <div className="w-full h-[300px] rounded-xl overflow-hidden border border-border shadow-sm">
+          <div className="w-full h-75 rounded-xl overflow-hidden border border-border shadow-sm">
             <iframe
               src="https://maps.google.com/maps?q=ujjain&t=&z=13&ie=UTF8&iwloc=&output=embed"
               className="w-full h-full"

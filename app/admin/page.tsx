@@ -9,6 +9,7 @@ import {
   FaClipboardList,
   FaHome,
 } from "react-icons/fa";
+import AdminSkeleton from "@/components/AdminSkeleton";
 
 
 export default function AdminDashboard() {
@@ -59,11 +60,7 @@ export default function AdminDashboard() {
   /* ================= LOADING ================= */
 
   if (loading) {
-    return (
-      <p className="text-center mt-20 text-white">
-        Loading Dashboard...
-      </p>
-    );
+    return <AdminSkeleton />;
   }
 
 

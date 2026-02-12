@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -10,7 +10,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Clock, MapPin, Loader2 } from "lucide-react";
+import { Clock } from "lucide-react";
+import ServiceSkeleton from "@/components/ServiceSkeleton";
 
 
 function ServiceCard({ route, time, price, originalPrice, saveAmount, router }: any) {
@@ -47,15 +48,6 @@ function ServiceCard({ route, time, price, originalPrice, saveAmount, router }: 
   );
 }
 
-function ServiceSkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <Card key={i} className="h-[200px] animate-pulse bg-muted" />
-      ))}
-    </div>
-  );
-}
 
 export default function ServicesPage() {
   const router = useRouter();

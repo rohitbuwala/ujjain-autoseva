@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, Shield } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   DropdownMenu,
@@ -122,6 +122,21 @@ export default function Navbar() {
                   <LayoutDashboard size={16} />
                   Dashboard
                 </Button>
+
+                {session.user?.role === "admin" && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 text-primary hover:bg-primary/10"
+                    onClick={() => {
+                      router.push("/admin");
+                      setMobileOpen(false);
+                    }}
+                  >
+                    <Shield size={16} />
+                    Admin Panel
+                  </Button>
+                )}
+
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
@@ -183,6 +198,14 @@ function UserDropdown({ session }: { session: any }) {
           <LayoutDashboard className="mr-2 h-4 w-4" />
           <span>Dashboard</span>
         </DropdownMenuItem>
+
+        {user?.role === "admin" && (
+          <DropdownMenuItem onClick={() => router.push("/admin")}>
+            <Shield className="mr-2 h-4 w-4 text-primary" />
+            <span className="font-bold text-primary">Admin Panel</span>
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>

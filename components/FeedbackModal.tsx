@@ -58,7 +58,7 @@ export function FeedbackModal({ trigger }: FeedbackModalProps) {
             <DialogTrigger asChild>
                 {trigger || <Button variant="outline">Rate Us</Button>}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>Rate Your Experience</DialogTitle>
                     <DialogDescription>

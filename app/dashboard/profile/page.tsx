@@ -299,10 +299,9 @@ export default function ProfilePage() {
                   rounded-lg
                   text-sm
 
-                  ${
-                    message.includes("Error")
-                      ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                      : "bg-green-500/20 text-green-300 border border-green-500/30"
+                  ${message.includes("Error")
+                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                    : "bg-green-500/20 text-green-300 border border-green-500/30"
                   }
                 `}
               >
@@ -388,11 +387,36 @@ export default function ProfilePage() {
 
               <span>Role</span>
 
-              <span className="font-medium capitalize">
+              <span className={`
+                font-medium capitalize px-2 py-0.5 rounded text-xs
+                ${session.user?.role === "admin"
+                  ? "bg-primary/20 text-primary border border-primary/30"
+                  : "bg-gray-400/20 text-gray-300 border border-white/5"}
+              `}>
                 {session.user?.role || "User"}
               </span>
 
             </div>
+
+            {session.user?.role === "admin" && (
+              <div className="flex justify-between items-center bg-primary/10 border border-primary/20 rounded-lg p-3 mt-4">
+                <div className="flex items-center gap-3">
+                  <Shield size={20} className="text-primary" />
+                  <div>
+                    <p className="text-sm font-bold text-white">Admin Privileges</p>
+                    <p className="text-xs text-primary/80">Full administrative access enabled</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-primary text-primary hover:bg-primary hover:text-white transition-all text-xs"
+                  onClick={() => router.push("/admin")}
+                >
+                  Admin Dashboard
+                </Button>
+              </div>
+            )}
 
 
             <div className="flex justify-between text-gray-300 border-t border-white/10 pt-3">
