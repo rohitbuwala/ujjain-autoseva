@@ -65,14 +65,20 @@ export default function LoginPage() {
   setError("");
 
 
-  if (!email || !password) {
-    setError("Please enter email and password");
+  /* ================= BASIC VALIDATION ================= */
+
+  if (!email.trim() || !password.trim()) {
+    setError("Email and password are required.");
     return;
   }
 
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    setError("Please enter a valid email address.");
+    return;
+  }
 
-  if (!email.includes("@")) {
-    setError("Invalid email address");
+  if (password.length < 6) {
+    setError("Password must be at least 6 characters.");
     return;
   }
 
@@ -82,29 +88,31 @@ export default function LoginPage() {
 
   try {
 
-    /* ================= CHECK USER FIRST ================= */
+    /* ================= CHECK USER EXISTS ================= */
 
     const check = await fetch("/api/auth/check-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({
+        email: email.toLowerCase().trim(),
+      }),
     });
 
 
     if (!check.ok) {
       setLoading(false);
-      setError("Account not found. Please register first.");
+      setError("No account found. Please register first.");
       return;
     }
 
 
 
-    /* ================= THEN LOGIN ================= */
+    /* ================= LOGIN ================= */
 
     const res = await signIn("credentials", {
-      email,
+      email: email.toLowerCase().trim(),
       password,
       redirect: false,
     });
@@ -114,7 +122,8 @@ export default function LoginPage() {
 
 
 
-    /* SUCCESS */
+    /* ================= SUCCESS ================= */
+
     if (res?.ok) {
       router.replace("/dashboard");
       return;
@@ -122,24 +131,44 @@ export default function LoginPage() {
 
 
 
-    /* PASSWORD ERROR */
-    if (res?.error === "CredentialsSignin") {
-      setError("Invalid password. Please try again.");
+    /* ================= ERROR HANDLING ================= */
+
+    if (res?.error) {
+
+      // Password wrong (most common)
+      if (res.error === "CredentialsSignin") {
+        setError("Invalid password. Please try again.");
+        return;
+      }
+
+      // Custom errors (future ready)
+      if (res.error === "EMAIL_NOT_FOUND") {
+        setError("Account not found. Please register.");
+        return;
+      }
+
+      if (res.error === "WRONG_PASSWORD") {
+        setError("Wrong password. Please try again.");
+        return;
+      }
+
+      // Fallback
+      setError("Login failed. Please try again.");
+
       return;
     }
 
 
-
-    setError("Login failed. Try again.");
+    setError("Something went wrong. Please try again.");
 
 
   } catch (err) {
 
-    console.error(err);
+    console.error("Login Error:", err);
 
     setLoading(false);
 
-    setError("Server error. Try later.");
+    setError("Network error. Please check your internet.");
 
   }
 

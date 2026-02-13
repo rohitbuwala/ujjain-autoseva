@@ -6,37 +6,65 @@ import User from "@/models/User";
 
 import { registerSchema } from "@/lib/validators/auth";
 
+
 export async function POST(req: Request) {
+
   try {
+
     const body = await req.json();
 
-    // ✅ Zod Validation
+
+    /* ================= VALIDATE ================= */
+
     const data = registerSchema.parse(body);
+
 
     await connectDB();
 
-    const exist = await User.findOne({ email: data.email });
+
+    /* ================= CHECK DUPLICATE ================= */
+
+    const exist = await User.findOne({
+      email: data.email.toLowerCase(),
+    });
 
     if (exist) {
       return NextResponse.json(
-        { error: "Email already exists" },
+        { error: "EMAIL_EXISTS" },
         { status: 400 }
       );
     }
 
-    const hash = await bcrypt.hash(data.password, 10);
+
+
+    /* ================= HASH ================= */
+
+    const hash = await bcrypt.hash(data.password, 12);
+
+
+
+    /* ================= CREATE ================= */
 
     await User.create({
-      name: data.name,
-      email: data.email,
+      name: data.name.trim(),
+      email: data.email.toLowerCase(),
       password: hash,
+      role: "user",
+      verified: false, // future email verify
     });
 
-    return NextResponse.json({ success: true });
+
+
+    return NextResponse.json({
+      success: true,
+      message: "Registered successfully",
+    });
+
 
   } catch (err: any) {
 
-    // ✅ Zod Error Handle
+
+    /* Zod Validation */
     if (err.name === "ZodError") {
       return NextResponse.json(
         { error: err.errors[0].message },
@@ -44,9 +72,15 @@ export async function POST(req: Request) {
       );
     }
 
+
+    console.error("Register Error:", err);
+
+
     return NextResponse.json(
-      { error: err.message },
+      { error: "Server error" },
       { status: 500 }
     );
+
   }
+
 }
