@@ -8,7 +8,7 @@ import {
   Car,
   Facebook,
   Instagram,
-  
+
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -32,7 +32,7 @@ export default function Footer() {
               Available 24/7.
             </p>
             <div className="flex items-center gap-4 text-muted-foreground">
-             <a
+              <a
                 href="https://wa.me/916263189202"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -49,21 +49,21 @@ export default function Footer() {
             <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
               <li><Link href="/services" className="hover:text-primary transition-colors">Services</Link></li>
-              <li><Link href="/services" className="hover:text-primary transition-colors">Darshan Packages</Link></li>
               <li><Link href="/booking" className="hover:text-primary transition-colors">Book a Ride</Link></li>
               <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
             </ul>
           </div>
 
-          {/* Legal */}
+          {/* Support */}
           <div>
             <h3 className="font-semibold text-foreground mb-4">Support</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/dashboard" className="hover:text-primary transition-colors">My Profile</Link></li>
               <li><Link href="/dashboard/booking" className="hover:text-primary transition-colors">My Bookings</Link></li>
+              <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-              <li><Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
 

@@ -43,6 +43,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Admin route protection
+  if (pathname.startsWith("/admin") && token.role !== "admin") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
   // Logged in → allow
   return NextResponse.next();
 }
@@ -51,7 +56,7 @@ export const config = {
   matcher: [
     "/booking/:path*",
     "/dashboard/:path*",
-    "/admin/:path*", 
+    "/admin/:path*",
   ],
 };
 

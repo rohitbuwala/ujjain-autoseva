@@ -7,18 +7,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Star, Loader2 } from "lucide-react";
 
+import { useSession } from "next-auth/react";
+
 interface FeedbackModalProps {
     trigger?: React.ReactNode;
 }
 
 export function FeedbackModal({ trigger }: FeedbackModalProps) {
+    const { data: session } = useSession();
     const [open, setOpen] = useState(false);
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState("");
     const [loading, setLoading] = useState(false);
-
-    // Try to use toast if available, otherwise fallback to alert
-    // Assuming toast might not be set up, I'll use simple alert for now as per minimal setup
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -28,17 +28,27 @@ export function FeedbackModal({ trigger }: FeedbackModalProps) {
             return;
         }
 
+        if (!session?.user?.name) {
+            alert("Please login to submit feedback");
+            return;
+        }
+
         setLoading(true);
 
         try {
             const res = await fetch("/api/feedback", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rating, comment }),
+                body: JSON.stringify({
+                    rating,
+                    comment,
+                    name: session.user.name
+                }),
             });
 
             if (!res.ok) {
-                throw new Error("Failed to submit");
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to submit");
             }
 
             alert("Thank you for your feedback!");
@@ -47,7 +57,7 @@ export function FeedbackModal({ trigger }: FeedbackModalProps) {
             setComment("");
         } catch (error) {
             console.error(error);
-            alert("Something went wrong.");
+            alert(error instanceof Error ? error.message : "Something went wrong.");
         } finally {
             setLoading(false);
         }

@@ -5,6 +5,7 @@ import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+import { successResponse, errorResponse } from "@/lib/api-utils";
 import { bookingSchema } from "@/lib/validators/booking";
 
 export async function POST(req: Request) {
@@ -15,10 +16,7 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return NextResponse.json(
-        { error: "Login Required" },
-        { status: 401 }
-      );
+      return errorResponse("Login Required", 401);
     }
 
     // ✅ Body
@@ -28,10 +26,7 @@ export async function POST(req: Request) {
     const parsed = bookingSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0].message },
-        { status: 400 }
-      );
+      return errorResponse(parsed.error.issues[0].message, 400);
     }
 
     await connectDB();
@@ -73,15 +68,12 @@ export async function POST(req: Request) {
       status: "pending",
     });
 
-    return NextResponse.json(booking);
+    return successResponse(booking);
 
   } catch (err) {
 
     console.error("Booking Error:", err);
 
-    return NextResponse.json(
-      { error: "Server Error" },
-      { status: 500 }
-    );
+    return errorResponse("Server Error", 500);
   }
 }

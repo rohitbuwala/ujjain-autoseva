@@ -16,9 +16,26 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
   const router = useRouter();
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchFeedbacks() {
+      try {
+        const res = await fetch("/api/feedback?homepage=true");
+        const data = await res.json();
+        if (data.success) {
+          setFeedbacks(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch feedbacks:", err);
+      }
+    }
+    fetchFeedbacks();
+  }, []);
 
   const services = [
     {
@@ -132,6 +149,12 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
+
+              <div className="mt-12">
+                <Button variant="link" className="p-0 h-auto text-primary font-bold text-lg group" onClick={() => router.push("/about")}>
+                  Learn more about our mission <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </div>
             </div>
 
             {/* Stats / Trust Box */}
@@ -167,6 +190,45 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* TESTIMONIALS */}
+      {feedbacks.length > 0 && (
+        <section className="py-24 bg-muted/30 border-t border-border/50">
+          <div className="container-custom">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Riders Say</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Real feedback from our customers who trust us for their journeys in Ujjain.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {feedbacks.map((feedback, idx) => (
+                <Card key={idx} className="border-none shadow-sm hover:shadow-md transition-shadow bg-card rounded-3xl overflow-hidden">
+                  <CardContent className="p-8">
+                    <div className="flex text-orange-500 mb-4 gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={16} fill={i < feedback.rating ? "currentColor" : "none"} stroke={i < feedback.rating ? "none" : "currentColor"} />
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground italic mb-6 leading-relaxed">
+                      "{feedback.comment}"
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        {feedback.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{feedback.name}</p>
+                        <p className="text-xs text-muted-foreground">Recent Rider</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA SECTION */}
       <section className="py-24 relative overflow-hidden">
