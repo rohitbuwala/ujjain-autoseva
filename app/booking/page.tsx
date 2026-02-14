@@ -220,9 +220,9 @@ export default function BookingPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/dashboard/booking");
 
-    } catch (err) {
+    } catch (err) {  
       console.error(err);
       alert("Server Error. Please try again.");
     }
