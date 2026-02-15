@@ -67,7 +67,7 @@ export default function AdminDashboard() {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white px-4 py-10">
+    <div className="min-h-screen bg-white dark:bg-background text-slate-900 dark:text-white px-4 py-10 transition-colors">
 
 
       {/* ================= HEADER ================= */}
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
           Admin Dashboard
         </h1>
 
-        <p className="text-gray-400 mt-1">
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
           Manage your system easily
         </p>
 
@@ -93,10 +93,10 @@ export default function AdminDashboard() {
         {/* Services */}
         <div className="card-safe p-6 flex items-center gap-5">
 
-          <FaTaxi size={40} className="text-blue-400" />
+          <FaTaxi size={40} className="text-blue-600 dark:text-blue-400" />
 
           <div>
-            <p className="text-gray-400 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               Total Services
             </p>
 
@@ -111,10 +111,10 @@ export default function AdminDashboard() {
         {/* Bookings */}
         <div className="card-safe p-6 flex items-center gap-5">
 
-          <FaClipboardList size={40} className="text-green-400" />
+          <FaClipboardList size={40} className="text-emerald-600 dark:text-green-400" />
 
           <div>
-            <p className="text-gray-400 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               Total Bookings
             </p>
 
@@ -129,10 +129,10 @@ export default function AdminDashboard() {
         {/* Users */}
         <div className="card-safe p-6 flex items-center gap-5">
 
-          <FaUsers size={40} className="text-purple-400" />
+          <FaUsers size={40} className="text-purple-600 dark:text-purple-400" />
 
           <div>
-            <p className="text-gray-400 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               Total Users
             </p>
 
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
 
           <table className="w-full text-sm">
 
-            <thead className="border-b border-white/10 text-gray-400">
+            <thead className="border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400">
 
               <tr>
                 <th className="p-3 text-left">Name</th>
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="p-4 text-center text-gray-400"
+                    className="p-4 text-center text-slate-500 dark:text-slate-400"
                   >
                     No bookings found
                   </td>
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
 
                 <tr
                   key={i}
-                  className="border-b border-white/5 hover:bg-white/5"
+                  className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5"
                 >
 
                   <td className="p-3">{b.name}</td>

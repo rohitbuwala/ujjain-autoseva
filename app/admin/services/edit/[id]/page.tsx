@@ -123,7 +123,7 @@ export default function EditService() {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-background text-slate-900 dark:text-white px-3 sm:px-6 py-10 transition-colors">
 
       <div className="max-w-2xl mx-auto">
 
@@ -211,10 +211,9 @@ export default function EditService() {
                     setForm({ ...form, category: "inside" })
                   }
                   className={`border rounded-md py-2 text-sm transition
-                    ${
-                      form.category === "inside"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-muted"
+                    ${form.category === "inside"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background hover:bg-muted"
                     }`}
                 >
                   Inside City
@@ -226,10 +225,9 @@ export default function EditService() {
                     setForm({ ...form, category: "outside" })
                   }
                   className={`border rounded-md py-2 text-sm transition
-                    ${
-                      form.category === "outside"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-muted"
+                    ${form.category === "outside"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background hover:bg-muted"
                     }`}
                 >
                   Outside City

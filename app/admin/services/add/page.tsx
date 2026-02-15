@@ -79,7 +79,7 @@ export default function AddService() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10 overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-background text-slate-900 dark:text-white px-3 sm:px-6 py-10 transition-colors">
 
       <div className="max-w-3xl mx-auto">
 
@@ -155,42 +155,42 @@ export default function AddService() {
                 className="w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-          {/* Category */}
-         <div className="space-y-2">
-  <label className="text-sm font-medium">
-    Category
-  </label>
+            {/* Category */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Category
+              </label>
 
-  <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
 
-    <button
-      type="button"
-      onClick={() => setForm({ ...form, category: "inside" })}
-      className={`
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, category: "inside" })}
+                  className={`
         border rounded-md px-3 py-2 text-sm transition
         ${form.category === "inside"
-          ? "bg-primary text-primary-foreground border-primary"
-          : "bg-background hover:bg-muted"}
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background hover:bg-muted"}
       `}
-    >
-      Inside City
-    </button>
+                >
+                  Inside City
+                </button>
 
-    <button
-      type="button"
-      onClick={() => setForm({ ...form, category: "outside" })}
-      className={`
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, category: "outside" })}
+                  className={`
         border rounded-md px-3 py-2 text-sm transition
         ${form.category === "outside"
-          ? "bg-primary text-primary-foreground border-primary"
-          : "bg-background hover:bg-muted"}
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background hover:bg-muted"}
       `}
-    >
-      Outside City
-    </button>
+                >
+                  Outside City
+                </button>
 
-  </div>
-</div>
+              </div>
+            </div>
 
 
 

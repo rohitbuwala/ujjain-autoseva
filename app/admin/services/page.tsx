@@ -62,7 +62,7 @@ export default function AdminHomepage() {
   }
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-10 transition-colors">
+    <div className="min-h-screen bg-white dark:bg-background text-slate-900 dark:text-white px-3 sm:px-6 py-10 transition-colors">
 
       <div className="max-w-7xl mx-auto space-y-8">
 
@@ -161,27 +161,27 @@ export default function AdminHomepage() {
                         </Button>
 
                         {/* Delete */}
-                  <Button
-                      size="sm"
-                      className="
+                        <Button
+                          size="sm"
+                          className="
                         flex gap-1 items-center
                         bg-red-600 hover:bg-red-700
                         text-white
                         dark:bg-red-500 dark:hover:bg-red-600
                         shadow-sm
                       "
-                      disabled={deletingId === s._id}
-                      onClick={() => deleteService(s._id)}
-                    >
-                      {deletingId === s._id ? (
-                        <Loader2 className="animate-spin h-4 w-4" />
-                      ) : (
-                        <>
-                          <Trash2 size={14} />
-                          Delete
-                        </>
-                      )}
-                    </Button>
+                          disabled={deletingId === s._id}
+                          onClick={() => deleteService(s._id)}
+                        >
+                          {deletingId === s._id ? (
+                            <Loader2 className="animate-spin h-4 w-4" />
+                          ) : (
+                            <>
+                              <Trash2 size={14} />
+                              Delete
+                            </>
+                          )}
+                        </Button>
 
 
                       </td>
@@ -234,7 +234,7 @@ export default function AdminHomepage() {
                       Edit
                     </Button>
 
-                   <Button
+                    <Button
                       size="sm"
                       className="
                         flex-1

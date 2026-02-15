@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/20 pt-24 pb-12">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-background pt-24 pb-12 text-slate-900 dark:text-white px-4 py-10 transition-colors">
             <div className="container-custom">
                 {/* Header Section - Modern & Compact */}
                 <div className="mb-10 max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -31,7 +31,7 @@ export default function AboutPage() {
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6">
                         Modern travel in the <span className="text-primary italic">City of Mahakal</span>
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-400 text-base md:text-lg leading-relaxed">
+                    <p className="text-slate-700 dark:text-slate-300 text-base md:text-lg leading-relaxed">
                         Ujjain AutoSeva is redefining local transit. We bridge tradition and technology to provide reliable, safe, and fair transportation for everyone visiting our holy city.
                     </p>
                 </div>
@@ -56,13 +56,13 @@ export default function AboutPage() {
                     </Card>
 
                     {/* Value Card: Safety */}
-                    <Card className="md:row-span-2 border-none shadow-lg shadow-blue-500/5 bg-blue-50/50 dark:bg-blue-950/20 rounded-[2.5rem] flex flex-col justify-between p-8 group hover:bg-blue-600 transition-all duration-500">
-                        <div className="w-14 h-14 bg-blue-600 group-hover:bg-white rounded-2xl flex items-center justify-center transition-colors shadow-lg shadow-blue-600/20">
+                    <Card className="md:row-span-2 border-slate-100 dark:border-none shadow-lg shadow-blue-500/5 bg-white dark:bg-blue-950/20 rounded-[2.5rem] flex flex-col justify-between p-8 group hover:bg-blue-600 transition-all duration-500">
+                        <div className="w-14 h-14 bg-blue-600 group-hover:bg-white dark:group-hover:bg-slate-900 rounded-2xl flex items-center justify-center transition-colors shadow-lg shadow-blue-600/20">
                             <ShieldCheck className="w-7 h-7 text-white group-hover:text-blue-600" />
                         </div>
                         <div className="mt-8">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-blue-50 group-hover:text-white mb-3 transition-colors">Safety First</h3>
-                            <p className="text-slate-600 dark:text-blue-200/60 group-hover:text-blue-50/80 text-sm leading-relaxed transition-colors">
+                            <p className="text-slate-600 dark:text-blue-200/60 group-hover:text-white dark:group-hover:text-blue-50/80 text-sm leading-relaxed transition-colors">
                                 Every ride is tracked, and every driver is thoroughly vetted. Your safety is our absolute, non-negotiable priority.
                             </p>
                         </div>
@@ -85,25 +85,25 @@ export default function AboutPage() {
                     </Card>
 
                     {/* Value Card: Reliability */}
-                    <Card className="md:row-span-1 border-none bg-slate-100/50 dark:bg-slate-900/50 rounded-[2rem] p-6 flex flex-col justify-center">
+                    <Card className="md:row-span-1 border-slate-100 dark:border-none bg-white dark:bg-slate-900/50 rounded-[2rem] p-6 flex flex-col justify-center shadow-sm">
                         <div className="flex items-center gap-4 mb-3">
                             <div className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
                                 <Clock className="w-5 h-5 text-indigo-600" />
                             </div>
                             <h3 className="font-bold text-lg text-slate-900 dark:text-white">Reliable</h3>
                         </div>
-                        <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">Punctual pickups for every Mahakal Darshan and city transfer.</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">Punctual pickups for every Mahakal Darshan and city transfer.</p>
                     </Card>
 
                     {/* Value Card: Transparency */}
-                    <Card className="md:row-span-1 border-none bg-emerald-50/50 dark:bg-emerald-900/10 rounded-[2rem] p-6 flex flex-col justify-center">
+                    <Card className="md:row-span-1 border-slate-100 dark:border-none bg-white dark:bg-emerald-900/10 rounded-[2rem] p-6 flex flex-col justify-center shadow-sm">
                         <div className="flex items-center gap-4 mb-3">
                             <div className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm">
                                 <Award className="w-5 h-5 text-emerald-600" />
                             </div>
                             <h3 className="font-bold text-lg text-slate-900 dark:text-white">Fair Price</h3>
                         </div>
-                        <p className="text-slate-500 dark:text-emerald-400 text-xs leading-relaxed">Honest, fixed pricing for locals and tourists alike.</p>
+                        <p className="text-slate-600 dark:text-emerald-400 text-xs leading-relaxed font-medium">Honest, fixed pricing for locals and tourists alike.</p>
                     </Card>
 
                     {/* Footer CTA Banner - Wide */}
@@ -116,7 +116,7 @@ export default function AboutPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-xl mb-1">Trusted by 5,000+</h3>
-                                    <p className="text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">Join the movement for fair travel</p>
+                                    <p className="text-slate-300 dark:text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">Join the movement for fair travel</p>
                                 </div>
                             </div>
                             <Button asChild variant="secondary" className="rounded-full px-8 h-12 font-bold shadow-lg shadow-white/5 whitespace-nowrap">
@@ -128,7 +128,7 @@ export default function AboutPage() {
                 </div>
 
                 {/* Legal/Footer Note */}
-                <div className="mt-16 flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 text-[10px] uppercase tracking-[0.2em] font-bold">
+                <div className="mt-16 flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold">
                     <p>&copy; 2024 Ujjain AutoSeva</p>
                     <div className="flex gap-8">
                         <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>

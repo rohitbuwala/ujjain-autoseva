@@ -90,7 +90,7 @@ export default function AdminBookings() {
 
   if (loading) {
     return (
-      <p className="text-center mt-20 text-white">
+      <p className="text-center mt-20 text-slate-500 dark:text-slate-400">
         Loading...
       </p>
     );
@@ -100,7 +100,7 @@ export default function AdminBookings() {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white px-3 sm:px-6 py-10 transition-colors">
+    <div className="min-h-screen bg-white dark:bg-background text-slate-900 dark:text-white px-3 sm:px-6 py-10 transition-colors">
 
       {/* Heading */}
       <h1 className="flex items-center justify-center gap-3
@@ -109,14 +109,14 @@ export default function AdminBookings() {
         gradient-text
         text-center
       ">
-        <ClipboardList size={32} className="text-blue-400" />
+        <ClipboardList size={32} className="text-blue-600 dark:text-blue-400" />
         Admin Bookings
       </h1>
 
 
       {/* Empty */}
       {bookings.length === 0 && (
-        <p className="text-center text-gray-400">
+        <p className="text-center text-slate-500 dark:text-slate-400">
           No bookings found
         </p>
       )}
@@ -177,7 +177,7 @@ export default function AdminBookings() {
               <p className="flex items-center gap-1 sm:col-span-2">
                 <MapPin size={14} />
                 <b>Route:</b>
-                <span className="text-blue-400 ml-1">
+                <span className="text-blue-600 dark:text-blue-400 ml-1">
                   {b.pickup} → {b.drop}
                 </span>
               </p>
@@ -193,7 +193,7 @@ export default function AdminBookings() {
               <p className="flex items-center gap-1">
                 <IndianRupee size={14} />
                 <b>Price:</b>
-                <span className="text-green-400 font-semibold ml-1">
+                <span className="text-emerald-600 dark:text-green-400 font-semibold ml-1">
                   ₹{b.price}
                 </span>
               </p>
@@ -202,10 +202,10 @@ export default function AdminBookings() {
                 <b>Status:</b>
                 <span
                   className={`ml-1 font-semibold ${b.status === "pending"
-                    ? "text-yellow-400"
+                    ? "text-amber-600 dark:text-yellow-400"
                     : b.status === "confirmed"
-                      ? "text-green-400"
-                      : "text-red-400"
+                      ? "text-emerald-600 dark:text-green-400"
+                      : "text-rose-600 dark:text-red-400"
                     }`}
                 >
                   {b.status}
