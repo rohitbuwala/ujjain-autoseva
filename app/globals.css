@@ -104,3 +104,11 @@
   .card-safe {
     @apply bg-card text-card-foreground border border-border rounded-xl shadow-sm transition-all hover:shadow-md;
   }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600;
+  }
+
+  .dark .gradient-text {
+    @apply from-blue-400 to-purple-400;
+  }

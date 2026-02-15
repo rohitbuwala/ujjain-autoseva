@@ -31,6 +31,9 @@ export async function POST(req: Request) {
 
     await connectDB();
 
+    // ✅ Generate professional Booking ID (UA-RandomDigits)
+    const bookingId = `UA-${Math.floor(100000 + Math.random() * 900000)}`;
+
     // ✅ Extract data
     const {
       name,
@@ -46,29 +49,23 @@ export async function POST(req: Request) {
     // ✅ Build route
     const route = `${pickup} → ${drop}`;
 
-    // ✅ Save booking (IMPORTANT FIX)
+    // ✅ Save booking
     const booking = await Booking.create({
-
+      bookingId,
       userId: session.user.id,
-
       name,
       phone,
-      altPhone,
-
+      altPhone: altPhone || "",
       pickup,
       drop,
-
       route,
-
-      date,     // ⭐ FIXED
-      time,     // ⭐ FIXED
-
+      date,
+      time,
       price,
-
       status: "pending",
     });
 
-    return successResponse(booking);
+    return successResponse(booking, 201);
 
   } catch (err) {
 

@@ -21,7 +21,10 @@ export async function GET() {
       Service.countDocuments(),
       Booking.countDocuments(),
       User.countDocuments(),
-      Booking.find().sort({ createdAt: -1 }).limit(5),
+      Booking.find()
+        .select("name route price status createdAt")
+        .sort({ createdAt: -1 })
+        .limit(5),
     ]);
 
     return successResponse({

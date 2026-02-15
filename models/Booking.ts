@@ -2,7 +2,13 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
 
-  // Logged in user
+  // Professional Booking ID (e.g., UA-12345)
+  bookingId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
   // Logged in user
   userId: {
     type: String,

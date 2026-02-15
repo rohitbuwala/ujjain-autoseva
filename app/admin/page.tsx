@@ -38,15 +38,15 @@ export default function AdminDashboard() {
         const data = await res.json();
 
         setStats({
-          services: data.services || 0,
-          bookings: data.bookings || 0,
-          users: data.users || 0,
+          services: data.data?.services || 0,
+          bookings: data.data?.bookings || 0,
+          users: data.data?.users || 0,
         });
 
-        setRecentBookings(data.recentBookings || []);
+        setRecentBookings(data.data?.recentBookings || []);
 
       } catch (err) {
-        console.error(err);
+        console.error("DASHBOARD_LOAD_ERROR", err);
       }
 
       setLoading(false);
@@ -236,10 +236,12 @@ export default function AdminDashboard() {
 
                     <span
                       className={`
-                        px-2 py-1 rounded text-xs
-                        ${b.status === "completed"
+                        px-2 py-1 rounded text-xs capitalize
+                        ${b.status === "confirmed"
                           ? "bg-green-600"
-                          : "bg-yellow-600"}
+                          : b.status === "rejected"
+                            ? "bg-red-600"
+                            : "bg-yellow-600"}
                       `}
                     >
                       {b.status}

@@ -31,7 +31,7 @@ export default function AdminBookings() {
         const res = await fetch("/api/admin/bookings");
         const data = await res.json();
 
-        setBookings(Array.isArray(data) ? data : []);
+        setBookings(Array.isArray(data.data) ? data.data : []);
 
       } catch (err) {
 
@@ -100,17 +100,17 @@ export default function AdminBookings() {
   /* ================= UI ================= */
 
   return (
-    <div className="w-full min-h-screen px-3 sm:px-6 py-6 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-purple-950 text-white px-3 sm:px-6 py-10 transition-colors">
 
       {/* Heading */}
-      <h1 className=" flex items-center justify-center
-        text-2xl sm:text-3xl
-        font-bold mb-6
+      <h1 className="flex items-center justify-center gap-3
+        text-2xl sm:text-4xl
+        font-extrabold mb-10
         gradient-text
-        text-center sm:text-left
+        text-center
       ">
-        <ClipboardList size={28} />
-         Admin Bookings
+        <ClipboardList size={32} className="text-blue-400" />
+        Admin Bookings
       </h1>
 
 
@@ -160,7 +160,7 @@ export default function AdminBookings() {
               "
             >
 
-            <p className="flex items-center gap-1">
+              <p className="flex items-center gap-1">
                 <User size={14} /> <b>Name:</b> {b.name}
               </p>
 
@@ -201,13 +201,12 @@ export default function AdminBookings() {
               <p className="flex items-center gap-1">
                 <b>Status:</b>
                 <span
-                  className={`ml-1 font-semibold ${
-                    b.status === "pending"
-                      ? "text-yellow-400"
-                      : b.status === "confirmed"
+                  className={`ml-1 font-semibold ${b.status === "pending"
+                    ? "text-yellow-400"
+                    : b.status === "confirmed"
                       ? "text-green-400"
                       : "text-red-400"
-                  }`}
+                    }`}
                 >
                   {b.status}
                 </span>
@@ -219,7 +218,7 @@ export default function AdminBookings() {
                 </p>
               )}
 
-              
+
 
             </div>
 
@@ -243,9 +242,9 @@ export default function AdminBookings() {
 
                 <>
 
-                 <button
-                      onClick={() => updateStatus(b._id, "confirmed")}
-                      className="
+                  <button
+                    onClick={() => updateStatus(b._id, "confirmed")}
+                    className="
                         w-full
                         py-2
                         rounded-lg
@@ -257,14 +256,14 @@ export default function AdminBookings() {
                         justify-center
                         gap-1
                       "
-                    >
-                      <CheckCircle size={16} />
-                      Accept
-                    </button>
+                  >
+                    <CheckCircle size={16} />
+                    Accept
+                  </button>
 
-                    <button
-                      onClick={() => updateStatus(b._id, "rejected")}
-                      className="
+                  <button
+                    onClick={() => updateStatus(b._id, "rejected")}
+                    className="
                         w-full
                         py-2
                         rounded-lg
@@ -276,10 +275,10 @@ export default function AdminBookings() {
                         justify-center
                         gap-1
                       "
-                    >
-                      <XCircle size={16} />
-                      Reject
-                    </button>
+                  >
+                    <XCircle size={16} />
+                    Reject
+                  </button>
 
 
                 </>
