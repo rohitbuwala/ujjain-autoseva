@@ -2,9 +2,24 @@
 
 import { useEffect, useState } from "react";
 
+interface Booking {
+  _id: string;
+  name: string;
+  phone: string;
+  altPhone?: string;
+  pickup: string;
+  drop: string;
+  date: string;
+  time: string;
+  price: string;
+  status: string;
+  route?: string;
+  createdAt?: string;
+}
+
 export default function UserBookings() {
 
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,11 +37,7 @@ export default function UserBookings() {
 
         const data = await res.json();
 
-        if (Array.isArray(data)) {
-          setBookings(data);
-        } else {
-          setBookings([]);
-        }
+        setBookings(Array.isArray(data) ? data : []);
 
       } catch (err) {
         console.error(err);
@@ -41,74 +52,125 @@ export default function UserBookings() {
   }, []);
 
   if (loading) {
-    return <p className="p-6">Loading...</p>;
+    return <p className="p-6 text-center">Loading...</p>;
   }
 
   return (
+
     <div className="p-4 md:p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+
+      {/* HEADER */}
+
+      <div className="flex justify-between items-center flex-wrap gap-2">
+        <h1 className="text-2xl md:text-3xl font-bold">
           My Bookings
         </h1>
-        <span className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
+
+        <span className="text-sm bg-muted px-3 py-1 rounded-full">
           Total: {bookings.length}
         </span>
       </div>
 
+      {/* EMPTY */}
+
       {bookings.length === 0 ? (
-        <div className="card-safe p-10 text-center space-y-2">
-          <p className="text-lg font-medium text-muted-foreground">No bookings found</p>
-          <p className="text-sm text-muted-foreground/70">When you book a ride, it will appear here.</p>
+
+        <div className="rounded-xl border border-border p-10 text-center bg-card">
+          <p className="text-lg font-medium text-muted-foreground">
+            No bookings found
+          </p>
+          <p className="text-sm text-muted-foreground/70">
+            When you book a ride, it will appear here.
+          </p>
         </div>
+
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {bookings.map((b: any) => (
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          {bookings.map((b) => (
+
             <div
               key={b._id}
-              className="card-safe p-5 flex flex-col justify-between"
+              className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md transition"
             >
+
+              {/* TOP */}
+
+              <div className="flex justify-between items-start border-b pb-3 mb-3">
+
+                <div className="text-xs font-semibold uppercase text-primary">
+                  Ride Details
+                </div>
+
+                <span
+                  className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${
+                    b.status === "confirmed"
+                      ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                      : b.status === "rejected"
+                      ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                      : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                  }`}
+                >
+                  {b.status}
+                </span>
+
+              </div>
+
+              {/* BODY */}
+
               <div className="space-y-3">
-                <div className="flex justify-between items-start border-b border-border/50 pb-2 mb-2">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    Ride Details
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-md font-medium capitalize ${b.status === "confirmed"
-                        ? "bg-green-500/10 text-green-600 dark:text-green-400"
-                        : b.status === "rejected"
-                          ? "bg-red-500/10 text-red-600 dark:text-red-400"
-                          : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
-                      }`}
-                  >
-                    {b.status}
+
+                {/* ROUTE */}
+
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                    Route
+                  </span>
+
+                  <span className="text-foreground font-medium break-words leading-relaxed">
+                    {b.route}
                   </span>
                 </div>
 
-                <div className="space-y-2">
-                  <p className="flex items-center gap-2 text-foreground font-medium">
-                    <span className="text-muted-foreground shrink-0 w-16 text-xs uppercase">Route</span>
-                    <span className="truncate">{b.route}</span>
-                  </p>
+                {/* PRICE */}
 
-                  <p className="flex items-center gap-2 text-foreground">
-                    <span className="text-muted-foreground shrink-0 w-16 text-xs uppercase">Price</span>
-                    <span className="font-semibold text-lg">₹{b.price}</span>
-                  </p>
+                <div className="flex gap-2 items-center">
+                  <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                    Price
+                  </span>
 
-                  <p className="flex items-center gap-2 text-foreground/80 text-sm">
-                    <span className="text-muted-foreground shrink-0 w-16 text-xs uppercase">Date</span>
-                    {new Date(b.createdAt).toLocaleDateString(undefined, {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </p>
+                  <span className="font-bold text-lg text-primary">
+                    ₹{b.price}
+                  </span>
                 </div>
+
+                {/* DATE */}
+
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                    Date
+                  </span>
+
+                  <span className="text-sm text-muted-foreground">
+                    {b.createdAt ? new Date(b.createdAt).toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    }) : "N/A"}
+                  </span>
+                </div>
+
               </div>
+
             </div>
+
           ))}
+
         </div>
+
       )}
+
     </div>
   );
 }

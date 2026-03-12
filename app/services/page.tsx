@@ -12,10 +12,31 @@ import {
 } from "@/components/ui/accordion";
 import { Clock } from "lucide-react";
 import ServiceSkeleton from "@/components/ServiceSkeleton";
+import { MapPin } from "lucide-react";
+import Link from "next/link";
 
+interface Service {
+  _id?: string;
+  route?: string;
+  from?: string;
+  to?: string;
+  price: number;
+  category?: string;
+  time?: string;
+}
 
-function ServiceCard({ route, time, price, originalPrice, saveAmount, router }: any) {
+interface ServiceCardProps {
+  route: string;
+  time: string;
+  price: string;
+  originalPrice: string;
+  saveAmount: string;
+  router: ReturnType<typeof useRouter>;
+}
+
+function ServiceCard({ route, time, price, originalPrice, saveAmount, router }: ServiceCardProps) {
   return (
+    
     <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-border/60">
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
@@ -51,7 +72,7 @@ function ServiceCard({ route, time, price, originalPrice, saveAmount, router }: 
 
 export default function ServicesPage() {
   const router = useRouter();
-  const [dbServices, setDbServices] = useState<any[]>([]);
+  const [dbServices, setDbServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,6 +91,8 @@ export default function ServicesPage() {
   }, []);
 
   return (
+
+    
     <div className="min-h-screen pb-20">
 
       {/* Header */}
@@ -83,7 +106,72 @@ export default function ServicesPage() {
       </div>
 
       <div className="container-custom py-12 space-y-16">
+      {/* custom btn */}
+     <div className="mb-10">
 
+            <Link href="/custom-booking">
+
+              <div className="
+                group relative overflow-hidden rounded-2xl border border-border
+                bg-gradient-to-br from-primary/10 via-background to-primary/5
+                dark:from-primary/20 dark:to-background
+                p-6 md:p-8 cursor-pointer
+                transition-all duration-300
+                hover:shadow-2xl hover:scale-[1.02]
+              ">
+
+                {/* glow effect */}
+                <div className="
+                  absolute inset-0 opacity-0 group-hover:opacity-100
+                  transition duration-500
+                  bg-gradient-to-r from-primary/10 via-transparent to-primary/10
+                " />
+
+                <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+
+                  {/* LEFT */}
+                  <div className="flex items-start gap-4">
+
+                    <div className="
+                      p-3 rounded-xl bg-primary/10 text-primary
+                      group-hover:bg-primary group-hover:text-white
+                      transition
+                    ">
+                      <MapPin size={22} />
+                    </div>
+
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-bold">
+                        Custom Temple Trip
+                      </h3>
+
+                      <p className="text-muted-foreground text-sm md:text-base mt-1">
+                        Choose temples yourself and get instant price
+                      </p>
+                    </div>
+
+                  </div>
+
+                  {/* RIGHT BUTTON */}
+                  <div className="w-full md:w-auto">
+
+                    <div className="
+                      w-full md:w-auto text-center
+                      bg-primary text-white px-6 py-3 rounded-xl font-semibold
+                      transition group-hover:bg-primary/90
+                    ">
+                      Plan Trip →
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </Link>
+
+          </div>
 
         {/* Inside City */}
         <section>
@@ -184,7 +272,7 @@ export default function ServicesPage() {
             <AccordionItem value="item-1">
               <AccordionTrigger>How do I book a ride?</AccordionTrigger>
               <AccordionContent>
-                Simply choose your service from the list above and click "Book Ride", or go to the Booking page directly. You can also call our support number.
+                Simply choose your service from the list above and click &quot;Book Ride&quot;, or go to the Booking page directly. You can also call our support number.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">

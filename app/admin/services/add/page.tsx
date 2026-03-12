@@ -21,7 +21,7 @@ export default function AddService() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  function handleChange(e: any) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
 
     setForm((prev) => ({

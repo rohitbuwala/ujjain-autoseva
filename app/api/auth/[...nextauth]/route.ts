@@ -6,6 +6,10 @@ import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 
+interface UserWithRole {
+  id: string;
+  role?: string;
+}
 
 
 export const authOptions: NextAuthOptions = {
@@ -85,8 +89,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
 
       if (user) {
-        token.id = (user as any).id;
-        token.role = (user as any).role;
+        const extUser = user as UserWithRole;
+        token.id = extUser.id;
+        token.role = extUser.role || "";
       }
 
       return token;

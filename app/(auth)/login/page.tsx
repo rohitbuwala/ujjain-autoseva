@@ -40,7 +40,7 @@ export default function LoginPage() {
     if (status === "authenticated") {
       router.replace("/");
     }
-  }, [status]);
+  }, [status, router]);
 
 
 

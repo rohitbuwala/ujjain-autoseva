@@ -13,10 +13,23 @@ import {
   ClipboardList,
 } from "lucide-react";
 
+interface Booking {
+  _id: string;
+  name: string;
+  phone: string;
+  altPhone?: string;
+  pickup: string;
+  drop: string;
+  date: string;
+  time: string;
+  price: string;
+  status: string;
+  userId?: { email?: string };
+}
 
 export default function AdminBookings() {
 
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
 

@@ -48,13 +48,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
 
-  } catch (err: any) {
+  } catch (err) {
 
     console.error("Contact API Error:", err);
+    const errorMessage = err instanceof Error ? err.message : "Email sending failed";
 
     return NextResponse.json(
       {
-        error: err.message || "Email sending failed"
+        error: errorMessage
       },
       { status: 500 }
     );

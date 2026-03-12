@@ -12,6 +12,13 @@ import {
 import AdminSkeleton from "@/components/AdminSkeleton";
 
 
+interface RecentBooking {
+  name: string;
+  route: string;
+  price: number;
+  status: string;
+}
+
 export default function AdminDashboard() {
 
   const router = useRouter();
@@ -22,7 +29,7 @@ export default function AdminDashboard() {
     users: 0,
   });
 
-  const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
 
@@ -148,7 +155,7 @@ export default function AdminDashboard() {
 
       {/* ================= QUICK ACTIONS ================= */}
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-5 mb-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
 
 
         <button
@@ -157,6 +164,15 @@ export default function AdminDashboard() {
         >
           <FaTaxi className="mx-auto mb-2" size={26} />
           Manage Services
+        </button>
+
+
+        <button
+          onClick={() => router.push("/admin/custom-trip")}
+          className="card-safe p-5 hover:scale-105 transition text-center"
+        >
+          <FaClipboardList className="mx-auto mb-2" size={26} />
+          Manage Custom Trips
         </button>
 
 

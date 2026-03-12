@@ -32,7 +32,7 @@ export default function RegisterPage() {
     if (status === "authenticated") {
       router.replace("/");
     }
-  }, [status]);
+  }, [status, router]);
 
 
 

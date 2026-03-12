@@ -6,7 +6,12 @@ if(!MONGODB_URI){
     throw new Error("Please add mongoDb_uri in .env");
 }
 
-let cached = global as any;
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+const cached = global as unknown as { mongoose: MongooseCache };
 
 
 if (!cached.mongoose) {

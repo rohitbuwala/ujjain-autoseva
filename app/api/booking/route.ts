@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import connectDB from "@/lib/db";
@@ -7,6 +6,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 import { successResponse, errorResponse } from "@/lib/api-utils";
 import { bookingSchema } from "@/lib/validators/booking";
+import { sendAdminNotification } from "@/lib/sendWhatsApp";
 
 export async function POST(req: Request) {
 
@@ -64,6 +64,8 @@ export async function POST(req: Request) {
       price,
       status: "pending",
     });
+
+    await sendAdminNotification(booking);
 
     return successResponse(booking, 201);
 

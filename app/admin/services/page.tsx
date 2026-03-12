@@ -5,10 +5,20 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, Pencil, Trash2, Plus } from "lucide-react";
 
+interface Service {
+  _id: string;
+  route?: string;
+  from?: string;
+  to?: string;
+  price: number;
+  category?: string;
+  time?: string;
+}
+
 export default function AdminHomepage() {
   const router = useRouter();
 
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -98,7 +108,7 @@ export default function AdminHomepage() {
         {services.length === 0 ? (
           <div className="rounded-xl border p-10 text-center bg-muted/40">
             <p className="text-muted-foreground">
-              No services available. Click "Add Service" to create one.
+              No services available. Click &quot;Add Service&quot; to create one.
             </p>
           </div>
         ) : (

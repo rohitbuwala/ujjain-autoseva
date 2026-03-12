@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
   /* ================= HANDLERS ================= */
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
     const { name, value } = e.target;
 
@@ -71,7 +71,7 @@ export default function ProfilePage() {
   };
 
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
 
     e.preventDefault();
 
@@ -103,8 +103,9 @@ export default function ProfilePage() {
 
       setTimeout(() => setMessage(""), 3000);
 
-    } catch (error) {
+    } catch (error: unknown) {
 
+      console.error(error);
       setMessage("Error updating profile. Try again.");
 
     } finally {

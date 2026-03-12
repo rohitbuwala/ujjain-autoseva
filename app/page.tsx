@@ -18,9 +18,15 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
+interface Feedback {
+  name: string;
+  comment: string;
+  rating: number;
+}
+
 export default function HomePage() {
   const router = useRouter();
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 
   useEffect(() => {
     async function fetchFeedbacks() {
@@ -211,7 +217,7 @@ export default function HomePage() {
                       ))}
                     </div>
                     <p className="text-muted-foreground italic mb-6 leading-relaxed">
-                      "{feedback.comment}"
+                      &quot;{feedback.comment}&quot;
                     </p>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">

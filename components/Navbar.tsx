@@ -165,7 +165,7 @@ export default function Navbar() {
   );
 }
 
-function UserDropdown({ session }: { session: any }) {
+function UserDropdown({ session }: { session: { user?: { name?: string | null; email?: string | null; image?: string | null; role?: string } } }) {
   const router = useRouter();
   const user = session?.user;
 

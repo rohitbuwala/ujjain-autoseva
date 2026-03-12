@@ -83,7 +83,7 @@ export default function ContactPage() {
         </h1>
 
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Have questions or need assistance? We're here to help!
+          Have questions or need assistance? We&apos;re here to help!
           Reach out via phone, email, or message.
         </p>
 

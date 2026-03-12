@@ -9,9 +9,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CalendarIcon, Clock, MapPin, Phone, User, TicketPercent, AlertCircle } from "lucide-react";
+import { CalendarIcon, Clock, Phone, User, TicketPercent, AlertCircle } from "lucide-react";
 
 type BookingForm = z.infer<typeof bookingSchema>;
+
+interface Route {
+  _id?: string;
+  id?: string;
+  route?: string;
+  from?: string;
+  to?: string;
+  price: number;
+  category?: string;
+  time?: string;
+}
+
+interface Errors {
+  [key: string]: string | undefined;
+}
 
 export default function BookingPage() {
 
@@ -28,10 +43,10 @@ export default function BookingPage() {
     price: "",
   });
 
-  const [routes, setRoutes] = useState<any[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const [selectedRouteId, setSelectedRouteId] = useState<string>("");
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
   const [discount, setDiscount] = useState<{ saved: number, original: number, percent: number } | null>(null);
   const [minDate, setMinDate] = useState("");
@@ -80,8 +95,8 @@ export default function BookingPage() {
     if (route) {
       setForm(prev => ({
         ...prev,
-        pickup: route.from || "Ujjain", // Fallback if missing
-        drop: route.to || route.route, // Use 'to' or route name
+        pickup: route.from || "Ujjain",
+        drop: route.to || route.route || "",
         price: String(route.price)
       }));
 
@@ -102,7 +117,7 @@ export default function BookingPage() {
       }
 
       // Clear errors for these fields if any
-      setErrors((prev: any) => ({ ...prev, pickup: "", drop: "", price: "" }));
+      setErrors((prev) => ({ ...prev, pickup: "", drop: "", price: "" }));
     }
   };
 
@@ -111,13 +126,13 @@ export default function BookingPage() {
   ========================= */
 
   function validateField(name: string, value: string) {
-    const singleField = bookingSchema.pick({ [name]: true } as any);
+    const singleField = bookingSchema.pick({ [name]: true } as Partial<Record<keyof BookingForm, true>>);
     const result = singleField.safeParse({ [name]: value });
 
     if (!result.success) {
-      setErrors((prev: any) => ({ ...prev, [name]: result.error.issues[0].message }));
+      setErrors((prev) => ({ ...prev, [name]: result.error.issues[0].message }));
     } else {
-      setErrors((prev: any) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   }
 
@@ -139,7 +154,7 @@ export default function BookingPage() {
       const todayStr = `${yyyy}-${mm}-${dd}`;
 
       if (value < todayStr) {
-        setErrors((prev: any) => ({ ...prev, date: "Please select a future date." }));
+        setErrors((prev) => ({ ...prev, date: "Please select a future date." }));
         return;
       }
 
@@ -150,7 +165,7 @@ export default function BookingPage() {
         const currentTime = `${hh}:${minutes}`;
         if (form.time < currentTime) {
           setForm(prev => ({ ...prev, time: "" }));
-          setErrors((prev: any) => ({ ...prev, time: "Please select a future time for today." }));
+          setErrors((prev) => ({ ...prev, time: "Please select a future time for today." }));
         }
       }
     }
@@ -167,7 +182,7 @@ export default function BookingPage() {
         const minutes = String(currentDate.getMinutes()).padStart(2, "0");
         const currentTime = `${hh}:${minutes}`;
         if (value < currentTime) {
-          setErrors((prev: any) => ({ ...prev, time: "Please select a future time." }));
+          setErrors((prev) => ({ ...prev, time: "Please select a future time." }));
           return;
         }
       }
@@ -197,9 +212,10 @@ export default function BookingPage() {
     }
 
     if (!parsed.success) {
-      const newErrors: any = {};
+      const newErrors: Errors = {};
       parsed.error.issues.forEach((err) => {
-        newErrors[err.path[0]] = err.message;
+        const key = err.path[0] as string;
+        newErrors[key] = err.message;
       });
       setErrors(newErrors);
       setLoading(false);
@@ -281,7 +297,7 @@ export default function BookingPage() {
                         const label = route.route || `${route.from} to ${route.to}`;
 
                         return (
-                          <SelectItem key={route._id || route.id} value={route._id || route.id} className="cursor-pointer py-3 px-4 focus:bg-accent focus:text-accent-foreground border-b border-border/30 last:border-0">
+                          <SelectItem key={route._id || route.id} value={route._id || route.id || ""} className="cursor-pointer py-3 px-4 focus:bg-accent focus:text-accent-foreground border-b border-border/30 last:border-0">
                             <div className="flex flex-col gap-1 items-start text-left w-full">
                               <span className="font-semibold text-foreground text-base pr-8">{label}</span>
                               <div className="flex justify-between w-full items-center mt-1">
@@ -358,7 +374,7 @@ export default function BookingPage() {
                   placeholder="Optional"
                   type="number"
                   icon={<Phone size={16} />}
-                  value={form.altPhone}
+                  value={form.altPhone || ""}
                   onChange={handleChange}
                   error={errors.altPhone}
                   maxLength={10}
@@ -428,7 +444,20 @@ export default function BookingPage() {
 }
 
 
-function FormInput({ label, name, type = "text", value, onChange, placeholder, error, toggleParams, icon, maxLength, ...props }: any) {
+interface FormInputProps {
+  label: string;
+  name: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  error?: string;
+  icon?: React.ReactNode;
+  maxLength?: number;
+  [key: string]: unknown;
+}
+
+function FormInput({ label, name, type = "text", value, onChange, placeholder, error, icon, maxLength, ...props }: FormInputProps) {
   return (
     <div className="space-y-2 group">
       <Label htmlFor={name} className={`flex items-center gap-2 font-medium transition-colors ${error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"}`}>

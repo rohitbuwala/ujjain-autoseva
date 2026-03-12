@@ -61,15 +61,18 @@ export async function POST(req: Request) {
     });
 
 
-  } catch (err: any) {
+  } catch (err) {
 
 
     /* Zod Validation */
-    if (err.name === "ZodError") {
-      return NextResponse.json(
-        { error: err.errors[0].message },
-        { status: 400 }
-      );
+    if (err instanceof Error && "errors" in err) {
+      const zodError = err as { name: string; errors: { message: string }[] };
+      if (zodError.name === "ZodError") {
+        return NextResponse.json(
+          { error: zodError.errors[0].message },
+          { status: 400 }
+        );
+      }
     }
 
 

@@ -5,8 +5,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Car,
-  Facebook,
   Instagram,
 
 } from "lucide-react";

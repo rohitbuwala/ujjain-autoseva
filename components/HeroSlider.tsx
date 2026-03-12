@@ -33,7 +33,7 @@ export default function HeroSlider() {
   const [current, setCurrent] = useState(0);
 
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
 
   // Login + Booking Redirect
