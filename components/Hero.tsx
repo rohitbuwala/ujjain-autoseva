@@ -26,13 +26,12 @@ export default function Hero() {
                     </div>
 
                     <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                        Easy Taxi & Auto <br />
-                        Booking in <span className="text-primary">Ujjain</span>
+                        Book Trusted Auto for <br />
+                        <span className="text-primary">Mahakal Darshan & Full Ujjain Temple Tour</span>
                     </h1>
 
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
-                        Book taxis for Mahakal Darshan, Omkareshwar, or local city travel.
-                        Safe rides, professional drivers, and fair prices.
+                        Affordable, comfortable, and reliable auto service for pilgrims visiting Mahakaleshwar and Ujjain temples.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
@@ -41,18 +40,17 @@ export default function Hero() {
                             className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-105"
                             onClick={() => router.push("/booking")}
                         >
-                            Book a Ride
+                            Book Now
                             <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>
 
                         <Button
                             size="lg"
                             variant="outline"
-                            className="h-14 px-8 text-lg border-primary/20 hover:bg-accent transition-all hover:scale-105"
-                            onClick={() => router.push("/services")}
+                            className="h-14 px-8 text-lg border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-950/30 transition-all hover:scale-105"
+                            onClick={() => window.open(`https://wa.me/919876543210?text=${encodeURIComponent("Hello, I'd like to book an auto for darshan.")}`, "_blank")}
                         >
-                            <Calendar className="mr-2 h-5 w-5 text-secondary" />
-                            View Darshan Packages
+                            WhatsApp Now
                         </Button>
                     </div>
 

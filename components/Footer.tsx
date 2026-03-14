@@ -22,12 +22,11 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-primary tracking-tight">
-                Ujjain <span className="text-foreground">AutoSeva</span>
+                Ujjain <span className="text-foreground">Auto Seva</span>
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Your trusted partner for safe and reliable taxi services and temple darshan in Ujjain.
-              Available 24/7.
+              Affordable, comfortable, and reliable auto service for pilgrims visiting Mahakaleshwar and Ujjain temples.
             </p>
             <div className="flex items-center gap-4 text-muted-foreground">
               <a
@@ -35,6 +34,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-green-400 transition-colors"
+                aria-label="WhatsApp"
               >
                 <FaWhatsapp size={23} />
               </a>
@@ -71,15 +71,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="mt-1 text-primary shrink-0" />
-                <span>Ujjain, Madhya Pradesh,<br />India 456010</span>
+                <span>Near Mahakal Temple,<br />Ujjain, Madhya Pradesh</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className="text-primary shrink-0" />
                 <a href="tel:+916263189202" className="hover:text-primary transition-colors">+91 62631 89202</a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail size={16} className="text-primary shrink-0" />
-                <a href="mailto:ankitbuwala@gmail.com" className="hover:text-primary transition-colors">ankitbuwala@gmail.com</a>
+                <FaWhatsapp size={16} className="text-green-500 shrink-0" />
+                <span className="text-green-600 dark:text-green-400 font-medium">WhatsApp booking available</span>
               </li>
             </ul>
           </div>

@@ -12,22 +12,25 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   const packages = [
     {
-      name: "Mahakal Drop",
+      name: "Mahakal Only",
+      tag: "Most Booked",
       price: "₹150",
-      description: "One-way drop to Mahakaleshwar",
+      description: "Direct & Fast Transit",
       features: ["Instant booking", "Direct drop", "No hidden charges"],
     },
     {
-      name: "5 Temples Half-Day",
+      name: "5 Temple Darshan",
+      tag: "Best for Families",
       price: "₹600",
-      description: "4-5 hours typical duration",
+      description: "Comfortable Half-Day Tour",
       features: ["Mahakaleshwar", "Kaal Bhairav", "Harsiddhi", "Ram Ghat", "Mangalnath", "Wait time included"],
       popular: true,
     },
     {
-      name: "Full Ujjain Day Tour",
+      name: "Full Ujjain Tour",
+      tag: "Complete Experience",
       price: "₹1200",
-      description: "8-10 hours guided journey",
+      description: "Guided Heritage Day Trip",
       features: ["All major temples", "Local sightseeing", "Knowledgeable driver", "Hotel pickup & drop"],
     },
   ];
@@ -45,9 +48,9 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {packages.map((pkg, idx) => (
             <Card key={idx} className={`relative flex flex-col ${pkg.popular ? "border-primary shadow-lg scale-105 z-10" : "border-border/50"}`}>
-              {pkg.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider">
-                  MOST POPULAR
+              {pkg.tag && (
+                <div className={`absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold tracking-wider whitespace-nowrap ${pkg.popular ? 'bg-primary text-white' : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}>
+                  {pkg.tag.toUpperCase()}
                 </div>
               )}
               <CardHeader className="text-center pb-2">

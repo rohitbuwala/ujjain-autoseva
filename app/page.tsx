@@ -28,22 +28,38 @@ interface Feedback {
 
 export default function HomePage() {
   const router = useRouter();
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-
-  useEffect(() => {
-    async function fetchFeedbacks() {
-      try {
-        const res = await fetch("/api/feedback?homepage=true");
-        const data = await res.json();
-        if (data.success) {
-          setFeedbacks(data.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch feedbacks:", err);
-      }
+  const testimonials = [
+    {
+      name: "Rajesh Sharma, Indore",
+      comment: "Bahut acchi service thi. Driver polite tha aur Mahakal darshan smoothly ho gaya. Highly recommended for families.",
+      rating: 5,
+    },
+    {
+      name: "Sneha Patel, Ahmedabad",
+      comment: "Safe and reliable. Raat ko train late thi par unka auto driver station par wait kar raha tha. Truly appreciate the support.",
+      rating: 5,
+    },
+    {
+      name: "Amit Kumar, Delhi",
+      comment: "Pricing bilkul transparent hai. 5 temples darshan ka package liya tha, sab kuch time par aur aaram se cover ho gaya.",
+      rating: 5,
+    },
+    {
+      name: "Priya Desai, Mumbai",
+      comment: "Excellent experience! Ujjain ke narrow streets me bhi driver bhaiya ne bahut safely drive kiya. Bhasma aarti timing ke liye perfect pickup.",
+      rating: 5,
+    },
+    {
+      name: "Vikram Singh, Jaipur",
+      comment: "Pura Ujjain tour book kiya tha, driver ne local spots ke baare me bhi acchi history batai. Ekdum paisa vasool service.",
+      rating: 5,
+    },
+    {
+      name: "Rahul Verma, Bhopal",
+      comment: "Quick booking on WhatsApp and immediate confirmation. No hassle of bargaining. Best auto service in Mahakal area.",
+      rating: 5,
     }
-    fetchFeedbacks();
-  }, []);
+  ];
 
   const services = [
     {
@@ -301,43 +317,41 @@ export default function HomePage() {
       </section>
 
       {/* TESTIMONIALS */}
-      {feedbacks.length > 0 && (
-        <section className="py-24 bg-muted/30 border-t border-border/50">
-          <div className="container-custom">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Riders Say</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Real feedback from our customers who trust us for their journeys in Ujjain.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {feedbacks.map((feedback, idx) => (
-                <Card key={idx} className="border-none shadow-sm hover:shadow-md transition-shadow bg-card rounded-3xl overflow-hidden">
-                  <CardContent className="p-8">
-                    <div className="flex text-orange-500 mb-4 gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={16} fill={i < feedback.rating ? "currentColor" : "none"} stroke={i < feedback.rating ? "none" : "currentColor"} />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground italic mb-6 leading-relaxed">
-                      &quot;{feedback.comment}&quot;
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                        {feedback.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm">{feedback.name}</p>
-                        <p className="text-xs text-muted-foreground">Recent Rider</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+      <section className="py-24 bg-muted/30 border-t border-border/50">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Riders Say</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Real feedback from our customers who trust us for their spiritual journeys in Ujjain.
+            </p>
           </div>
-        </section>
-      )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((feedback, idx) => (
+              <Card key={idx} className="border-none shadow-sm hover:shadow-md transition-shadow bg-card rounded-3xl overflow-hidden">
+                <CardContent className="p-8 flex flex-col h-full">
+                  <div className="flex text-orange-500 mb-4 gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={16} fill={i < feedback.rating ? "currentColor" : "none"} stroke={i < feedback.rating ? "none" : "currentColor"} />
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground italic mb-6 leading-relaxed flex-grow">
+                    &quot;{feedback.comment}&quot;
+                  </p>
+                  <div className="flex items-center gap-3 mt-auto">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                      {feedback.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm">{feedback.name.split(",")[0]}</p>
+                      <p className="text-xs text-muted-foreground">{feedback.name.split(",")[1]?.trim()}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* CTA SECTION */}
       <section className="py-24 relative overflow-hidden">

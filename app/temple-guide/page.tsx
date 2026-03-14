@@ -10,22 +10,34 @@ export const metadata: Metadata = {
 const temples = [
   {
     name: "Mahakaleshwar Jyotirlinga",
-    description: "One of the 12 Jyotirlingas, this globally revered temple is the heart of Ujjain. Known for the Bhasma Aarti, it draws millions of devotees seeking the blessings of Lord Mahakal.",
+    description: "The heart of Ujjain and one of the 12 Jyotirlingas, where Lord Shiva resides in his most powerful form.",
+    history: "Considered Swayambhu (self-manifested), it has a rich history tied to King Vikramaditya and the ancient city of Avantika.",
+    timing: "3:00 AM (Bhasma Aarti) to 11:00 PM",
+    tips: "Book Bhasma Aarti tickets at least 15 days in advance. Mobile phones and leather bags are not allowed inside.",
     image: "https://images.unsplash.com/photo-1707161877994-cc8c5e608d24?w=800&q=80",
   },
   {
-    name: "Kaal Bhairav Temple",
-    description: "Dedicated to the guardian deity of Ujjain. Devotees offer liquor as prasad to the deity, a unique tradition that has existed for centuries.",
+    name: "Kal Bhairav Temple",
+    description: "Dedicated to the fierce manifestation of Lord Shiva, considered the guardian deity of the city.",
+    history: "Built by King Bhadrasen, the deity here famously accepts liquor as prasad—a phenomenon that leaves scientists baffled.",
+    timing: "5:00 AM to 10:00 PM",
+    tips: "Visit during the late morning to avoid massive crowds. Prasad (liquor, flowers) is available right outside the temple.",
     image: "https://images.unsplash.com/photo-1621235123049-9c5ae251141e?w=800&q=80",
   },
   {
     name: "Harsiddhi Mata Temple",
-    description: "One of the 51 Shaktipeeths, known for its two massive Deep Stambhas (lamp pillars) which look magnificent when lit during Navratri.",
+    description: "One of the 51 Shaktipeeths, known for fulfilling wishes (Har-Siddhi).",
+    history: "Legend says the elbow of Goddess Sati dropped here. King Vikramaditya is said to have worshipped here heavily.",
+    timing: "5:00 AM to 7:00 PM",
+    tips: "The evening Aarti, right when the towering Deep Stambhas (lamp pillars) are lit, offers a spectacular and divine view.",
     image: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80",
   },
   {
-    name: "Mangalnath Temple",
-    description: "Considered the birthplace of Mars (Mangal), this temple is famously visited for Bhaat Puja to resolve Mangal Dosh.",
+    name: "Ram Ghat",
+    description: "The oldest and most sacred bathing ghat on the banks of the Shipra River.",
+    history: "It is one of the main venues for the famous Kumbh Mela (Simhastha) held every 12 years.",
+    timing: "24 Hours (Best visited during sunrise or sunset)",
+    tips: "Attend the breathtaking evening Shipra Aarti. Enjoy a peaceful boat ride early in the morning.",
     image: "https://images.unsplash.com/photo-1502010886283-7c2a715a3190?w=800&q=80",
   }
 ];
@@ -49,7 +61,21 @@ export default function TempleGuidePage() {
               </div>
               <CardContent className="p-6">
                 <h2 className="text-2xl font-bold mb-3">{temple.name}</h2>
-                <p className="text-muted-foreground leading-relaxed">{temple.description}</p>
+                <p className="text-muted-foreground leading-relaxed mb-4">{temple.description}</p>
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-bold text-sm text-primary uppercase tracking-wide">History</h3>
+                    <p className="text-sm text-foreground/80 mt-1">{temple.history}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-primary uppercase tracking-wide">Best Timing</h3>
+                    <p className="text-sm text-foreground/80 mt-1">{temple.timing}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-primary uppercase tracking-wide">Pro Tips</h3>
+                    <p className="text-sm text-foreground/80 mt-1">{temple.tips}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
