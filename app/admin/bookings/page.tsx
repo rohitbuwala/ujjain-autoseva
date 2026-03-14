@@ -42,6 +42,7 @@ interface Booking {
   packageType?: string;
   packageName?: string;
   temples?: Temple[];
+  selectedTemples?: string[];
   hotel?: boolean;
   userId?: { email?: string };
 }
@@ -191,19 +192,31 @@ export default function AdminBookings() {
                 </div>
 
                 {/* Package Info */}
-                <div className="flex flex-wrap gap-3 items-center pt-3 border-t border-dashed">
-                  <div className="flex items-center gap-1.5 text-sm bg-primary/5 px-2 py-1 rounded-md border border-primary/10">
-                    <Package size={15} className="text-primary" />
-                    <span className="font-bold text-primary">
-                      {b.packageType === "five" ? "5 Temple Darshan" : 
-                       b.packageType === "custom" ? "Custom Selection" : 
-                       b.packageName || b.packageType || "Standard Ride"}
+                <div className="pt-3 border-t border-dashed">
+                  <div className="flex flex-wrap gap-3 items-center mb-2">
+                    <div className="flex items-center gap-1.5 text-sm bg-primary/5 px-2 py-1 rounded-md border border-primary/10">
+                      <Package size={15} className="text-primary" />
+                      <span className="font-bold text-primary">
+                        {b.packageType === "five" ? "5 Temple Darshan" : 
+                         b.packageType === "custom" ? "Custom Selection" : 
+                         b.packageName || b.packageType || "Standard Ride"}
+                      </span>
+                    </div>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm font-medium">
+                      {b.temples?.length || 0} temple(s)
                     </span>
                   </div>
-                  <span className="text-muted-foreground">•</span>
-                  <span className="text-sm font-medium">
-                    {b.temples?.length || 0} temple(s) selected
-                  </span>
+
+                  {/* TEMPLE NAMES DISPLAY */}
+                  {(b.selectedTemples?.length || b.temples?.length) ? (
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed bg-slate-100/50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/50">
+                      <span className="font-bold text-xs uppercase tracking-wider block mb-1 opacity-70">Included Temples:</span>
+                      {b.selectedTemples && b.selectedTemples.length > 0 
+                        ? b.selectedTemples.join(", ")
+                        : b.temples?.map(t => t.name).join(", ")}
+                    </p>
+                  ) : null}
                 </div>
 
                 {/* Temples List */}

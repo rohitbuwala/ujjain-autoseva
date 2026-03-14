@@ -77,6 +77,10 @@ const bookingSchema = new mongoose.Schema({
     name: String,
     price: Number,
   }],
+  selectedTemples: {
+    type: [String],
+    default: [],
+  },
   notes: {
     type: String,
     default: "",

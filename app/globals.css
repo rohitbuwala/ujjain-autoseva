@@ -1,6 +1,8 @@
   @import "tailwindcss";
 
   @theme {
+    --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-primary: var(--primary);
@@ -111,4 +113,12 @@
 
   .dark .gradient-text {
     @apply from-blue-400 to-purple-400;
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(-5%) translateX(-50%); }
+    50% { transform: translateY(0) translateX(-50%); }
+  }
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2s infinite ease-in-out;
   }

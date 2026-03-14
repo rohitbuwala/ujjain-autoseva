@@ -59,6 +59,7 @@ export async function POST(req: Request) {
       packageType: validatedData.packageType,
       packageName: validatedData.packageName,
       temples: validatedData.temples,
+      selectedTemples: validatedData.temples.map(t => t.name),
       notes: validatedData.notes,
       hotel: validatedData.hotel
     });

@@ -3,10 +3,17 @@ import { CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import SchemaMarkup from "@/components/SchemaMarkup";
+import { SITE_CONFIG } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Pricing | Ujjain Auto Seva",
-  description: "Affordable and transparent pricing for Ujjain auto services, Mahakal darshan, and outstation trips.",
+  title: "Transparent Pricing | Ujjain Auto Taxi & Temple Tour Rates",
+  description: "Check our affordable and transparent pricing for Ujjain auto services. No hidden charges for Mahakal Darshan, city tours, or station pickups.",
+  keywords: ["Ujjain auto fare", "Mahakal darshan cost", "Ujjain taxi rates", "temple tour pricing Ujjain"],
+  openGraph: {
+    title: "Affordable Ujjain Auto & Temple Tour Pricing",
+    description: "Get the best rates for auto services in Ujjain. Simple, honest, and transparent pricing for all devotees.",
+  }
 };
 
 const FIVE_TEMPLE_DARSHAN_TEMPLES = [
@@ -59,7 +66,19 @@ const packages = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-background">
+    <>
+      <SchemaMarkup 
+        schemaType="LocalBusiness" 
+        data={{
+          "@context": "https://schema.org",
+          "@type": "PriceSpecification",
+          "name": "Ujjain Auto Tour Pricing",
+          "priceCurrency": "INR",
+          "minPrice": "400",
+          "description": "Starting from ₹400 for city tours."
+        }} 
+      />
+      <div className="min-h-screen pt-24 pb-20 bg-background">
       <div className="container-custom">
         {/* Header */}
         <div className="text-center mb-16">
@@ -142,5 +161,6 @@ export default function PricingPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
