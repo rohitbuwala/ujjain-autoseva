@@ -4,6 +4,8 @@ import Providers from "./providers";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FloatingContact from "@/components/FloatingContact";
+import SchemaMarkup from "@/components/SchemaMarkup";
 
 
 export const metadata = {
@@ -43,6 +45,13 @@ export default function RootLayout({
 
           {/* Footer */}
           <Footer />
+
+          {/* Floating Actions */}
+          <FloatingContact />
+
+          {/* Global Local SEO Schema */}
+          <SchemaMarkup schemaType="LocalBusiness" data={null} />
+
 
         </Providers>
 

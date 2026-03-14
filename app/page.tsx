@@ -15,7 +15,9 @@ import {
   ArrowRight,
   Star,
   Users,
+  CheckCircle,
 } from "lucide-react";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 
 interface Feedback {
@@ -129,6 +131,84 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* POPULAR PACKAGES */}
+      <section className="py-20 md:py-32 bg-background">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Popular Darshan Packages</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Affordable and comfortable auto packages for your Ujjain timeline.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Package 1 */}
+            <Card className="border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group">
+              <div className="h-48 relative w-full overflow-hidden bg-muted">
+                <Image src="https://images.unsplash.com/photo-1707161877994-cc8c5e608d24?w=800&q=80" alt="Mahakal Darshan" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl">Mahakal Only</CardTitle>
+                <CardDescription className="text-lg text-primary font-bold">Fast & Direct Transit</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Hotel to Temple & Back</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Wait time included</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Instant booking support</li>
+                </ul>
+              </CardContent>
+              <div className="p-6 pt-0 mt-auto">
+                <Button className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={() => router.push("/booking?package=mahakal")}>Book Now</Button>
+              </div>
+            </Card>
+            
+            {/* Package 2 */}
+            <Card className="border-primary shadow-lg shadow-primary/10 transition-all flex flex-col h-full overflow-hidden group relative">
+              <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full z-10">BEST SELLER</div>
+              <div className="h-48 relative w-full overflow-hidden bg-muted">
+                <Image src="https://images.unsplash.com/photo-1621235123049-9c5ae251141e?w=800&q=80" alt="5 Temples Darshan" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl">5 Temples Tour</CardTitle>
+                <CardDescription className="text-lg text-primary font-bold">Half-Day Package</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Mahakaleshwar, Kaal Bhairav</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Harsiddhi, Ram Ghat, Mangalnath</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> 4-5 hours typical duration</li>
+                </ul>
+              </CardContent>
+              <div className="p-6 pt-0 mt-auto">
+                <Button className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={() => router.push("/booking?package=5-temples")}>Book Now</Button>
+              </div>
+            </Card>
+
+            {/* Package 3 */}
+            <Card className="border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group">
+              <div className="h-48 relative w-full overflow-hidden bg-muted">
+                <Image src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80" alt="Full Ujjain Tour" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl">Full Ujjain Darshan</CardTitle>
+                <CardDescription className="text-lg text-primary font-bold">Complete Day Tour</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <ul className="space-y-2 text-muted-foreground">
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> All major Ujjain temples</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Local sightseeing points</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> 8-10 hours guided journey</li>
+                </ul>
+              </CardContent>
+              <div className="p-6 pt-0 mt-auto">
+                <Button className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={() => router.push("/booking?package=full-ujjain")}>Book Now</Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* WHY CHOOSE US */}
       <section className="py-20 md:py-32">
         <div className="container-custom">
@@ -192,6 +272,29 @@ export default function HomePage() {
                 <p className="text-lg font-bold">24/7 Support</p>
                 <p className="text-primary-foreground/80 text-sm">Always Available</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* GALLERY SECTION */}
+      <section className="py-20 md:py-32 bg-muted/30">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Glimpses of Ujjain</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Explore the divine beauty of Ujjain and our well-maintained auto fleet.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="h-48 md:h-64 relative rounded-2xl overflow-hidden group">
+              <Image src="https://images.unsplash.com/photo-1621235123049-9c5ae251141e?w=800&q=80" alt="Mahakaleshwar Temple" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+            </div>
+            <div className="h-48 md:h-64 relative rounded-2xl overflow-hidden group md:col-span-2">
+              <Image src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80" alt="Ujjain City Auto Ride" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+            </div>
+            <div className="h-48 md:h-64 relative rounded-2xl overflow-hidden group">
+              <Image src="https://images.unsplash.com/photo-1502010886283-7c2a715a3190?w=800&q=80" alt="Kaal Bhairav Temple" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
             </div>
           </div>
         </div>
