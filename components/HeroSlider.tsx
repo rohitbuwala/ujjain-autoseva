@@ -46,7 +46,7 @@ export default function HeroSlider() {
       return;
     }
 
-    router.push("/booking");
+    router.push("/custom-booking");
   }
 
 

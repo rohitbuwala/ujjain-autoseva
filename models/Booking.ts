@@ -40,7 +40,7 @@ const bookingSchema = new mongoose.Schema({
 
   drop: {
     type: String,
-    required: true,
+    default: "",
   },
 
   date: {
@@ -60,7 +60,30 @@ const bookingSchema = new mongoose.Schema({
 
   route: {
     type: String,
-    required: true,
+    default: "",
+  },
+
+  // Custom Booking Fields
+  packageType: {
+    type: String,
+    default: "",
+  },
+  packageName: {
+    type: String,
+    default: "",
+  },
+  temples: [{
+    _id: String,
+    name: String,
+    price: Number,
+  }],
+  notes: {
+    type: String,
+    default: "",
+  },
+  hotel: {
+    type: Boolean,
+    default: false,
   },
 
   // Booking Status
@@ -72,6 +95,16 @@ const bookingSchema = new mongoose.Schema({
 
   // Admin Note (optional future use)
   adminNote: {
+    type: String,
+    default: "",
+  },
+  
+  driverName: {
+    type: String,
+    default: "",
+  },
+
+  driverPhone: {
     type: String,
     default: "",
   },

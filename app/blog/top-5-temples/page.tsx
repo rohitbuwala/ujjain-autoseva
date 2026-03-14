@@ -47,7 +47,7 @@ export default function BlogPost() {
           <p>Connecting with the rich history of the Mahabharata, this is where Lord Krishna, Balarama, and Sudama received their education. A very peaceful and historically rich site.</p>
 
           <h2>Transportation Tip</h2>
-          <p>Covering these 5 locations optimally requires navigating narrow city lanes. Our <Link href="/booking">5 Temple Darshan Package</Link> is designed specifically for this route, saving you time and stress.</p>
+          <p>Covering these 5 locations optimally requires navigating narrow city lanes. Our <Link href="/custom-booking">5 Temple Darshan Package</Link> is designed specifically for this route, saving you time and stress.</p>
 
           <div className="mt-12 p-8 bg-green-500/10 rounded-2xl border border-green-500/20 text-center not-prose">
             <h3 className="text-2xl font-bold mb-3 text-foreground">Ready for your spiritual journey?</h3>

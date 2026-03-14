@@ -46,7 +46,7 @@ export default function BlogPost() {
           </ul>
 
           <h2>Auto Price Estimate & Local Travel</h2>
-          <p>Navigating Ujjain is easiest via auto-rickshaws. From the Railway Station to Mahakal Temple, standard fares hover around ₹100-₹150. For a complete, hassle-free experience, pre-book a <Link href="/booking">Mahakal Only drop package</Link> with Ujjain Auto Seva for transparent pricing without the haggling.</p>
+          <p>Navigating Ujjain is easiest via auto-rickshaws. From the Railway Station to Mahakal Temple, standard fares hover around ₹100-₹150. For a complete, hassle-free experience, pre-book a <Link href="/custom-booking">Mahakal Only drop package</Link> with Ujjain Auto Seva for transparent pricing without the haggling.</p>
 
           <h2>Pro Tips for Devotees</h2>
           <ul>

@@ -6,14 +6,29 @@ const TempleSchema = new Schema({
     required: true,
     trim: true,
   },
-  price: {
+  category: {
+    type: String,
+    enum: ["inside", "outside", "custom"],
+    default: "inside",
+    required: true,
+  },
+  basePrice: {
     type: Number,
     required: true,
     min: 0,
+    default: 0,
   },
-  isActive: {
+  routeGroup: {
+    type: String,
+    default: "",
+  },
+  activeStatus: {
     type: Boolean,
     default: true,
+  },
+  displayOrder: {
+    type: Number,
+    default: 0,
   },
   description: {
     type: String,

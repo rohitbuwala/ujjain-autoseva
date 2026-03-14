@@ -3,6 +3,7 @@ import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { sendUserConfirmation } from "@/lib/sendWhatsApp";
 
 export async function PATCH(
   req: Request,
@@ -24,11 +25,11 @@ export async function PATCH(
       );
     }
 
-    const { status } = await req.json();
+    const updates = await req.json();
 
-    if (!status) {
+    if (!updates || Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { error: "Status required" },
+        { error: "Payload required" },
         { status: 400 }
       );
     }
@@ -37,7 +38,7 @@ export async function PATCH(
 
     const booking = await Booking.findByIdAndUpdate(
       id,
-      { status },
+      { $set: updates },
       { new: true }
     );
 
@@ -46,6 +47,10 @@ export async function PATCH(
         { error: "Booking not found" },
         { status: 404 }
       );
+    }
+
+    if (updates.status === "confirmed") {
+      await sendUserConfirmation(booking).catch(e => console.error("Could not send confirmation to user:", e));
     }
 
     return NextResponse.json(booking);

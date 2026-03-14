@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
-import Temple from "@/models/Temple";
+import Route from "@/models/Route";
 
 export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -15,15 +15,19 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     const body = await req.json();
 
     await connectDB();
-    const temple = await Temple.findByIdAndUpdate(id, body, { new: true });
+    const route = await Route.findByIdAndUpdate(id, body, { new: true })
+      .populate("templeList", "name _id");
     
-    if (!temple) {
-      return NextResponse.json({ error: "Temple not found" }, { status: 404 });
+    if (!route) {
+      return NextResponse.json({ error: "Route not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ data: temple });
-  } catch (error) {
-    console.error("ADMIN TEMPLES PATCH ERROR:", error);
+    return NextResponse.json({ data: route });
+  } catch (error: any) {
+    console.error("ADMIN ROUTES PATCH ERROR:", error);
+    if(error.code === 11000) {
+        return NextResponse.json({ error: "Route name already exists" }, { status: 400 });
+    }
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
@@ -38,15 +42,15 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
     const { id } = await context.params;
 
     await connectDB();
-    const temple = await Temple.findByIdAndDelete(id);
+    const route = await Route.findByIdAndDelete(id);
     
-    if (!temple) {
-      return NextResponse.json({ error: "Temple not found" }, { status: 404 });
+    if (!route) {
+      return NextResponse.json({ error: "Route not found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("ADMIN TEMPLES DELETE ERROR:", error);
+    console.error("ADMIN ROUTES DELETE ERROR:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }

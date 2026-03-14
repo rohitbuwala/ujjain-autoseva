@@ -14,7 +14,7 @@ const temples = [
     history: "Considered Swayambhu (self-manifested), it has a rich history tied to King Vikramaditya and the ancient city of Avantika.",
     timing: "3:00 AM (Bhasma Aarti) to 11:00 PM",
     tips: "Book Bhasma Aarti tickets at least 15 days in advance. Mobile phones and leather bags are not allowed inside.",
-    image: "https://images.unsplash.com/photo-1707161877994-cc8c5e608d24?w=800&q=80",
+    image: "/maha.jpg",
   },
   {
     name: "Kal Bhairav Temple",
@@ -22,7 +22,7 @@ const temples = [
     history: "Built by King Bhadrasen, the deity here famously accepts liquor as prasad—a phenomenon that leaves scientists baffled.",
     timing: "5:00 AM to 10:00 PM",
     tips: "Visit during the late morning to avoid massive crowds. Prasad (liquor, flowers) is available right outside the temple.",
-    image: "https://images.unsplash.com/photo-1621235123049-9c5ae251141e?w=800&q=80",
+    image: "/logo2.webp",
   },
   {
     name: "Harsiddhi Mata Temple",
@@ -30,7 +30,7 @@ const temples = [
     history: "Legend says the elbow of Goddess Sati dropped here. King Vikramaditya is said to have worshipped here heavily.",
     timing: "5:00 AM to 7:00 PM",
     tips: "The evening Aarti, right when the towering Deep Stambhas (lamp pillars) are lit, offers a spectacular and divine view.",
-    image: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80",
+    image: "/har.jpg",
   },
   {
     name: "Ram Ghat",
@@ -38,7 +38,7 @@ const temples = [
     history: "It is one of the main venues for the famous Kumbh Mela (Simhastha) held every 12 years.",
     timing: "24 Hours (Best visited during sunrise or sunset)",
     tips: "Attend the breathtaking evening Shipra Aarti. Enjoy a peaceful boat ride early in the morning.",
-    image: "https://images.unsplash.com/photo-1502010886283-7c2a715a3190?w=800&q=80",
+    image: "/ram.jpeg",
   }
 ];
 

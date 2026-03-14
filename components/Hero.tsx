@@ -38,7 +38,7 @@ export default function Hero() {
                         <Button
                             size="lg"
                             className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-105"
-                            onClick={() => router.push("/booking")}
+                            onClick={() => router.push("/custom-booking")}
                         >
                             Book Now
                             <ArrowRight className="ml-2 h-5 w-5" />

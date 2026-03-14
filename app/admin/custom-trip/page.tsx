@@ -79,9 +79,18 @@ export default function CustomTripAdminPage() {
     setLoading(true);
     try {
       if (activeTab === "temples") {
-        const res = await fetch("/api/admin/temples");
+        const res = await fetch("/api/temples");
         const data = await res.json();
-        if (Array.isArray(data)) setTemples(data);
+        console.log("temples:", data);
+        if (data.success && Array.isArray(data.data)) {
+          setTemples(data.data.map((t: any) => ({
+            ...t,
+            price: t.basePrice ?? t.price ?? 0,
+            isActive: t.activeStatus ?? t.isActive ?? true
+          })));
+        } else if (Array.isArray(data)) {
+          setTemples(data);
+        }
       } else {
         const res = await fetch("/api/admin/custom-bookings");
         const data = await res.json();
@@ -112,7 +121,7 @@ export default function CustomTripAdminPage() {
       name: temple.name,
       price: String(temple.price),
       description: temple.description || "",
-      isActive: temple.isActive,
+      isActive: temple.isActive || (temple as any).activeStatus,
     });
     setTempleDialogOpen(true);
   }
@@ -127,7 +136,7 @@ export default function CustomTripAdminPage() {
     try {
       const url = editingTemple 
         ? `/api/admin/temples/${editingTemple._id}`
-        : "/api/admin/temples";
+        : "/api/temples";
       
       const method = editingTemple ? "PATCH" : "POST";
       
@@ -137,8 +146,8 @@ export default function CustomTripAdminPage() {
         body: JSON.stringify({
           name: templeForm.name,
           price: Number(templeForm.price),
-          description: templeForm.description,
-          isActive: templeForm.isActive,
+          category: "inside", // Default category if not selected
+          active: templeForm.isActive,
         }),
       });
 

@@ -49,7 +49,7 @@ export default function AboutPage() {
                                 Ujjain is a city of timeless spirituality. We saw a need for a professional service that respects this heritage while providing modern convenience. Our mission is to ensure no pilgrim or resident feels overcharged or lost.
                             </p>
                             <Button asChild variant="secondary" className="w-fit rounded-full px-8 h-12 text-base font-semibold transition-transform hover:scale-105 active:scale-95">
-                                <Link href="/booking">Book Your Journey <ArrowRight className="ml-2 w-4 h-4" /></Link>
+                                <Link href="/custom-booking">Book Your Journey <ArrowRight className="ml-2 w-4 h-4" /></Link>
                             </Button>
                         </CardContent>
                     </Card>

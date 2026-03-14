@@ -5,6 +5,12 @@ const client = twilio(
   process.env.TWILIO_AUTH_TOKEN!
 );
 
+interface Temple {
+  _id: string;
+  name: string;
+  price: number;
+}
+
 interface BookingData {
   bookingId: string;
   name: string;
@@ -13,10 +19,15 @@ interface BookingData {
   time: string;
   date: string;
   price: string;
+  temples?: Temple[];
+  packageName?: string;
 }
 
 export async function sendAdminNotification(booking: BookingData) {
   try {
+    const templeList = booking.temples?.map(t => t.name).join(", ") || "No temples selected";
+    const packageInfo = booking.packageName || "Custom Booking";
+    
     await client.messages.create({
       from: process.env.TWILIO_WHATSAPP_NUMBER!,
       to: process.env.ADMIN_WHATSAPP_NUMBER!,
@@ -27,6 +38,8 @@ export async function sendAdminNotification(booking: BookingData) {
 👤 Name: ${booking.name}
 📞 Phone: ${booking.phone}
 
+📦 Package: ${packageInfo}
+🏛️ Temples: ${templeList}
 📍 Route: ${booking.route}
 ⏰ Time: ${booking.time}
 📅 Date: ${booking.date}
@@ -37,5 +50,38 @@ export async function sendAdminNotification(booking: BookingData) {
     console.log("WhatsApp sent ✅");
   } catch (err) {
     console.log("WhatsApp error ❌", err);
+  }
+}
+
+export async function sendUserConfirmation(booking: BookingData) {
+  try {
+    const phone = booking.phone.startsWith("+") ? booking.phone : `+91${booking.phone}`;
+    const templeList = booking.temples?.map(t => t.name).join(", ") || "";
+
+    let body = `✅ Booking Confirmed!
+    
+Hi ${booking.name}, your auto booking is confirmed.
+
+🆔 Booking ID: ${booking.bookingId}
+📍 Route: ${booking.route}
+⏰ Time: ${booking.time}
+📅 Date: ${booking.date}
+💰 Fare: ₹${booking.price}`;
+
+    if (templeList) {
+      body += `\n🏛️ Temples: ${templeList}`;
+    }
+
+    body += `\n\nOur driver will be there on time. For any queries, please call us. Have a divine darshan! 🙏`;
+
+    await client.messages.create({
+      from: process.env.TWILIO_WHATSAPP_NUMBER!,
+      to: `whatsapp:${phone}`,
+      body,
+    });
+
+    console.log("User confirmation WhatsApp sent ✅");
+  } catch (err) {
+    console.log("User WhatsApp error ❌", err);
   }
 }

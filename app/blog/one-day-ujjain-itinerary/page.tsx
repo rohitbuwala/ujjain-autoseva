@@ -42,7 +42,7 @@ export default function BlogPost() {
           </ul>
 
           <h2>Estimated Costs and Travel Efficiency</h2>
-          <p>If you hire point-to-point autos, navigating this route can cost you upwards of ₹1500 and a lot of bartering time. By booking a reliable <Link href="/booking">Full Ujjain Tour Auto</Link> for ₹1200, you guarantee a driver tracking this exact route for you all day, allowing you to focus entirely on your spiritual journey.</p>
+          <p>If you hire point-to-point autos, navigating this route can cost you upwards of ₹1500 and a lot of bartering time. By booking a reliable <Link href="/custom-booking">Full Ujjain Tour Auto</Link> for ₹1200, you guarantee a driver tracking this exact route for you all day, allowing you to focus entirely on your spiritual journey.</p>
           
           <div className="mt-12 p-8 bg-green-500/10 rounded-2xl border border-green-500/20 text-center not-prose">
             <h3 className="text-2xl font-bold mb-3 text-foreground">Ready for your spiritual journey?</h3>

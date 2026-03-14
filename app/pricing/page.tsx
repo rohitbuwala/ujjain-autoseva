@@ -9,70 +9,131 @@ export const metadata: Metadata = {
   description: "Affordable and transparent pricing for Ujjain auto services, Mahakal darshan, and outstation trips.",
 };
 
-export default function PricingPage() {
-  const packages = [
-    {
-      name: "Mahakal Only",
-      tag: "Most Booked",
-      price: "₹150",
-      description: "Direct & Fast Transit",
-      features: ["Instant booking", "Direct drop", "No hidden charges"],
-    },
-    {
-      name: "5 Temple Darshan",
-      tag: "Best for Families",
-      price: "₹600",
-      description: "Comfortable Half-Day Tour",
-      features: ["Mahakaleshwar", "Kaal Bhairav", "Harsiddhi", "Ram Ghat", "Mangalnath", "Wait time included"],
-      popular: true,
-    },
-    {
-      name: "Full Ujjain Tour",
-      tag: "Complete Experience",
-      price: "₹1200",
-      description: "Guided Heritage Day Trip",
-      features: ["All major temples", "Local sightseeing", "Knowledgeable driver", "Hotel pickup & drop"],
-    },
-  ];
+const FIVE_TEMPLE_DARSHAN_TEMPLES = [
+  "Mahakaleshwar",
+  "Kaal Bhairav",
+  "Harsiddhi",
+  "Ram Ghat",
+  "Mangalnath"
+];
 
+const packages = [
+  {
+    name: "Mahakal + City Tour",
+    tag: "Recommended",
+    price: "₹400",
+    description: "Perfect for a quick spiritual visit",
+    features: [
+      "Mahakaleshwar",
+      "Ram Ghat",
+      "Harsiddhi",
+      "Local sightseeing",
+      "Pickup & drop",
+    ],
+    popular: true,
+    link: "/booking",
+  },
+  {
+    name: "5 Temple Darshan",
+    tag: "Best for Families",
+    price: "₹600",
+    description: "Comfortable Half-Day Tour",
+    features: FIVE_TEMPLE_DARSHAN_TEMPLES,
+    popular: false,
+    link: "/custom-booking?package=five",
+  },
+  {
+    name: "Custom Selection",
+    tag: "Most Flexible",
+    price: "Custom",
+    description: "Select temples & get instant price",
+    features: [
+      "Temple-based pricing",
+      "Flexible itinerary",
+      "Experienced driver",
+      "Hotel pickup & drop",
+    ],
+    link: "/custom-booking?package=custom",
+  },
+];
+
+export default function PricingPage() {
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
       <div className="container-custom">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Transparent Pricing</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+            Transparent Pricing
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Choose the best plan for your spiritual journey in Ujjain. No hidden fees.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {packages.map((pkg, idx) => (
-            <Card key={idx} className={`relative flex flex-col ${pkg.popular ? "border-primary shadow-lg scale-105 z-10" : "border-border/50"}`}>
+            <Card
+              key={idx}
+              className={`relative flex flex-col transition-all duration-300 hover:shadow-2xl h-full border-2 ${
+                pkg.popular ? "border-primary shadow-xl scale-[1.02]" : "border-border/60"
+              }`}
+            >
+              {/* Tag */}
               {pkg.tag && (
-                <div className={`absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold tracking-wider whitespace-nowrap ${pkg.popular ? 'bg-primary text-white' : 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200'}`}>
+                <div
+                  className={`absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold tracking-widest whitespace-nowrap z-10 ${
+                    pkg.popular
+                      ? "bg-primary text-white"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
                   {pkg.tag.toUpperCase()}
                 </div>
               )}
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-2xl">{pkg.name}</CardTitle>
-                <CardDescription className="mt-2">{pkg.description}</CardDescription>
+
+              {/* Header */}
+              <CardHeader className="text-center pb-6 pt-8">
+                <CardTitle className="text-2xl font-bold">{pkg.name}</CardTitle>
+                <CardDescription className="mt-2 text-sm">{pkg.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col flex-grow text-center pt-4">
-                <div className="mb-6">
-                  <span className="text-5xl font-extrabold text-foreground">{pkg.price}</span>
-                  {idx !== 0 && <span className="text-muted-foreground">/trip</span>}
+
+              {/* Body */}
+              <CardContent className="flex flex-col flex-grow text-center pt-2">
+                {/* Price */}
+                <div className="mb-8">
+                  <span className="text-5xl font-black text-foreground">
+                    {pkg.price}
+                  </span>
+                  {pkg.price.startsWith("₹") && (
+                    <span className="text-muted-foreground text-sm font-medium ml-1">/trip</span>
+                  )}
                 </div>
-                <ul className="mb-8 space-y-3 text-left">
-                  {pkg.features.map((feature, fIdx) => (
+
+                {/* Features */}
+                <ul className="mb-10 flex-grow space-y-4 text-left px-4">
+                  {pkg.features.map((feature: string, fIdx: number) => (
                     <li key={fIdx} className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
-                      <span className="text-muted-foreground">{feature}</span>
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                      </div>
+                      <span className="text-sm font-medium text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
+
+                {/* Button */}
                 <div className="mt-auto">
-                  <Button asChild size="lg" className="w-full font-bold" variant={pkg.popular ? "default" : "outline"}>
-                    <Link href="/booking">Book Now</Link>
+                  <Button
+                    asChild
+                    size="lg"
+                    className={`w-full h-14 font-bold text-lg rounded-xl transition-all ${
+                      pkg.popular ? "shadow-lg shadow-primary/25 hover:scale-[1.02]" : ""
+                    }`}
+                    variant={pkg.popular ? "default" : "outline"}
+                  >
+                    <Link href={pkg.link}>Book Now</Link>
                   </Button>
                 </div>
               </CardContent>

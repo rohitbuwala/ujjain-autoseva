@@ -118,7 +118,7 @@ export default function DashboardPage() {
           />
           <Button
             className="w-full sm:w-auto"
-            onClick={() => router.push("/booking")}
+            onClick={() => router.push("/custom-booking")}
           >
             <PlusCircle size={18} className="mr-2" />
             New Booking
@@ -223,7 +223,7 @@ export default function DashboardPage() {
 
           <Button
             className="w-full"
-            onClick={() => router.push("/booking")}
+            onClick={() => router.push("/custom-booking")}
           >
             <PlusCircle size={18} className="mr-2" />
             Book Now

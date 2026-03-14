@@ -28,7 +28,8 @@ export default function AdminHomepage() {
       try {
         const res = await fetch("/api/services");
         const data = await res.json();
-        setServices(Array.isArray(data) ? data : []);
+        console.log("services:", data);
+        setServices(data.data || data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -72,7 +73,7 @@ export default function AdminHomepage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-background text-slate-900 dark:text-white px-3 sm:px-6 py-10 transition-colors">
+    <div className="min-h-screen bg-background text-foreground px-3 sm:px-6 py-10 transition-colors">
 
       <div className="max-w-7xl mx-auto space-y-8">
 

@@ -28,6 +28,25 @@ interface Feedback {
 
 export default function HomePage() {
   const router = useRouter();
+  const [routes, setRoutes] = useState<any[]>([]);
+  const [loadingRoutes, setLoadingRoutes] = useState(true);
+
+  useEffect(() => {
+    async function fetchRoutes() {
+      try {
+        const res = await fetch("/api/routes");
+        const data = await res.json();
+        if (data.data && Array.isArray(data.data)) {
+          setRoutes(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch routes", err);
+      } finally {
+        setLoadingRoutes(false);
+      }
+    }
+    fetchRoutes();
+  }, []);
   const testimonials = [
     {
       name: "Rajesh Sharma, Indore",
@@ -63,28 +82,28 @@ export default function HomePage() {
 
   const services = [
     {
-      title: "City Taxi",
-      desc: "Fast & affordable city rides.",
-      icon: Car,
-      link: "/booking",
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
-    },
-    {
-      title: "Temple Darshan",
-      desc: "Mahakal & Omkareshwar trips.",
+      title: "Temples Inside City",
+      desc: "Mahakal, Harsiddhi & more.",
       icon: MdTempleHindu,
-      link: "/packages",
+      link: "/booking",
       color: "text-orange-500",
       bg: "bg-orange-500/10",
     },
     {
-      title: "Outstation",
-      desc: "Round trips to nearby cities.",
+      title: "Outside City Temples",
+      desc: "Omkareshwar, Indore trips.",
       icon: MapPin,
-      link: "/booking?type=outstation",
+      link: "/booking",
       color: "text-green-500",
       bg: "bg-green-500/10",
+    },
+    {
+      title: "Custom Trip",
+      desc: "Select your own temples.",
+      icon: Car,
+      link: "/custom-booking",
+      color: "text-blue-500",
+      bg: "bg-blue-500/10",
     },
   ];
 
@@ -157,71 +176,80 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Package 1 */}
-            <Card className="border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group">
-              <div className="h-48 relative w-full overflow-hidden bg-muted">
-                <Image src="https://images.unsplash.com/photo-1707161877994-cc8c5e608d24?w=800&q=80" alt="Mahakal Darshan" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-2xl">Mahakal Only</CardTitle>
-                <CardDescription className="text-lg text-primary font-bold">Fast & Direct Transit</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Hotel to Temple & Back</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Wait time included</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Instant booking support</li>
-                </ul>
-              </CardContent>
-              <div className="p-6 pt-0 mt-auto">
-                <Button className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={() => router.push("/booking?package=mahakal")}>Book Now</Button>
-              </div>
-            </Card>
-            
-            {/* Package 2 */}
-            <Card className="border-primary shadow-lg shadow-primary/10 transition-all flex flex-col h-full overflow-hidden group relative">
-              <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full z-10">BEST SELLER</div>
-              <div className="h-48 relative w-full overflow-hidden bg-muted">
-                <Image src="https://images.unsplash.com/photo-1621235123049-9c5ae251141e?w=800&q=80" alt="5 Temples Darshan" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-2xl">5 Temples Tour</CardTitle>
-                <CardDescription className="text-lg text-primary font-bold">Half-Day Package</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Mahakaleshwar, Kaal Bhairav</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Harsiddhi, Ram Ghat, Mangalnath</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> 4-5 hours typical duration</li>
-                </ul>
-              </CardContent>
-              <div className="p-6 pt-0 mt-auto">
-                <Button className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={() => router.push("/booking?package=5-temples")}>Book Now</Button>
-              </div>
-            </Card>
-
-            {/* Package 3 */}
-            <Card className="border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group">
-              <div className="h-48 relative w-full overflow-hidden bg-muted">
-                <Image src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80" alt="Full Ujjain Tour" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-2xl">Full Ujjain Darshan</CardTitle>
-                <CardDescription className="text-lg text-primary font-bold">Complete Day Tour</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> All major Ujjain temples</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> Local sightseeing points</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> 8-10 hours guided journey</li>
-                </ul>
-              </CardContent>
-              <div className="p-6 pt-0 mt-auto">
-                <Button className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" size="lg" onClick={() => router.push("/booking?package=full-ujjain")}>Book Now</Button>
-              </div>
-            </Card>
-          </div>
+          {loadingRoutes ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="border-border/50 animate-pulse">
+                  <div className="h-48 bg-muted" />
+                  <CardHeader>
+                    <div className="h-6 bg-muted rounded w-3/4 mb-2" />
+                    <div className="h-4 bg-muted rounded w-1/2" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-4 bg-muted rounded w-full mb-2" />
+                    <div className="h-4 bg-muted rounded w-2/3" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : routes.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">No packages available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {routes.slice(0, 3).map((route, idx) => (
+                <Card 
+                  key={route._id || idx} 
+                  className={`border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group ${idx === 1 ? 'border-primary shadow-lg shadow-primary/10' : ''}`}
+                >
+                  {idx === 1 && (
+                    <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full z-10">BEST SELLER</div>
+                  )}
+                  <div className="h-48 relative w-full overflow-hidden bg-muted">
+                    <Image 
+                      src={idx === 0 ? "/logo1.webp" : idx === 1 ? "/5.jpg" : "/12.jpg"} 
+                      alt={route.routeName} 
+                      fill 
+                      className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-2xl">{route.routeName}</CardTitle>
+                    <CardDescription className="text-lg text-primary font-bold">
+                      {route.templeList?.length || 0} Temples • {route.category === 'outside' ? 'Full Day' : 'Half Day'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <ul className="space-y-2 text-muted-foreground">
+                      {route.templeList?.slice(0, 3).map((t: any, i: number) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> 
+                          {t.name}
+                        </li>
+                      ))}
+                      {route.templeList?.length > 3 && (
+                        <li className="text-sm text-muted-foreground">+{route.templeList.length - 3} more temples</li>
+                      )}
+                    </ul>
+                  </CardContent>
+                  <div className="p-6 pt-0 mt-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-2xl font-bold text-primary">₹{route.totalPrice}</span>
+                      <span className="text-sm text-muted-foreground line-through">₹{Math.round(route.totalPrice * 1.3)}</span>
+                    </div>
+                    <Button 
+                      className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" 
+                      size="lg" 
+                      onClick={() => router.push(`/booking?route=${route._id}`)}
+                    >
+                      Book Now
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -294,61 +322,106 @@ export default function HomePage() {
       </section>
 
       {/* GALLERY SECTION */}
-      <section className="py-20 md:py-32 bg-muted/30">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container-custom">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Glimpses of Ujjain</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Explore the divine beauty of Ujjain and our well-maintained auto fleet.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="h-48 md:h-64 relative rounded-2xl overflow-hidden group">
-              <Image src="https://images.unsplash.com/photo-1621235123049-9c5ae251141e?w=800&q=80" alt="Mahakaleshwar Temple" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="relative aspect-[3/4] md:aspect-square rounded-xl md:rounded-2xl overflow-hidden group col-span-2 md:col-span-1">
+              <Image 
+                src="/m.jpg" 
+                alt="Mahakaleshwar Temple" 
+                fill 
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                loading="lazy"
+              />
             </div>
-            <div className="h-48 md:h-64 relative rounded-2xl overflow-hidden group md:col-span-2">
-              <Image src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=80" alt="Ujjain City Auto Ride" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative aspect-square md:aspect-auto md:row-span-2 rounded-xl md:rounded-2xl overflow-hidden group col-span-2 md:col-span-2">
+              <Image 
+                src="/a.jpg" 
+                alt="Ujjain City Auto Ride" 
+                fill 
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                loading="lazy"
+              />
             </div>
-            <div className="h-48 md:h-64 relative rounded-2xl overflow-hidden group">
-              <Image src="https://images.unsplash.com/photo-1502010886283-7c2a715a3190?w=800&q=80" alt="Kaal Bhairav Temple" fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div className="relative aspect-[3/4] md:aspect-square rounded-xl md:rounded-2xl overflow-hidden group col-span-2 md:col-span-1">
+              <Image 
+                src="/k.jpg" 
+                alt="Kaal Bhairav Temple" 
+                fill 
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                loading="lazy"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="py-24 bg-muted/30 border-t border-border/50">
+      {/* TESTIMONIALS (WhatsApp Chat Style) */}
+      <section className="py-20 bg-slate-50 dark:bg-slate-950 border-t border-border/50">
         <div className="container-custom">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Riders Say</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Real feedback from our customers who trust us for their spiritual journeys in Ujjain.
+              Real feedback from customers who trust us for their spiritual journeys.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((feedback, idx) => (
-              <Card key={idx} className="border-none shadow-sm hover:shadow-md transition-shadow bg-card rounded-3xl overflow-hidden">
-                <CardContent className="p-8 flex flex-col h-full">
-                  <div className="flex text-orange-500 mb-4 gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={16} fill={i < feedback.rating ? "currentColor" : "none"} stroke={i < feedback.rating ? "none" : "currentColor"} />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground italic mb-6 leading-relaxed flex-grow">
-                    &quot;{feedback.comment}&quot;
-                  </p>
-                  <div className="flex items-center gap-3 mt-auto">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                      {feedback.name.charAt(0)}
+          
+          {/* Scrollable Slider on Mobile, Grid on Desktop */}
+          <div className="flex overflow-x-auto md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8 snap-x snap-mandatory scrollbar-hide">
+            {testimonials.map((feedback, idx) => {
+              const nameParts = feedback.name.split(",");
+              const personName = nameParts[0]?.trim();
+              const city = nameParts[1]?.trim() || "Local Rider";
+
+              return (
+                <div key={idx} className="w-[85vw] sm:w-[350px] md:w-auto shrink-0 snap-center flex flex-col items-start">
+                  
+                  {/* WhatsApp Chat Bubble Style */}
+                  <div className="bg-[#E6F4EA] dark:bg-[#005C4B] rounded-2xl rounded-tl-none p-5 shadow-sm relative w-full border border-[#D1E8D5] dark:border-[#004d3e]">
+                    
+                    {/* Header Row */}
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-800 dark:text-emerald-50 text-sm">~ {personName}</span>
+                        <div className="flex text-yellow-500 gap-0.5 mt-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={12} fill={i < feedback.rating ? "currentColor" : "none"} stroke={i < feedback.rating ? "none" : "currentColor"} />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="bg-white/50 dark:bg-black/20 text-slate-600 dark:text-emerald-200/80 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        {city}
+                      </span>
                     </div>
-                    <div>
-                      <p className="font-bold text-sm">{feedback.name.split(",")[0]}</p>
-                      <p className="text-xs text-muted-foreground">{feedback.name.split(",")[1]?.trim()}</p>
+
+                    {/* Message Body */}
+                    <p className="text-slate-700 dark:text-emerald-100/90 text-[15px] leading-relaxed mt-3">
+                      {feedback.comment}
+                    </p>
+
+                    {/* Footer Row (Time + Read Ticks) */}
+                    <div className="flex justify-end items-center gap-1 mt-3">
+                      <span className="text-[10px] text-slate-500 dark:text-emerald-200/50">
+                        {10 + (idx % 2)}:{10 + (idx * 7)} AM
+                      </span>
+                      <CheckCircle size={14} className="text-[#53BDEB]" fill="currentColor" stroke="white" />
                     </div>
+                    
+                    {/* Tail Decorator (simulated via absolute positioning if needed, skipped for simplicity as rounded-tl-none does the job) */}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -376,7 +449,7 @@ export default function HomePage() {
             <Button
               size="lg"
               className="font-bold h-14 px-10 text-lg bg-white text-primary hover:bg-white/90 shadow-xl"
-              onClick={() => router.push("/booking")}
+              onClick={() => router.push("/custom-booking")}
             >
               Book Now
             </Button>

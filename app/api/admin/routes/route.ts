@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
-import Temple from "@/models/Temple";
+import Route from "@/models/Route";
 
 export async function GET() {
   try {
@@ -12,11 +12,13 @@ export async function GET() {
     }
 
     await connectDB();
-    const temples = await Temple.find().sort({ createdAt: -1 });
+    const routes = await Route.find()
+      .populate("templeList", "name _id")
+      .sort({ createdAt: -1 });
     
-    return NextResponse.json({ data: temples });
+    return NextResponse.json({ data: routes });
   } catch (error) {
-    console.error("ADMIN TEMPLES GET ERROR:", error);
+    console.error("ADMIN ROUTES GET ERROR:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
@@ -30,26 +32,28 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     
-    // Validate required fields
-    if (!body.name || body.price === undefined || !body.category) {
+    if (!body.routeName || body.totalPrice === undefined) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     await connectDB();
     
-    const temple = await Temple.create({
-      name: body.name,
-      price: body.price,
-      category: body.category,
-      basePrice: body.basePrice || 0,
-      activeStatus: body.activeStatus ?? true,
-      routeGroup: body.routeGroup || "",
-      description: body.description || ""
+    const route = await Route.create({
+      routeName: body.routeName,
+      templeList: body.templeList || [],
+      totalPrice: body.totalPrice,
+      category: body.category || "inside",
+      activeStatus: body.activeStatus ?? true
     });
 
-    return NextResponse.json({ data: temple }, { status: 201 });
-  } catch (error) {
-    console.error("ADMIN TEMPLES POST ERROR:", error);
+    const populatedRoute = await Route.findById(route._id).populate("templeList", "name _id");
+
+    return NextResponse.json({ data: populatedRoute }, { status: 201 });
+  } catch (error: any) {
+    console.error("ADMIN ROUTES POST ERROR:", error);
+    if(error.code === 11000) {
+        return NextResponse.json({ error: "Route name already exists" }, { status: 400 });
+    }
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
