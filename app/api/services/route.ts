@@ -7,17 +7,14 @@ import Service from "@/models/Service";
 export async function GET() {
   try {
     await connectDB();
-    const count = await Service.countDocuments();
-    console.log("TOTAL SERVICES:", count);
 
-    const services = await Service.find().sort({ createdAt: -1 });
+    const services = await Service.find({ isActive: true }).sort({ createdAt: -1 });
 
     return NextResponse.json({
       success: true,
       data: services
     });
   } catch (error) {
-    console.log("Service API Error:", error);
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }
@@ -38,7 +35,6 @@ export async function POST(req: Request) {
       data: service
     });
   } catch (error) {
-    console.log("Service API POST Error:", error);
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }
@@ -57,7 +53,6 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("Service API DELETE Error:", error);
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }

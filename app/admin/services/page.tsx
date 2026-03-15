@@ -28,7 +28,6 @@ export default function AdminHomepage() {
       try {
         const res = await fetch("/api/services");
         const data = await res.json();
-        console.log("services:", data);
         setServices(data.data || data);
       } catch (err) {
         console.error(err);

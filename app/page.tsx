@@ -25,13 +25,13 @@ export default function HomePage() {
           "name": SITE_CONFIG.name,
           "description": "Premium auto taxi service in Ujjain for Mahakal Darshan and Temple Tours.",
           "url": SITE_CONFIG.url,
-          "telephone": "+919876543210",
+          "telephone": "+916263189202",
           "address": {
             "@type": "PostalAddress",
             "streetAddress": "Mahakal Temple Road",
             "addressLocality": "Ujjain",
             "addressRegion": "MP",
-            "postalCode": "456001",
+            "postalCode": "456010",
             "addressCountry": "IN"
           }
         }} 

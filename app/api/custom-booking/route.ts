@@ -17,6 +17,7 @@ const customBookingSchema = z.object({
     name: z.string(),
     price: z.number(),
   })).optional().default([]),
+  selectedTemples: z.array(z.string()).optional().default([]),
   totalPrice: z.number().min(0, "Price is required"),
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
@@ -59,7 +60,9 @@ export async function POST(req: Request) {
       packageType: validatedData.packageType,
       packageName: validatedData.packageName,
       temples: validatedData.temples,
-      selectedTemples: validatedData.temples.map(t => t.name),
+      selectedTemples: validatedData.selectedTemples.length > 0 
+        ? validatedData.selectedTemples 
+        : validatedData.temples.map(t => t.name),
       notes: validatedData.notes,
       hotel: validatedData.hotel
     });

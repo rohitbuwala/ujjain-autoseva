@@ -25,9 +25,8 @@ export default function Hero() {
                         <span>Trust of Ujjain • Safe & Reliable</span>
                     </div>
 
-                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                        Book Trusted Auto for <br />
-                        <span className="text-primary">Mahakal Darshan & Full Ujjain Temple Tour</span>
+                    <h1 className="text-center px-4 leading-tight text-3xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 max-w-4xl mx-auto">
+                        Book Trusted Auto for <span className="text-primary">Mahakal Darshan & Full Ujjain Temple Tour</span>
                     </h1>
 
                     <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">

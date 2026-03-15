@@ -81,7 +81,6 @@ export default function CustomTripAdminPage() {
       if (activeTab === "temples") {
         const res = await fetch("/api/temples");
         const data = await res.json();
-        console.log("temples:", data);
         if (data.success && Array.isArray(data.data)) {
           setTemples(data.data.map((t: any) => ({
             ...t,
@@ -97,7 +96,6 @@ export default function CustomTripAdminPage() {
         if (Array.isArray(data)) setBookings(data);
       }
     } catch (err) {
-      console.error("Load error:", err);
       showToast("error", "Failed to load data");
     } finally {
       setLoading(false);

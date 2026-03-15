@@ -61,7 +61,7 @@ function BookingForm() {
 
   const [formData, setFormData] = useState({
     packageType: initPkg === "five" ? "five" : "custom",
-    selectedTemples: [] as Temple[],
+    selectedTemples: [] as string[],
     date: "",
     time: "",
     pickup: "",
@@ -73,16 +73,15 @@ function BookingForm() {
   });
 
   useEffect(() => {
-    async function fetchTemples() {
-      try {
-        const res = await fetch("/api/temples");
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setDbTemples(data);
+    fetch("/api/temples")
+      .then(res => res.json())
+      .then((data) => {
+        const temples = (data as { data?: Temple[] }).data || data as Temple[] || [];
+        if (Array.isArray(temples)) {
+          setDbTemples(temples);
           
-          // Auto-select for 'five' package after temples are loaded
           if (initPkg === "five") {
-            const lockedTemples = data.filter(t => 
+            const lockedTemples = temples.filter((t: Temple) => 
               FIVE_TEMPLE_DARSHAN_TEMPLES.some(name => 
                 t.name.toLowerCase().includes(name.toLowerCase())
               )
@@ -92,18 +91,17 @@ function BookingForm() {
               setFormData(prev => ({
                 ...prev,
                 packageType: "five",
-                selectedTemples: lockedTemples
+                selectedTemples: lockedTemples.map((t: Temple) => t._id)
               }));
             }
           }
         }
-      } catch (e) {
-        console.error("Failed loading temples", e);
-      } finally {
-        setLoadingTemples(false);
-      }
-    }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingTemples(false));
+  }, [initPkg]);
 
+  useEffect(() => {
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, "0");
@@ -111,15 +109,16 @@ function BookingForm() {
     const todayStr = `${yyyy}-${mm}-${dd}`;
     setMinDate(todayStr);
     setFormData(prev => ({ ...prev, date: todayStr }));
-
-    fetchTemples();
-  }, [initPkg]);
+  }, []);
 
   const calculateTotal = () => {
     if (formData.packageType === "five") {
       return FIVE_TEMPLE_PRICE;
     }
-    return formData.selectedTemples.reduce((sum, t) => sum + (t.price || 200), 0);
+    return formData.selectedTemples.reduce((sum, id) => {
+      const temple = dbTemples.find(t => t._id === id);
+      return sum + (temple?.price || 200);
+    }, 0);
   };
 
   const getPackageDetails = (id: string) => {
@@ -191,11 +190,14 @@ function BookingForm() {
       const payload = {
         packageType: formData.packageType,
         packageName: packageDetails.name,
-        temples: formData.selectedTemples.map(t => ({
-          _id: t._id,
-          name: t.name,
-          price: t.price
-        })),
+        temples: formData.selectedTemples.map(id => {
+          const t = dbTemples.find(temple => temple._id === id);
+          return t ? { _id: t._id, name: t.name, price: t.price } : null;
+        }).filter(Boolean),
+        selectedTemples: formData.selectedTemples.map(id => {
+          const t = dbTemples.find(temple => temple._id === id);
+          return t ? t.name : "";
+        }).filter(Boolean),
         totalPrice: calculateTotal(),
         name: formData.name,
         phone: formData.phone,
@@ -227,16 +229,15 @@ function BookingForm() {
     }
   };
 
-  const toggleTemple = (t: Temple) => {
+  const toggleTemple = (id: string) => {
     if (formData.packageType === "five") return;
     
-    setFormData(prev => {
-      const exists = prev.selectedTemples.find(x => x._id === t._id);
-      if (exists) {
-        return { ...prev, selectedTemples: prev.selectedTemples.filter(x => x._id !== t._id) };
-      }
-      return { ...prev, selectedTemples: [...prev.selectedTemples, t] };
-    });
+    setFormData(prev => ({
+      ...prev,
+      selectedTemples: prev.selectedTemples.includes(id)
+        ? prev.selectedTemples.filter(t => t !== id)
+        : [...prev.selectedTemples, id]
+    }));
   };
 
   if (submitSuccess) {
@@ -269,8 +270,8 @@ function BookingForm() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background pt-24 pb-20">
-      <div className="container-custom max-w-5xl">
+    <div className="min-h-screen bg-slate-50 dark:bg-background pt-24 pb-28 md:pb-0 px-4 md:px-0">
+      <div className="container-custom max-w-5xl px-4 md:px-0">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">Book Your Journey</h1>
           <p className="text-muted-foreground text-lg">Fast, reliable, and transparent booking.</p>
@@ -328,7 +329,7 @@ function BookingForm() {
                               setFormData({ 
                                 ...formData, 
                                 packageType: pkg.id, 
-                                selectedTemples: lockedTemples 
+                                selectedTemples: lockedTemples.map(t => t._id)
                               });
                             } else {
                               setFormData({ 
@@ -383,16 +384,24 @@ function BookingForm() {
                       <h2 className="text-2xl font-bold">Select Temples</h2>
                       <span className="text-sm font-semibold bg-primary/10 text-primary px-3 py-1 rounded-full">{formData.selectedTemples.length} Selected</span>
                     </div>
+                    {formData.selectedTemples.length > 0 && (
+                      <p className="text-sm mt-2 text-muted-foreground">
+                        {dbTemples
+                          .filter(t => formData.selectedTemples.includes(t._id))
+                          .map(t => t.name)
+                          .join(", ")}
+                      </p>
+                    )}
                     {loadingTemples ? (
                       <div className="h-32 flex items-center justify-center text-muted-foreground animate-pulse">Loading temples...</div>
                     ) : (
                       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                         {dbTemples.map(t => {
-                          const isSelected = formData.selectedTemples.some(x => x._id === t._id);
+                          const isSelected = formData.selectedTemples.includes(t._id);
                           return (
                             <div 
                               key={t._id}
-                              onClick={() => toggleTemple(t)}
+                              onClick={() => toggleTemple(t._id)}
                               className={`cursor-pointer p-4 rounded-xl border text-center transition-all duration-200 flex flex-col items-center justify-center gap-2 ${
                                 isSelected 
                                   ? "bg-primary text-white border-primary shadow-md scale-[1.03]" 
@@ -516,14 +525,16 @@ function BookingForm() {
                          <span className="font-bold text-xl text-primary">₹{calculateTotal()}</span>
                        </div>
                        <div className="pt-1">
-                         <span className="text-muted-foreground block mb-2 text-xs font-bold uppercase tracking-wider">Temples:</span>
-                         <div className="flex flex-wrap gap-1.5">
-                            {formData.selectedTemples.map((t, idx) => (
-                              <span key={idx} className="bg-primary/5 text-primary text-[11px] px-2 py-0.5 rounded-full border border-primary/10">
-                                {t.name}
-                              </span>
-                            ))}
-                         </div>
+                          <span className="text-muted-foreground block mb-2 text-xs font-bold uppercase tracking-wider">Temples:</span>
+                          <div className="flex flex-wrap gap-1.5">
+                             {formData.selectedTemples.map((id, idx) => {
+                               const temple = dbTemples.find(t => t._id === id);
+                               return (
+                               <span key={idx} className="bg-primary/5 text-primary text-[11px] px-2 py-0.5 rounded-full border border-primary/10">
+                                 {temple?.name || id}
+                               </span>
+                             );})}
+                          </div>
                        </div>
                        <div className="flex justify-between pt-2">
                          <span className="text-muted-foreground">Name:</span>
@@ -600,11 +611,13 @@ function BookingForm() {
                           )}
                         </span>
                         <ul className="space-y-2">
-                          {formData.selectedTemples.map((t, idx) => (
+                          {formData.selectedTemples.map((id, idx) => {
+                            const temple = dbTemples.find(t => t._id === id);
+                            return (
                             <li key={idx} className="flex items-center gap-2 text-sm font-medium">
-                              <MapPin size={12} className="text-primary" /> {t.name}
+                              <MapPin size={12} className="text-primary" /> {temple?.name || id}
                             </li>
-                          ))}
+                          );})}
                         </ul>
                       </div>
                     )}

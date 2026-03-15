@@ -108,32 +108,8 @@ export default function HomeClient() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative pb-24 md:pb-0 overflow-x-hidden">
       
-      {/* Sticky Book Now Button (Mobile only) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md md:hidden">
-        <Button 
-          onClick={() => router.push("/booking")}
-          className="w-full h-14 rounded-full shadow-2xl font-bold text-lg bg-primary text-primary-foreground flex items-center justify-center gap-2 animate-bounce-subtle"
-        >
-          <Car size={20} /> Book Now
-        </Button>
-      </div>
-
-      {/* Floating CTA (Desktop) */}
-      <div className="fixed bottom-10 right-10 z-50 hidden md:block">
-        <Link href="/booking">
-          <div className="group relative flex items-center">
-            <div className="absolute right-full mr-4 bg-primary text-white px-4 py-2 rounded-lg font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg">
-              Book Your Ride
-            </div>
-            <div className="w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer">
-              <Car size={32} />
-            </div>
-          </div>
-        </Link>
-      </div>
-
       {/* HERO SECTION */}
       <Hero />
 
@@ -207,11 +183,8 @@ export default function HomeClient() {
               {routes.slice(0, 3).map((route, idx) => (
                 <Card 
                   key={route._id || idx} 
-                  className={`border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group ${idx === 1 ? 'border-primary shadow-lg shadow-primary/10' : ''}`}
+                  className="border-border/50 hover:border-primary/50 transition-all flex flex-col h-full overflow-hidden group"
                 >
-                  {idx === 1 && (
-                    <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full z-10">BEST SELLER</div>
-                  )}
                   <div className="h-48 relative w-full overflow-hidden bg-muted">
                     <Image 
                       src={idx === 0 ? "/logo1.webp" : idx === 1 ? "/5.jpg" : "/12.jpg"} 

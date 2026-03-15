@@ -44,7 +44,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       data: booking,
     });
   } catch (error) {
-    console.log("Admin Custom Booking PATCH Error:", error);
 
     if (error instanceof Error && "name" in error && error.name === "ZodError") {
       const zodError = error as unknown as { errors: { message: string }[] };
@@ -80,7 +79,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       message: "Booking deleted successfully",
     });
   } catch (error) {
-    console.log("Admin Custom Booking DELETE Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }

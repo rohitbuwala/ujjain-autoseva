@@ -107,9 +107,13 @@ export default function BookingPage() {
     async function fetchRoutes() {
       try {
         const res = await fetch("/api/services");
-        const data = await res.json();
+        const json = await res.json();
 
-        if (Array.isArray(data)) setRoutes(data);
+        if (json.success && Array.isArray(json.data)) {
+          setRoutes(json.data);
+        } else if (Array.isArray(json)) {
+          setRoutes(json);
+        }
       } catch (error) {
         console.error("Failed to fetch routes", error);
       } finally {
@@ -239,7 +243,7 @@ export default function BookingPage() {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen py-10 md:py-14 px-4 flex items-start sm:items-center justify-center bg-gradient-to-b from-background via-background to-muted/30">
+    <div className="min-h-screen py-10 md:py-14 px-4 md:px-0 pb-24 md:pb-0 flex items-start sm:items-center justify-center bg-gradient-to-b from-background via-background to-muted/30">
 
       <Card className="w-full max-w-2xl shadow-xl border border-border/50 bg-card/80 backdrop-blur rounded-2xl overflow-hidden">
 

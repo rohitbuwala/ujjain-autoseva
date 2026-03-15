@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
+import "@/models/Temple";
 import Route from "@/models/Route";
 
 export async function GET() {
@@ -13,7 +14,6 @@ export async function GET() {
     return NextResponse.json({ data: routes });
 
   } catch (error) {
-    console.error("PUBLIC ROUTES API ERROR:", error);
     return NextResponse.json(
       { error: "Server Error" },
       { status: 500 }

@@ -15,8 +15,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.log("Temple API Error:", error);
-
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }
@@ -42,8 +40,6 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.log("Temple API POST Error:", error);
-
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }

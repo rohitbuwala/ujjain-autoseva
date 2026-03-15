@@ -19,7 +19,6 @@ export async function GET() {
 
     return NextResponse.json(bookings);
   } catch (error) {
-    console.log("Admin Custom Booking GET Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
