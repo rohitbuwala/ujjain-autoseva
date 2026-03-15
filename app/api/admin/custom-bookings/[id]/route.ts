@@ -26,14 +26,24 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     const { id } = await params;
     const body = await req.json();
-    const validatedData = updateBookingSchema.parse(body);
-
+    
+    console.log("Updating booking:", id, "with data:", body);
+    
     await connectDB();
+    
+    const updateData: Record<string, any> = {};
+    if (body.price !== undefined) updateData.price = String(body.price);
+    if (body.adminNote !== undefined) updateData.adminNote = body.adminNote;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.temples !== undefined) updateData.temples = body.temples;
+
     const booking = await CustomBooking.findByIdAndUpdate(
       id,
-      validatedData,
+      { $set: updateData },
       { new: true }
     );
+
+    console.log("Updated booking:", booking);
 
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
@@ -44,16 +54,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       data: booking,
     });
   } catch (error) {
-
-    if (error instanceof Error && "name" in error && error.name === "ZodError") {
-      const zodError = error as unknown as { errors: { message: string }[] };
-      return NextResponse.json(
-        { error: zodError.errors[0].message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    console.error("Update booking error:", error);
+    return NextResponse.json({ error: "Server Error: " + (error as Error).message }, { status: 500 });
   }
 }
 
