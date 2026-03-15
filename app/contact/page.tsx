@@ -244,7 +244,7 @@ export default function ContactPage() {
                       <Label>Phone Number</Label>
 
                       <Input
-                        placeholder="+91 9876543210"
+                        placeholder="+91 6263189202"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                       />

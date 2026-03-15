@@ -15,12 +15,12 @@ export default function SchemaMarkup({ schemaType, data }: SchemaMarkupProps) {
     "image": "https://ujjain-autoseva.vercel.app/logo.png",
     "@id": "https://ujjain-autoseva.vercel.app",
     "url": "https://ujjain-autoseva.vercel.app",
-    "telephone": "+919876543210",
+    "telephone": "+916263189202",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Mahakal Temple Road",
       "addressLocality": "Ujjain",
-      "postalCode": "456001",
+      "postalCode": "456010",
       "addressCountry": "IN"
     },
     "geo": {

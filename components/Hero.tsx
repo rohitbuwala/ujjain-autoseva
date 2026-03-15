@@ -47,7 +47,7 @@ export default function Hero() {
                             size="lg"
                             variant="outline"
                             className="h-14 px-8 text-lg border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-950/30 transition-all hover:scale-105"
-                            onClick={() => window.open(`https://wa.me/919876543210?text=${encodeURIComponent("Hello, I'd like to book an auto for darshan.")}`, "_blank")}
+                            onClick={() => window.open(`https://wa.me/916263189202?text=${encodeURIComponent("Hello, I'd like to book an auto for darshan.")}`, "_blank")}
                         >
                             WhatsApp Now
                         </Button>
