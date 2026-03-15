@@ -17,24 +17,25 @@ export const metadata: Metadata = {
 };
 
 const FIVE_TEMPLE_DARSHAN_TEMPLES = [
-  "Mahakaleshwar",
+  "Sandipani ashram",
+  "Mangalnath mandir",
   "Kaal Bhairav",
-  "Harsiddhi",
-  "Ram Ghat",
-  "Mangalnath"
+  "Gadkalika mandir",
+  "Ishthirman ganesh mandir"
 ];
 
 const packages = [
   {
     name: "Mahakal + City Tour",
     tag: "Recommended",
-    price: "₹400",
+    price: "₹850",
     description: "Perfect for a quick spiritual visit",
     features: [
-      "Mahakaleshwar",
-      "Ram Ghat",
-      "Harsiddhi",
-      "Local sightseeing",
+      "Rinmukteshwar mahadev",
+      "Chintaman ganesh",
+      "ashtavinayak mandir",
+      "navgrah shani mandir",
+      "Iskcon mandir",
       "Pickup & drop",
     ],
     popular: true,
@@ -43,7 +44,7 @@ const packages = [
   {
     name: "5 Temple Darshan",
     tag: "Best for Families",
-    price: "₹600",
+    price: "₹650",
     description: "Comfortable Half-Day Tour",
     features: FIVE_TEMPLE_DARSHAN_TEMPLES,
     popular: false,
