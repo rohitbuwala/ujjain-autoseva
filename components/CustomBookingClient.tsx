@@ -31,16 +31,26 @@ interface Temple {
 }
 
 const FIVE_TEMPLE_DARSHAN_TEMPLES = [
-  "Mahakaleshwar",
-  "Kaal Bhairav", 
-  "Harsiddhi",
-  "Ram Ghat",
-  "Mangalnath"
+  "Sandipani ashram",
+  "Mangalnath mandir",
+  "Kaal Bhairav",
+  "Gadkalika mandir",
+  "Ishthirman ganesh mandir"
 ];
 
-const FIVE_TEMPLE_PRICE = 600;
+const CITY_TOUR_TEMPLES = [
+  "Rinmukteshwar mahadev",
+  "Chintaman ganesh",
+  "ashtavinayak mandir",
+  "navgrah shani mandir",
+  "Iskcon mandir"
+];
+
+const FIVE_TEMPLE_PRICE = 650;
+const CITY_TOUR_PRICE = 850;
 
 const PACKAGES = [
+  { id: "city-tour", name: "Mahakal + City Tour", price: CITY_TOUR_PRICE, icon: Check, desc: "Most popular spiritual tour", locked: true },
   { id: "five", name: "5 Temple Darshan", price: FIVE_TEMPLE_PRICE, icon: Check, desc: "Pre-selected temples at fixed price", locked: true },
   { id: "custom", name: "Custom Selection", price: 0, icon: Settings, desc: "Choose temples and get instant fare", locked: false },
 ];
@@ -60,7 +70,7 @@ function BookingForm() {
   const [minDate, setMinDate] = useState("");
 
   const [formData, setFormData] = useState({
-    packageType: initPkg === "five" ? "five" : "custom",
+    packageType: initPkg === "city-tour" ? "city-tour" : initPkg === "five" ? "five" : "custom",
     selectedTemples: [] as string[],
     date: "",
     time: "",
@@ -80,9 +90,10 @@ function BookingForm() {
         if (Array.isArray(temples)) {
           setDbTemples(temples);
           
-          if (initPkg === "five") {
+          if (initPkg === "five" || initPkg === "city-tour") {
+            const templeList = initPkg === "five" ? FIVE_TEMPLE_DARSHAN_TEMPLES : CITY_TOUR_TEMPLES;
             const lockedTemples = temples.filter((t: Temple) => 
-              FIVE_TEMPLE_DARSHAN_TEMPLES.some(name => 
+              templeList.some(name => 
                 t.name.toLowerCase().includes(name.toLowerCase())
               )
             );
@@ -90,7 +101,7 @@ function BookingForm() {
             if (lockedTemples.length > 0) {
               setFormData(prev => ({
                 ...prev,
-                packageType: "five",
+                packageType: initPkg as string,
                 selectedTemples: lockedTemples.map((t: Temple) => t._id)
               }));
             }
@@ -115,6 +126,9 @@ function BookingForm() {
     if (formData.packageType === "five") {
       return FIVE_TEMPLE_PRICE;
     }
+    if (formData.packageType === "city-tour") {
+      return CITY_TOUR_PRICE;
+    }
     return formData.selectedTemples.reduce((sum, id) => {
       const temple = dbTemples.find(t => t._id === id);
       return sum + (temple?.price || 200);
@@ -122,14 +136,16 @@ function BookingForm() {
   };
 
   const getPackageDetails = (id: string) => {
-    return PACKAGES.find(p => p.id === id) || PACKAGES[1];
+    return PACKAGES.find(p => p.id === id) || PACKAGES[2];
   };
+
+  const isFixedPlan = formData.packageType === "five" || formData.packageType === "city-tour";
 
   const handleNext = () => {
     setSubmitError("");
     
     if (step === 1) {
-      if (formData.packageType === "five") {
+      if (isFixedPlan) {
         setStep(3);
       } else {
         setStep(2);
@@ -144,7 +160,7 @@ function BookingForm() {
         const currentMins = now.getHours() * 60 + now.getMinutes();
         const [selH, selM] = formData.time.split(":").map(Number);
         const selMins = selH * 60 + selM;
-        if (selMins < currentMins) {
+        if (formData.time && selMins < currentMins) {
           setSubmitError("Please select a valid future time for today.");
           return;
         }
@@ -165,7 +181,7 @@ function BookingForm() {
 
   const handleBack = () => {
     setSubmitError("");
-    if (step === 3 && formData.packageType === "five") {
+    if (step === 3 && isFixedPlan) {
       setStep(1);
     } else if (step === 2) {
       setStep(1);
@@ -279,7 +295,7 @@ function BookingForm() {
 
         <div className="flex items-center justify-center mb-12 max-w-2xl mx-auto px-4">
           {[1, 2, 3, 4, 5].map((num, i) => {
-            const showStep = formData.packageType === "five" 
+            const showStep = isFixedPlan
               ? (num === 2 ? false : true)
               : true;
             if (!showStep) return null;
@@ -320,9 +336,10 @@ function BookingForm() {
                         <div 
                           key={pkg.id}
                           onClick={() => {
-                            if (pkg.id === "five") {
+                            if (pkg.locked) {
+                              const templeList = pkg.id === "five" ? FIVE_TEMPLE_DARSHAN_TEMPLES : CITY_TOUR_TEMPLES;
                               const lockedTemples = dbTemples.filter(t => 
-                                FIVE_TEMPLE_DARSHAN_TEMPLES.some(name => 
+                                templeList.some(name => 
                                   t.name.toLowerCase().includes(name.toLowerCase())
                                 )
                               );
@@ -351,11 +368,11 @@ function BookingForm() {
                           <div>
                             <h3 className="font-bold text-lg">{pkg.name}</h3>
                             <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{pkg.desc}</p>
-                            {pkg.id === "five" && (
+                            {pkg.locked && (
                               <div className="mt-3 space-y-1">
                                 <p className="text-[10px] uppercase font-bold text-primary tracking-wider">Includes:</p>
                                 <div className="flex flex-wrap gap-x-2 gap-y-1">
-                                  {FIVE_TEMPLE_DARSHAN_TEMPLES.map((t, i) => (
+                                  {(pkg.id === "five" ? FIVE_TEMPLE_DARSHAN_TEMPLES : CITY_TOUR_TEMPLES).map((t, i) => (
                                     <span key={i} className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
                                       {t}
                                     </span>
@@ -364,7 +381,7 @@ function BookingForm() {
                               </div>
                             )}
                           </div>
-                          {pkg.id === "five" && (
+                          {pkg.locked && (
                             <span className="font-extrabold text-primary text-xl mt-auto pt-2">₹{pkg.price}</span>
                           )}
                           {pkg.locked && (
@@ -604,7 +621,7 @@ function BookingForm() {
                       <div className="pt-2">
                         <span className="text-muted-foreground block mb-3 uppercase text-xs font-bold tracking-wider">
                           Selected Temples ({formData.selectedTemples.length})
-                          {formData.packageType === "five" && (
+                          {isFixedPlan && (
                             <span className="ml-1 inline-flex items-center gap-1">
                               <Lock size={10} />
                             </span>

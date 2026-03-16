@@ -27,7 +27,7 @@ const FIVE_TEMPLE_DARSHAN_TEMPLES = [
 const packages = [
   {
     name: "Mahakal + City Tour",
-    tag: "Recommended",
+    tag: "Best for Families",
     price: "₹850",
     description: "Perfect for a quick spiritual visit",
     features: [
@@ -38,16 +38,16 @@ const packages = [
       "Iskcon mandir",
       "Pickup & drop",
     ],
-    popular: true,
-    link: "/booking",
+    popular: false,
+    link: "/custom-booking",
   },
   {
     name: "5 Temple Darshan",
-    tag: "Best for Families",
+    tag: "Recommended",
     price: "₹650",
     description: "Comfortable Half-Day Tour",
     features: FIVE_TEMPLE_DARSHAN_TEMPLES,
-    popular: false,
+    popular: true,
     link: "/custom-booking?package=five",
   },
   {

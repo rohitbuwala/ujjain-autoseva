@@ -8,7 +8,7 @@ export default function Hero() {
     const router = useRouter();
 
     return (
-        <section className="relative w-full overflow-hidden bg-background pt-12 pb-24 lg:pt-20 lg:pb-48">
+        <section className="relative w-full overflow-hidden bg-background pt-12 pb-24 lg:py-24 lg:min-h-[85vh] lg:flex lg:items-center">
 
             {/* Background decoration */}
             <div className="absolute top-0 right-0 -z-10 w-full h-full overflow-hidden opacity-10 dark:opacity-5 pointer-events-none">
@@ -16,10 +16,10 @@ export default function Hero() {
                 <div className="absolute bottom-[0%] left-[0%] w-100 h-100 rounded-full bg-secondary/20 blur-3xl" />
             </div>
 
-            <div className="container-custom flex flex-col items-center text-center">
+            <div className="container-custom flex flex-col items-center text-center w-full">
 
                 {/* Content */}
-                <div className="max-w-3xl flex flex-col items-center gap-6 z-10">
+                <div className="max-w-3xl lg:max-w-5xl flex flex-col items-center gap-6 z-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-sm font-medium w-fit animate-in fade-in slide-in-from-bottom-3 duration-700">
                         <MapPin size={14} className="text-secondary" />
                         <span>Trust of Ujjain • Safe & Reliable</span>
@@ -54,7 +54,7 @@ export default function Hero() {
                     </div>
 
                     {/* Trust Indicators */}
-                    <div className="pt-10 mt-6 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm font-medium text-muted-foreground animate-in fade-in zoom-in duration-700 delay-500">
+                    <div className="pt-10 mt-6 lg:pt-12 lg:mt-6 flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm font-medium text-muted-foreground animate-in fade-in zoom-in duration-700 delay-500">
                         <div className="flex items-center gap-2 bg-accent/50 px-4 py-2 rounded-full">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
                             Verified Drivers

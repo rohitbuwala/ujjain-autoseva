@@ -49,8 +49,6 @@ async function seed() {
       { name: "Harsiddhi", category: "inside", basePrice: 80, price: 120, activeStatus: true, displayOrder: 3 },
       { name: "Ram Ghat", category: "inside", basePrice: 50, price: 80, activeStatus: true, displayOrder: 4 },
       { name: "Mangalnath", category: "inside", basePrice: 60, price: 100, activeStatus: true, displayOrder: 5 },
-      { name: "Omkareshwar", category: "outside", basePrice: 800, price: 1000, activeStatus: true, displayOrder: 6 },
-      { name: "Maheshwar", category: "outside", basePrice: 600, price: 800, activeStatus: true, displayOrder: 7 },
       { name: "Sandipani", category: "inside", basePrice: 50, price: 80, activeStatus: true, displayOrder: 8 },
     ]);
     console.log(`Seeded ${temples.length} temples`);
@@ -76,26 +74,10 @@ async function seed() {
       {
         routeName: "Full Ujjain Darshan",
         category: "inside",
-        totalPrice: 1200,
+        totalPrice: "custom",
         templeList: temples.slice(0, 5).map(t => t._id),
         activeStatus: true,
         displayOrder: 3
-      },
-      {
-        routeName: "Omkareshwar Trip",
-        category: "outside",
-        totalPrice: 2500,
-        templeList: [temples[5]._id],
-        activeStatus: true,
-        displayOrder: 4
-      },
-      {
-        routeName: "Omkareshwar + Maheshwar",
-        category: "outside",
-        totalPrice: 3500,
-        templeList: [temples[5]._id, temples[6]._id],
-        activeStatus: true,
-        displayOrder: 5
       },
     ]);
     console.log(`Seeded ${routes.length} routes`);

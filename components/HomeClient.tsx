@@ -48,17 +48,17 @@ export default function HomeClient() {
     {
       name: "Rajesh Sharma",
       comment: "Very smooth Mahakal darshan experience. Driver was polite and the auto was clean.",
-      rating: 5,
+      rating: 4,
     },
     {
       name: "Sneha Patel",
       comment: "Driver was polite and on time. Best way to explore Ujjain temples without any hassle.",
-      rating: 5,
+      rating: 3,
     },
     {
       name: "Amit Kumar",
       comment: "Best service in Ujjain. Transparent pricing and very reliable for early morning Bhasma Aarti.",
-      rating: 5,
+      rating: 3,
     }
   ];
 
@@ -67,15 +67,15 @@ export default function HomeClient() {
       title: "Temples Inside City",
       desc: "Mahakal, Harsiddhi & more.",
       icon: MdTempleHindu,
-      link: "/booking",
+      link: "/custom-booking",
       color: "text-orange-500",
       bg: "bg-orange-500/10",
     },
     {
       title: "Outside City Temples",
-      desc: "Omkareshwar, Indore trips.",
+      desc: "iskcon temple",
       icon: MapPin,
-      link: "/booking",
+      link: "/custom-booking",
       color: "text-green-500",
       bg: "bg-green-500/10",
     },
