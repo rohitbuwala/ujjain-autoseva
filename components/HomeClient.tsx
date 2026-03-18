@@ -363,7 +363,7 @@ export default function HomeClient() {
             </div>
             <div className="relative aspect-square md:aspect-auto md:row-span-2 rounded-xl md:rounded-2xl overflow-hidden group col-span-2 md:col-span-2">
               <Image 
-                src="/a.jpg" 
+                src="/ram.jpg" 
                 alt="Ujjain City Auto Ride" 
                 fill 
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -373,7 +373,7 @@ export default function HomeClient() {
             </div>
             <div className="relative aspect-[3/4] md:aspect-square rounded-xl md:rounded-2xl overflow-hidden group col-span-2 md:col-span-1">
               <Image 
-                src="/k.jpg" 
+                src="/isk.jpg" 
                 alt="Kaal Bhairav Temple" 
                 fill 
                 sizes="(max-width: 768px) 50vw, 25vw"
