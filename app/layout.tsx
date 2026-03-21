@@ -74,7 +74,7 @@ export default function RootLayout({
           <FloatingContact />
 
           {/* Global Local SEO Schema */}
-          <SchemaMarkup schemaType="LocalBusiness" data={null} />
+          <SchemaMarkup schemaType="LocalBusiness" data={undefined} />
 
 
         </Providers>
