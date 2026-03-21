@@ -41,7 +41,7 @@ export default function BlogPost() {
           <p>Located right next to the Mahakal complex, this is one of the 51 Shaktipeeths. The evening Aarti here, featuring two massive stone pillars lit with hundreds of oil lamps, is absolutely breathtaking.</p>
 
           <h2>4. Mangalnath Temple</h2>
-          <p>According to the Matsya Purana, Ujjain is the birthplace of Mars (Mangal). Mangalnath is the temple where astrological remedies for 'Mangal Dosh' are performed.</p>
+          <p>According to the Matsya Purana, Ujjain is the birthplace of Mars (Mangal). Mangalnath is the temple where astrological remedies for &quot;Mangal Dosh&quot; are performed.</p>
 
           <h2>5. Sandipani Ashram</h2>
           <p>Connecting with the rich history of the Mahabharata, this is where Lord Krishna, Balarama, and Sudama received their education. A very peaceful and historically rich site.</p>

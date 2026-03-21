@@ -15,7 +15,10 @@ import {
   Car,
   Package,
   Save,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,9 +50,23 @@ interface Booking {
   userId?: { email?: string };
 }
 
+interface PaginationData {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
 export default function AdminBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationData>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0,
+  });
+  const [statusFilter, setStatusFilter] = useState<string>("");
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{
@@ -62,13 +79,28 @@ export default function AdminBookings() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [pagination.page, statusFilter]);
 
   async function load() {
     try {
-      const res = await fetch("/api/admin/bookings");
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: String(pagination.page),
+        limit: "10",
+      });
+      if (statusFilter) {
+        params.set("status", statusFilter);
+      }
+      
+      const res = await fetch(`/api/admin/bookings?${params}`);
       const data = await res.json();
-      setBookings(Array.isArray(data.data) ? data.data : []);
+      
+      if (data.success) {
+        setBookings(data.data.bookings || []);
+        setPagination(data.data.pagination || pagination);
+      } else {
+        setBookings([]);
+      }
     } catch (err) {
       console.error(err);
       setBookings([]);
@@ -86,7 +118,7 @@ export default function AdminBookings() {
       });
 
       if (!res.ok) {
-        alert("Update Failed ❌");
+        alert("Update Failed");
         return;
       }
 
@@ -95,7 +127,7 @@ export default function AdminBookings() {
       );
 
       if (payload.status && !editId) {
-        alert(`Booking ${payload.status} ✅`);
+        alert(`Booking ${payload.status}`);
       }
       
       if (editId) {
@@ -104,7 +136,7 @@ export default function AdminBookings() {
 
     } catch (err) {
       console.error(err);
-      alert("Server Error ❌");
+      alert("Server Error");
     }
   }
 
@@ -139,9 +171,14 @@ export default function AdminBookings() {
     });
   }
 
+  function goToPage(page: number) {
+    if (page < 1 || page > pagination.pages) return;
+    setPagination(prev => ({ ...prev, page }));
+  }
+
   if (loading) {
     return (
-      <p className="text-center mt-20 text-slate-500 dark:text-slate-400">Loading DB...</p>
+      <p className="text-center mt-20 text-slate-500 dark:text-slate-400">Loading...</p>
     );
   }
 
@@ -151,6 +188,29 @@ export default function AdminBookings() {
         <ClipboardList size={32} className="text-primary" />
         Booking Management
       </h1>
+
+      {/* Filters */}
+      <div className="max-w-5xl mx-auto mb-6 flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Filter size={18} className="text-muted-foreground" />
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPagination(prev => ({ ...prev, page: 1 }));
+            }}
+            className="border rounded-lg px-3 py-2 bg-background text-sm"
+          >
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          Total: {pagination.total} bookings
+        </span>
+      </div>
 
       {bookings.length === 0 && (
         <p className="text-center text-slate-500 dark:text-slate-400">No bookings found</p>
@@ -329,6 +389,37 @@ export default function AdminBookings() {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {pagination.pages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToPage(pagination.page - 1)}
+            disabled={pagination.page === 1}
+          >
+            <ChevronLeft size={16} className="mr-1" />
+            Previous
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Page {pagination.page} of {pagination.pages}
+            </span>
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToPage(pagination.page + 1)}
+            disabled={pagination.page === pagination.pages}
+          >
+            Next
+            <ChevronRight size={16} className="ml-1" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -23,9 +23,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     }
 
     return NextResponse.json({ data: route });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("ADMIN ROUTES PATCH ERROR:", error);
-    if(error.code === 11000) {
+    if((error as { code?: number }).code === 11000) {
         return NextResponse.json({ error: "Route name already exists" }, { status: 400 });
     }
     return NextResponse.json({ error: "Server Error" }, { status: 500 });

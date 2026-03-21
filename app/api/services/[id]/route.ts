@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Service from "@/models/Service";
+import { updateServiceSchema } from "@/lib/validators/service";
 
-/* =====================
-   GET SINGLE SERVICE
-===================== */
 export async function GET(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params; // ✅ IMPORTANT
+    const { id } = await context.params;
 
     await connectDB();
 
@@ -35,26 +33,37 @@ export async function GET(
   }
 }
 
-
-/* =====================
-   UPDATE SERVICE
-===================== */
 export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params; // ✅ IMPORTANT
+    const { id } = await context.params;
 
     await connectDB();
 
     const body = await req.json();
 
+    const parsed = updateServiceSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
     const updated = await Service.findByIdAndUpdate(
       id,
-      body,
+      parsed.data,
       { new: true }
     );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Service not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(updated);
 

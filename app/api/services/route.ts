@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Service from "@/models/Service";
-
+import { successResponse } from "@/lib/api-utils";
+import { serviceSchema } from "@/lib/validators/service";
 
 /* ================= GET ALL ================= */
 export async function GET() {
@@ -28,7 +29,15 @@ export async function POST(req: Request) {
     await connectDB();
     const body = await req.json();
 
-    const service = await Service.create(body);
+    const parsed = serviceSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
+    const service = await Service.create(parsed.data);
 
     return NextResponse.json({
       success: true,
@@ -42,12 +51,18 @@ export async function POST(req: Request) {
   }
 }
 
-
 /* ================= DELETE ================= */
 export async function DELETE(req: Request) {
   try {
     await connectDB();
     const { id } = await req.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Service ID required" },
+        { status: 400 }
+      );
+    }
 
     await Service.findByIdAndDelete(id);
 

@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { randomBytes } from "crypto";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { z } from "zod";
 import { sendAdminNotification } from "@/lib/sendWhatsApp";
+import { sendPendingEmail } from "@/lib/mail";
+import { rateLimit, rateLimitResponse, getRateLimitIdentifier } from "@/lib/rate-limit";
+import { sanitizeInput } from "@/lib/sanitize";
 
 const customBookingSchema = z.object({
   packageType: z.string().min(1, "Package type is required"),
@@ -28,14 +32,31 @@ const customBookingSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const ip = getRateLimitIdentifier(req);
+    const { success, reset } = rateLimit(ip, {
+      maxRequests: 5,
+      windowMs: 60000,
+    });
+
+    if (!success) {
+      return rateLimitResponse(reset);
+    }
+
     const session = await getServerSession(authOptions);
+    
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: "Please login to book" },
+        { status: 401 }
+      );
+    }
     
     const body = await req.json();
     const validatedData = customBookingSchema.parse(body);
 
     await connectDB();
 
-    const bookingId = `UA-${Math.floor(100000 + Math.random() * 900000)}`;
+    const bookingId = `UA-${randomBytes(3).toString("hex").toUpperCase()}`;
 
     const templeNames = validatedData.temples.map(t => t.name).join(", ");
     const dropText = validatedData.packageType === "five" 
@@ -46,24 +67,24 @@ export async function POST(req: Request) {
 
     const booking = await Booking.create({
       bookingId,
-      userId: session?.user?.id || "guest",
-      name: validatedData.name,
-      phone: validatedData.phone,
-      altPhone: validatedData.altPhone,
-      pickup: validatedData.hotel ? `${validatedData.pickup} (Hotel/Guest House)` : validatedData.pickup,
+      userId: session.user.id,
+      name: sanitizeInput(validatedData.name),
+      phone: sanitizeInput(validatedData.phone),
+      altPhone: sanitizeInput(validatedData.altPhone || ""),
+      pickup: sanitizeInput(validatedData.pickup),
       drop: dropText,
-      route: `${validatedData.pickup} -> ${validatedData.packageName}`,
+      route: `${sanitizeInput(validatedData.pickup)} -> ${sanitizeInput(validatedData.packageName)}`,
       date: validatedData.date,
       time: validatedData.time,
       price: validatedData.totalPrice.toString(),
       status: "pending",
-      packageType: validatedData.packageType,
-      packageName: validatedData.packageName,
+      packageType: sanitizeInput(validatedData.packageType),
+      packageName: sanitizeInput(validatedData.packageName),
       temples: validatedData.temples,
       selectedTemples: validatedData.selectedTemples.length > 0 
-        ? validatedData.selectedTemples 
-        : validatedData.temples.map(t => t.name),
-      notes: validatedData.notes,
+        ? validatedData.selectedTemples.map(t => sanitizeInput(t)) 
+        : validatedData.temples.map(t => sanitizeInput(t.name)),
+      notes: sanitizeInput(validatedData.notes || ""),
       hotel: validatedData.hotel
     });
 
@@ -79,6 +100,19 @@ export async function POST(req: Request) {
         temples: booking.temples,
         packageName: booking.packageName
       }).catch(e => console.error("WhatsApp Error:", e));
+
+      // ✅ Send Pending Email (if logged in)
+      if (session?.user?.email) {
+        await sendPendingEmail({
+          name: booking.name,
+          bookingId: booking.bookingId,
+          date: booking.date,
+          time: booking.time,
+          route: booking.route,
+          price: booking.price,
+          email: session.user.email,
+        }).catch(e => console.error("Email Error:", e));
+      }
     }
 
     return NextResponse.json({

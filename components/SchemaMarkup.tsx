@@ -4,7 +4,7 @@ import Script from "next/script";
 
 interface SchemaMarkupProps {
   schemaType: "LocalBusiness" | "FAQPage" | "Article" | "WebSite";
-  data: any;
+  data?: Record<string, unknown>;
 }
 
 export default function SchemaMarkup({ schemaType, data }: SchemaMarkupProps) {

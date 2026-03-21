@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
+import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { sendUserConfirmation } from "@/lib/sendWhatsApp";
+import { sendConfirmationEmail } from "@/lib/mail";
 
 export async function PATCH(
   req: Request,
@@ -51,6 +53,24 @@ export async function PATCH(
 
     if (updates.status === "confirmed") {
       await sendUserConfirmation(booking).catch(e => console.error("Could not send confirmation to user:", e));
+      
+      // ✅ Send Confirmation Email
+      try {
+        const user = await User.findById(booking.userId);
+        if (user && user.email) {
+          await sendConfirmationEmail({
+            name: booking.name,
+            bookingId: booking.bookingId,
+            date: booking.date,
+            time: booking.time,
+            route: booking.route,
+            price: booking.price,
+            email: user.email,
+          });
+        }
+      } catch (err) {
+        console.error("Confirmation Email Error:", err);
+      }
     }
 
     return NextResponse.json(booking);

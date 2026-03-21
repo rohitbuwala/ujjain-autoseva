@@ -14,7 +14,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     const { id } = await context.params;
     const body = await req.json();
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (body.name !== undefined) updateData.name = body.name;
     if (body.price !== undefined) updateData.basePrice = Number(body.price);
     if (body.active !== undefined) updateData.activeStatus = body.active;

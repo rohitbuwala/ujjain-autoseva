@@ -120,5 +120,12 @@ const bookingSchema = new mongoose.Schema({
 
 });
 
+bookingSchema.index({ userId: 1 });
+bookingSchema.index({ status: 1 });
+bookingSchema.index({ createdAt: -1 });
+
+bookingSchema.index({ date: 1 });
+bookingSchema.index({ phone: 1 });
+
 export default mongoose.models.Booking ||
   mongoose.model("Booking", bookingSchema);

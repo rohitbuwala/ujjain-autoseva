@@ -1,7 +1,7 @@
 export const SITE_CONFIG = {
   name: "Ujjain Auto Seva",
   description: "Book your Mahakal Darshan and Ujjain Temple Tour with the most trusted auto service. Transparent pricing, verified drivers, and 24/7 support.",
-  url: "https://ujjain-autoseva.vercel.app",
+  url: "https://ujjainautoseva.com",
   ogImage: "/logo.png",
   links: {
     facebook: "https://www.facebook.com/ujjainautoseva",

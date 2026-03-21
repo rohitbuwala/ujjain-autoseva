@@ -136,11 +136,11 @@ export default function RegisterPage() {
 
       /* ================= SUCCESS ================= */
 
-      setSuccess("Account created successfully! Redirecting...");
+      setSuccess("Account created! Please check your email to verify your account.");
 
       setTimeout(() => {
         router.push("/login");
-      }, 1500);
+      }, 3000);
 
 
     } catch (err) {

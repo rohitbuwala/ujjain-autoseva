@@ -37,7 +37,7 @@ export default function UserBookings() {
 
         const data = await res.json();
 
-        setBookings(Array.isArray(data) ? data : []);
+        setBookings(Array.isArray(data?.data) ? data.data : []);
 
       } catch (err) {
         console.error(err);

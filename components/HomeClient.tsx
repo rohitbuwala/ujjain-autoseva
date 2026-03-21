@@ -22,9 +22,22 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface Temple {
+  _id: string;
+  name: string;
+}
+
+interface Route {
+  _id: string;
+  routeName: string;
+  category: string;
+  templeList: Temple[];
+  totalPrice?: number;
+}
+
 export default function HomeClient() {
   const router = useRouter();
-  const [routes, setRoutes] = useState<any[]>([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
 
   useEffect(() => {
@@ -187,7 +200,7 @@ export default function HomeClient() {
                 >
                   <div className="h-48 relative w-full overflow-hidden bg-muted">
                     <Image 
-                      src={idx === 0 ? "/logo1.webp" : idx === 1 ? "/5.jpg" : "/12.jpg"} 
+                      src={idx === 0 ? "/ram.jpg" : idx === 1 ? "/5.jpg" : "/12.jpg"} 
                       alt={route.routeName} 
                       fill 
                       className="object-cover group-hover:scale-105 transition-transform duration-500" 
@@ -202,7 +215,7 @@ export default function HomeClient() {
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <ul className="space-y-2 text-muted-foreground">
-                      {route.templeList?.slice(0, 3).map((t: any, i: number) => (
+                      {route.templeList?.slice(0, 3).map((t: Temple, i: number) => (
                         <li key={i} className="flex items-center gap-2">
                           <CheckCircle className="w-4 h-4 text-green-500 shrink-0" /> 
                           {t.name}
@@ -215,8 +228,8 @@ export default function HomeClient() {
                   </CardContent>
                   <div className="p-6 pt-0 mt-auto">
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-primary">₹{route.totalPrice}</span>
-                      <span className="text-sm text-muted-foreground line-through">₹{Math.round(route.totalPrice * 1.3)}</span>
+                      <span className="text-2xl font-bold text-primary">₹{route.totalPrice ?? 0}</span>
+                      <span className="text-sm text-muted-foreground line-through">₹{Math.round((route.totalPrice ?? 0) * 1.3)}</span>
                     </div>
                     <Button 
                       className="w-full font-bold bg-primary text-primary-foreground hover:bg-primary/90" 

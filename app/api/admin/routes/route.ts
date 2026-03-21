@@ -49,9 +49,9 @@ export async function POST(req: Request) {
     const populatedRoute = await Route.findById(route._id).populate("templeList", "name _id");
 
     return NextResponse.json({ data: populatedRoute }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("ADMIN ROUTES POST ERROR:", error);
-    if(error.code === 11000) {
+    if((error as { code?: number }).code === 11000) {
         return NextResponse.json({ error: "Route name already exists" }, { status: 400 });
     }
     return NextResponse.json({ error: "Server Error" }, { status: 500 });

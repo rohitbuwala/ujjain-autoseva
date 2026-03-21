@@ -1,11 +1,15 @@
+import { SITE_CONFIG } from "@/lib/constants";
+
 export default function sitemap() {
+  const baseUrl = SITE_CONFIG.url;
+  
   return [
-    { url: "https://ujjainautoseva.com", lastModified: new Date() },
-    { url: "https://ujjainautoseva.com/about", lastModified: new Date() },
-    { url: "https://ujjainautoseva.com/services", lastModified: new Date() },
-    { url: "https://ujjainautoseva.com/pricing", lastModified: new Date() },
-    { url: "https://ujjainautoseva.com/temple-guide", lastModified: new Date() },
-    { url: "https://ujjainautoseva.com/blog", lastModified: new Date() },
-    { url: "https://ujjainautoseva.com/contact", lastModified: new Date() },
+    { url: `${baseUrl}`, lastModified: new Date() },
+    { url: `${baseUrl}/about`, lastModified: new Date() },
+    { url: `${baseUrl}/services`, lastModified: new Date() },
+    { url: `${baseUrl}/pricing`, lastModified: new Date() },
+    { url: `${baseUrl}/temple-guide`, lastModified: new Date() },
+    { url: `${baseUrl}/blog`, lastModified: new Date() },
+    { url: `${baseUrl}/contact`, lastModified: new Date() },
   ];
 }

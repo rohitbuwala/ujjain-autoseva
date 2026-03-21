@@ -4,23 +4,46 @@ import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { successResponse, errorResponse } from "@/lib/api-utils";
 
-// ✅ GET ALL BOOKINGS (ADMIN)
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    // Only admin allowed
     if (!session || session.user.role !== "admin") {
       return errorResponse("Admin Access Required", 403);
     }
 
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status");
+
     await connectDB();
 
-    const bookings = await Booking.find()
-      .populate("userId", "name email")
-      .sort({ createdAt: -1 });
+    const query: Record<string, unknown> = {};
+    if (status && ["pending", "confirmed", "rejected"].includes(status)) {
+      query.status = status;
+    }
 
-    return successResponse(bookings);
+    const skip = (page - 1) * limit;
+
+    const [bookings, total] = await Promise.all([
+      Booking.find(query)
+        .populate("userId", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Booking.countDocuments(query),
+    ]);
+
+    return successResponse({
+      bookings,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
 
   } catch (err) {
     console.error("ADMIN BOOKINGS ERROR:", err);
