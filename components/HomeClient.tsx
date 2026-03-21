@@ -200,7 +200,7 @@ export default function HomeClient() {
                 >
                   <div className="h-48 relative w-full overflow-hidden bg-muted">
                     <Image 
-                      src={idx === 0 ? "/ram.jpg" : idx === 1 ? "/5.jpg" : "/12.jpg"} 
+                      src={idx === 0 ? "/m.jpg" : idx === 1 ? "/5.jpg" : "/12.jpg"} 
                       alt={route.routeName} 
                       fill 
                       className="object-cover group-hover:scale-105 transition-transform duration-500" 
