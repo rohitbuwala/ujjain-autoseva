@@ -22,7 +22,7 @@ const temples = [
     history: "Built by King Bhadrasen, the deity here famously accepts liquor as prasad—a phenomenon that leaves scientists baffled.",
     timing: "5:00 AM to 10:00 PM",
     tips: "Visit during the late morning to avoid massive crowds. Prasad (liquor, flowers) is available right outside the temple.",
-    image: "/logo2.webp",
+    image: "/kal.jpg",
   },
   {
     name: "Harsiddhi Mata Temple",
@@ -38,7 +38,7 @@ const temples = [
     history: "It is one of the main venues for the famous Kumbh Mela (Simhastha) held every 12 years.",
     timing: "24 Hours (Best visited during sunrise or sunset)",
     tips: "Attend the breathtaking evening Shipra Aarti. Enjoy a peaceful boat ride early in the morning.",
-    image: "/ram.jpeg",
+    image: "/ram.jpg",
   }
 ];
 
