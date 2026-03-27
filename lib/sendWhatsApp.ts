@@ -85,3 +85,35 @@ Hi ${booking.name}, your auto booking is confirmed.
     console.log("User WhatsApp error ❌", err);
   }
 }
+
+export async function sendCancellationWhatsApp(booking: {
+  bookingId: string;
+  name: string;
+  phone: string;
+  route: string;
+  date: string;
+  time: string;
+}) {
+  try {
+    const phone = booking.phone.startsWith("+") ? booking.phone : `+91${booking.phone}`;
+
+    await client.messages.create({
+      from: process.env.TWILIO_WHATSAPP_NUMBER!,
+      to: `whatsapp:${phone}`,
+      body: `❌ Booking Cancelled
+
+Hi ${booking.name}, your booking has been cancelled.
+
+🆔 Booking ID: ${booking.bookingId}
+📍 Route: ${booking.route}
+⏰ Time: ${booking.time}
+📅 Date: ${booking.date}
+
+If you have any questions, please contact us. 🙏`,
+    });
+
+    console.log("Cancellation WhatsApp sent ✅");
+  } catch (err) {
+    console.log("Cancellation WhatsApp error ❌", err);
+  }
+}

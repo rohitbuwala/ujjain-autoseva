@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FeedbackModal } from "@/components/FeedbackModal";
@@ -12,14 +13,40 @@ import {
   User,
   Car,
   CheckCircle,
-  LifeBuoy,
-  Star,
+  XCircle,
 } from "lucide-react";
+
+interface DashboardStats {
+  totalTrips: number;
+  activeBookings: number;
+  completedTrips: number;
+  cancelledTrips: number;
+}
 
 export default function DashboardPage() {
 
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+
+  /* ================= FETCH STATS ================= */
+  useEffect(() => {
+    if (status === "authenticated") {
+      async function loadStats() {
+        try {
+          const res = await fetch("/api/dashboard/stats");
+          if (res.ok) {
+            const data = await res.json();
+            setStats(data.data);
+          }
+        } catch (err) {
+          console.error("Failed to load stats:", err);
+        }
+      }
+      loadStats();
+    }
+  }, [status]);
 
 
   /* ================= LOADING ================= */
@@ -111,7 +138,6 @@ export default function DashboardPage() {
           <FeedbackModal
             trigger={
               <Button variant="outline" className="w-full sm:w-auto">
-                <Star className="mr-2 h-4 w-4 text-yellow-500" />
                 Rate Us
               </Button>
             }
@@ -147,45 +173,37 @@ export default function DashboardPage() {
         "
       >
 
-        {[
-          { title: "Total Trips", value: "12", icon: Car },
-          { title: "Active Booking", value: "1", icon: ClipboardList },
-          { title: "Completed", value: "10", icon: CheckCircle },
-          { title: "Support Tickets", value: "2", icon: LifeBuoy },
-        ].map((stat) => (
+        <div className="bg-card border border-border rounded-xl shadow-sm p-4 sm:p-5 text-center space-y-1">
+          <Car size={22} className="mx-auto text-primary" />
+          <h3 className="text-muted-foreground text-xs sm:text-sm">Total Trips</h3>
+          <p className="text-xl sm:text-2xl font-bold text-foreground">
+            {stats?.totalTrips ?? "..."}
+          </p>
+        </div>
 
-          <div
-            key={stat.title}
-            className="
-              bg-card
-              border
-              border-border
-              rounded-xl
-              shadow-sm
+        <div className="bg-card border border-border rounded-xl shadow-sm p-4 sm:p-5 text-center space-y-1">
+          <ClipboardList size={22} className="mx-auto text-primary" />
+          <h3 className="text-muted-foreground text-xs sm:text-sm">Active</h3>
+          <p className="text-xl sm:text-2xl font-bold text-foreground">
+            {stats?.activeBookings ?? "..."}
+          </p>
+        </div>
 
-              p-4
-              sm:p-5
+        <div className="bg-card border border-border rounded-xl shadow-sm p-4 sm:p-5 text-center space-y-1">
+          <CheckCircle size={22} className="mx-auto text-primary" />
+          <h3 className="text-muted-foreground text-xs sm:text-sm">Completed</h3>
+          <p className="text-xl sm:text-2xl font-bold text-foreground">
+            {stats?.completedTrips ?? "..."}
+          </p>
+        </div>
 
-              text-center
-              space-y-1
-            "
-          >
-
-            <stat.icon
-              size={22}
-              className="mx-auto text-primary"
-            />
-
-            <h3 className="text-muted-foreground text-xs sm:text-sm">
-              {stat.title}
-            </h3>
-
-            <p className="text-xl sm:text-2xl font-bold text-foreground">
-              {stat.value}
-            </p>
-
-          </div>
-        ))}
+        <div className="bg-card border border-border rounded-xl shadow-sm p-4 sm:p-5 text-center space-y-1">
+          <XCircle size={22} className="mx-auto text-primary" />
+          <h3 className="text-muted-foreground text-xs sm:text-sm">Cancelled</h3>
+          <p className="text-xl sm:text-2xl font-bold text-foreground">
+            {stats?.cancelledTrips ?? "..."}
+          </p>
+        </div>
 
       </section>
 

@@ -115,3 +115,45 @@ export const sendMail = async (to: string, msg: string) => {
     console.error("Resend Generic Email error", err);
   }
 };
+
+// 📩 3. Booking Cancellation Email
+export const sendCancellationEmail = async (data: BookingEmailData & { reason: string }) => {
+  if (!resend) {
+    console.error("RESEND_API_KEY is missing. Could not send email.");
+    return;
+  }
+
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #dc3545; text-align: center;">❌ Booking Cancelled</h2>
+      <p>Hello <b>${data.name}</b>,</p>
+      <p>Your booking with <b>${APP_NAME}</b> has been cancelled.</p>
+      
+      <div style="background: #fff5f5; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #feb2b2; border-left: 4px solid #dc3545;">
+        <h3 style="margin-top: 0; color: #c53030;">Cancelled Booking Details:</h3>
+        <p style="margin: 5px 0;"><b>Booking ID:</b> ${data.bookingId}</p>
+        <p style="margin: 5px 0;"><b>Route:</b> ${data.route}</p>
+        <p style="margin: 5px 0;"><b>Date:</b> ${data.date}</p>
+        <p style="margin: 5px 0;"><b>Time:</b> ${data.time}</p>
+        <p style="margin: 5px 0;"><b>Reason:</b> ${data.reason}</p>
+      </div>
+
+      <p>If you did not request this cancellation or have any questions, please contact us immediately.</p>
+      
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="font-size: 12px; color: #888; text-align: center;">For any help, call/WhatsApp us at: <br/> <b>${CONTACT_PHONE}</b></p>
+    </div>
+  `;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: data.email,
+      subject: `Booking Cancelled - ${data.bookingId}`,
+      html,
+    });
+    console.log("Cancellation Email sent via Resend ✅");
+  } catch (err) {
+    console.error("Resend Cancellation Email error ❌", err);
+  }
+};
