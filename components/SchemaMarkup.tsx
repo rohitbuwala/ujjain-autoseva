@@ -12,9 +12,9 @@ export default function SchemaMarkup({ schemaType, data }: SchemaMarkupProps) {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "Ujjain Auto Seva",
-    "image": "https://ujjain-autoseva.vercel.app/logo.png",
-    "@id": "https://ujjain-autoseva.vercel.app",
-    "url": "https://ujjain-autoseva.vercel.app",
+    "image": "https://ujjain-autoseva.in/logo.png",
+    "@id": "https://ujjain-autoseva.in",
+    "url": "https://ujjain-autoseva.in",
     "telephone": "+916263189202",
     "address": {
       "@type": "PostalAddress",
