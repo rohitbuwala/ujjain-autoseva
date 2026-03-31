@@ -17,6 +17,8 @@ interface Booking {
   price: string;
   status: string;
   route?: string;
+  packageName?: string;
+  selectedTemples?: string[];
   createdAt?: string;
 }
 
@@ -174,6 +176,22 @@ export default function UserBookings() {
                     {b.route}
                   </span>
                 </div>
+
+                {/* TEMPLES */}
+                {b.selectedTemples && b.selectedTemples.length > 0 && (
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                      Temples
+                    </span>
+                    <div className="text-sm text-muted-foreground">
+                      <ul className="list-disc list-inside space-y-0.5">
+                        {b.selectedTemples.map((name, i) => (
+                          <li key={i}>{name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
 
                 {/* PRICE */}
 

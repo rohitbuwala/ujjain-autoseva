@@ -28,10 +28,10 @@ export async function GET(req: Request) {
 
     const [bookings, total] = await Promise.all([
       Booking.find(query)
-        .populate("userId", "name email")
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       Booking.countDocuments(query),
     ]);
 

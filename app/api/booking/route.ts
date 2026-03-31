@@ -59,6 +59,8 @@ export async function POST(req: Request) {
       price,
     } = parsed.data;
 
+    const { packageName, selectedTemples, temples } = body;
+
     // ✅ Build route
     const route = `${sanitizeInput(pickup)} → ${sanitizeInput(drop)}`;
 
@@ -76,6 +78,16 @@ export async function POST(req: Request) {
       time,
       price: sanitizeInput(price),
       status: "pending",
+      packageName: packageName ? sanitizeInput(packageName) : sanitizeInput(drop),
+      selectedTemples: Array.isArray(selectedTemples) ? selectedTemples.map(t => sanitizeInput(t)) : [],
+      temples: Array.isArray(temples) ? temples : []
+    });
+
+    console.log("Booking Data (Standard):", {
+      bookingId: booking.bookingId,
+      route: booking.route,
+      packageName: booking.packageName,
+      selectedTemples: booking.selectedTemples
     });
 
     await sendAdminNotification(booking);

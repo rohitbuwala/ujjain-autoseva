@@ -36,6 +36,7 @@ interface Booking {
   altPhone?: string;
   pickup: string;
   drop: string;
+  route?: string;
   date: string;
   time: string;
   price: string;
@@ -236,7 +237,7 @@ export default function AdminBookings() {
                   
                   <p className="flex items-start gap-1.5 sm:col-span-2">
                     <MapPin size={15} className="mt-0.5 text-primary" />
-                    <span><b>Pickup:</b> <span className="text-primary">{b.pickup}</span></span>
+                    <span><b>Route:</b> <span className="text-primary">{b.route}</span></span>
                   </p>
 
                   <p className="flex items-center gap-1.5"><Calendar size={15} className="text-muted-foreground" /> {b.date}</p>
@@ -258,26 +259,48 @@ export default function AdminBookings() {
                       <Package size={15} className="text-primary" />
                       <span className="font-bold text-primary">
                         {b.packageType === "five" ? "5 Temple Darshan" : 
-                         b.packageType === "custom" ? "Custom Selection" : 
-                         b.packageName || b.packageType || "Standard Ride"}
+                         b.packageType === "city-tour" ? "Mahakal + City Tour" : 
+                         b.packageName || b.packageType || (b.route ? b.route.split(" -> ")[1] || "Standard Ride" : "Standard Ride")}
                       </span>
                     </div>
                     <span className="text-muted-foreground">•</span>
-                    <span className="text-sm font-medium">
-                      {b.temples?.length || 0} temple(s)
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      {(b.selectedTemples?.length || b.temples?.length || 0)} temple(s)
                     </span>
                   </div>
 
-                  {/* TEMPLE NAMES DISPLAY */}
-                  {(b.selectedTemples?.length || b.temples?.length) ? (
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed bg-slate-100/50 dark:bg-slate-800/50 p-2 rounded-lg border border-border/50">
-                      <span className="font-bold text-xs uppercase tracking-wider block mb-1 opacity-70">Included Temples:</span>
-                      {b.selectedTemples && b.selectedTemples.length > 0 
-                        ? b.selectedTemples.join(", ")
-                        : b.temples?.map(t => t.name).join(", ")}
-                    </p>
-                  ) : null}
+                  {/* TEMPLE NAMES DISPLAY - Updated to requested format */}
+                  {((b.selectedTemples && b.selectedTemples.length > 0) || (b.temples && b.temples.length > 0)) ? (
+                    <div className="mt-3 space-y-2">
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                         <MapPin size={12} /> Temples:
+                      </span>
+                      <ul className="list-disc list-inside space-y-1">
+                        {(b.selectedTemples && b.selectedTemples.length > 0 
+                          ? b.selectedTemples 
+                          : b.temples?.map(t => t.name) || []
+                        ).map((name, idx) => (
+                          <li key={idx} className="text-sm text-slate-600 dark:text-slate-400">
+                            {name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic mt-2">No temples selected</p>
+                  )}
                 </div>
+
+                {/* Debug Log */}
+                {(() => {
+                  console.log("Booking Data (Admin View):", {
+                    id: b._id,
+                    route: b.route,
+                    packageName: b.packageName,
+                    selectedTemples: b.selectedTemples
+                  });
+                  return null;
+                })()}
 
                 {/* Temples List */}
                 {b.temples && b.temples.length > 0 && (

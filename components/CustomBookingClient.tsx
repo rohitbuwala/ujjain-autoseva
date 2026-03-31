@@ -203,17 +203,33 @@ function BookingForm() {
       
       const packageDetails = getPackageDetails(formData.packageType);
       
+      // Get temples for payload, ensuring we have some data for fixed packages
+      let finalTemples = formData.selectedTemples.map(id => {
+        const t = dbTemples.find(temple => temple._id === id);
+        return t ? { _id: t._id, name: t.name, price: t.price } : null;
+      }).filter(Boolean);
+
+      let finalSelectedTemples = formData.selectedTemples.map(id => {
+        const t = dbTemples.find(temple => temple._id === id);
+        return t ? t.name : "";
+      }).filter(Boolean);
+
+      // Fallback for fixed packages if matching failed
+      if (finalSelectedTemples.length === 0) {
+        if (formData.packageType === "five") {
+          finalSelectedTemples = FIVE_TEMPLE_DARSHAN_TEMPLES;
+          finalTemples = FIVE_TEMPLE_DARSHAN_TEMPLES.map(name => ({ _id: "package_default", name, price: 0 }));
+        } else if (formData.packageType === "city-tour") {
+          finalSelectedTemples = CITY_TOUR_TEMPLES;
+          finalTemples = CITY_TOUR_TEMPLES.map(name => ({ _id: "package_default", name, price: 0 }));
+        }
+      }
+      
       const payload = {
         packageType: formData.packageType,
         packageName: packageDetails.name,
-        temples: formData.selectedTemples.map(id => {
-          const t = dbTemples.find(temple => temple._id === id);
-          return t ? { _id: t._id, name: t.name, price: t.price } : null;
-        }).filter(Boolean),
-        selectedTemples: formData.selectedTemples.map(id => {
-          const t = dbTemples.find(temple => temple._id === id);
-          return t ? t.name : "";
-        }).filter(Boolean),
+        temples: finalTemples,
+        selectedTemples: finalSelectedTemples,
         totalPrice: calculateTotal(),
         name: formData.name,
         phone: formData.phone,

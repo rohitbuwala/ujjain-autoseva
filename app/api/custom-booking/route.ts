@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       altPhone: sanitizeInput(validatedData.altPhone || ""),
       pickup: sanitizeInput(validatedData.pickup),
       drop: dropText,
-      route: `${sanitizeInput(validatedData.pickup)} -> ${sanitizeInput(validatedData.packageName)}`,
+      route: `${sanitizeInput(validatedData.pickup)} → ${sanitizeInput(validatedData.packageName)}`,
       date: validatedData.date,
       time: validatedData.time,
       price: validatedData.totalPrice.toString(),
@@ -86,6 +86,13 @@ export async function POST(req: Request) {
         : validatedData.temples.map(t => sanitizeInput(t.name)),
       notes: sanitizeInput(validatedData.notes || ""),
       hotel: validatedData.hotel
+    });
+
+    console.log("Booking Data (Custom):", {
+      bookingId: booking.bookingId,
+      route: booking.route,
+      packageName: booking.packageName,
+      selectedTemples: booking.selectedTemples
     });
 
     if (booking) {
