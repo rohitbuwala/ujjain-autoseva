@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
+import Service from "@/models/Service";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 import { successResponse, errorResponse } from "@/lib/api-utils";
@@ -47,19 +48,28 @@ export async function POST(req: Request) {
     // ✅ Generate unique Booking ID
     const bookingId = `UA-${randomBytes(3).toString("hex").toUpperCase()}`;
 
+    const service = await Service.findOne({
+      _id: body.serviceId,
+      isActive: true,
+    });
+
+    if (!service) {
+      return errorResponse("Please select a valid service", 400);
+    }
+
     // ✅ Extract and sanitize data
     const {
       name,
       phone,
       altPhone,
-      pickup,
-      drop,
       date,
       time,
-      price,
     } = parsed.data;
 
     const { packageName, selectedTemples, temples } = body;
+    const pickup = service.from || parsed.data.pickup;
+    const drop = service.to || service.route || parsed.data.drop;
+    const price = String(service.price);
 
     // ✅ Build route
     const route = `${sanitizeInput(pickup)} → ${sanitizeInput(drop)}`;
@@ -76,7 +86,7 @@ export async function POST(req: Request) {
       route,
       date,
       time,
-      price: sanitizeInput(price),
+      price,
       status: "pending",
       packageName: packageName ? sanitizeInput(packageName) : sanitizeInput(drop),
       selectedTemples: Array.isArray(selectedTemples) ? selectedTemples.map(t => sanitizeInput(t)) : [],
@@ -90,7 +100,9 @@ export async function POST(req: Request) {
       selectedTemples: booking.selectedTemples
     });
 
-    await sendAdminNotification(booking);
+    await sendAdminNotification(booking).catch(e =>
+      console.error("Admin WhatsApp notification failed:", e)
+    );
 
     // ✅ Send Pending Email to User
     await sendPendingEmail({

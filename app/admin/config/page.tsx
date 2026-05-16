@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { 
   Building, 
   Map, 
@@ -8,10 +8,8 @@ import {
   Trash2, 
   Edit, 
   CheckCircle, 
-  XCircle, 
   IndianRupee,
   Settings,
-  MoreVertical,
   GripHorizontal
 } from "lucide-react";
 
@@ -53,11 +51,7 @@ export default function AdminConfigDashboard() {
   const [routeForm, setRouteForm] = useState<Partial<TravelRoute>>({ activeStatus: true, totalPrice: 0, category: "inside", templeList: [], displayOrder: 0 });
   const [routeFormId, setRouteFormId] = useState("");
 
-  useEffect(() => {
-    fetchData();
-  }, [activeTab]);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === "temples") {
@@ -80,7 +74,11 @@ export default function AdminConfigDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   /* ================= TEMPLE FUNCTIONS ================= */
   async function submitTemple(e: React.FormEvent) {
@@ -103,7 +101,7 @@ export default function AdminConfigDashboard() {
       setIsEditingTemple(false);
       setTempleForm({ category: "inside", activeStatus: true, price: 0, basePrice: 0 });
       fetchData();
-    } catch (err) {
+    } catch {
       alert("Error saving temple");
     }
   }
@@ -114,7 +112,7 @@ export default function AdminConfigDashboard() {
       const res = await fetch(`/api/admin/temples/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       setTemples(temples.filter(t => t._id !== id));
-    } catch (err) {
+    } catch {
       alert("Error deleting temple");
     }
   }
@@ -158,7 +156,7 @@ export default function AdminConfigDashboard() {
       setIsEditingRoute(false);
       setRouteForm({ activeStatus: true, totalPrice: 0, category: "inside", templeList: [] });
       fetchData();
-    } catch (err) {
+    } catch {
       alert("Error saving route");
     }
   }
@@ -169,7 +167,7 @@ export default function AdminConfigDashboard() {
       const res = await fetch(`/api/admin/routes/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       setRoutes(routes.filter(r => r._id !== id));
-    } catch (err) {
+    } catch {
       alert("Error deleting route");
     }
   }

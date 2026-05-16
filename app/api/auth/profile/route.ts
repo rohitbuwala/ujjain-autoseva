@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+import { requireSession } from "@/lib/auth-utils";
 
 export async function PUT(request: NextRequest) {
   try {
+    const { session, response } = await requireSession();
+    if (response) return response;
+
     await connectDB();
 
     const body = await request.json();
-    const { userId, name, email } = body;
-
-    if (!userId) {
-      return NextResponse.json(
-        { message: "User ID is required" },
-        { status: 400 }
-      );
-    }
+    const { name, email } = body;
+    const userId = session.user.id;
 
     if (!name || !email) {
       return NextResponse.json(

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 const SECURITY_HEADERS = {
   "X-DNS-Prefetch-Control": "on",
@@ -17,7 +16,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
-export function securityMiddleware(request: NextRequest): Response | null {
+export function securityMiddleware(): Response | null {
   const response = NextResponse.next();
   return addSecurityHeaders(response);
 }

@@ -5,7 +5,7 @@ const serviceBaseSchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   price: z.number().min(0, "Price must be positive").optional(),
-  category: z.enum(["inside", "outside", "darshan", "tour"]).optional(),
+  category: z.enum(["inside", "outside"]).optional(),
   time: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -25,7 +25,7 @@ export const updateServiceSchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   price: z.number().min(0, "Price must be positive").optional(),
-  category: z.enum(["inside", "outside", "darshan", "tour"]).optional(),
+  category: z.enum(["inside", "outside"]).optional(),
   time: z.string().optional(),
   isActive: z.boolean().optional(),
 });

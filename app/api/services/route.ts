@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Service from "@/models/Service";
-import { successResponse } from "@/lib/api-utils";
 import { serviceSchema } from "@/lib/validators/service";
+import { requireAdminSession } from "@/lib/auth-utils";
 
 /* ================= GET ALL ================= */
 export async function GET() {
@@ -15,7 +15,7 @@ export async function GET() {
       success: true,
       data: services
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }
@@ -26,6 +26,9 @@ export async function GET() {
 /* ================= ADD ================= */
 export async function POST(req: Request) {
   try {
+    const { response } = await requireAdminSession();
+    if (response) return response;
+
     await connectDB();
     const body = await req.json();
 
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
       success: true,
       data: service
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }
@@ -54,6 +57,9 @@ export async function POST(req: Request) {
 /* ================= DELETE ================= */
 export async function DELETE(req: Request) {
   try {
+    const { response } = await requireAdminSession();
+    if (response) return response;
+
     await connectDB();
     const { id } = await req.json();
 
@@ -67,7 +73,7 @@ export async function DELETE(req: Request) {
     await Service.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Server Error" },
       { status: 500 }

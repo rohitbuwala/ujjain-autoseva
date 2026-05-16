@@ -13,7 +13,7 @@ export async function GET() {
 
     return NextResponse.json({ data: routes });
 
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Server Error" },
       { status: 500 }

@@ -1,4 +1,3 @@
-import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import Navbar from "@/components/Navbar";
@@ -6,9 +5,6 @@ import Footer from "@/components/Footer";
 import FloatingContact from "@/components/FloatingContact";
 import SchemaMarkup from "@/components/SchemaMarkup";
 import { SITE_CONFIG } from "@/lib/constants";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
 
 export const metadata = {
   title: {
@@ -53,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans">
 
         <Providers>

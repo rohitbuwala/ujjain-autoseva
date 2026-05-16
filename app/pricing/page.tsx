@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import SchemaMarkup from "@/components/SchemaMarkup";
-import { SITE_CONFIG } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Transparent Pricing | Ujjain Auto Taxi & Temple Tour Rates",

@@ -5,6 +5,7 @@ import Booking from "@/models/Booking";
 import { successResponse, errorResponse } from "@/lib/api-utils";
 import { sendCancellationEmail } from "@/lib/mail";
 import { sendCancellationWhatsApp } from "@/lib/sendWhatsApp";
+import { sanitizeInput } from "@/lib/sanitize";
 
 export async function POST(
   req: Request,
@@ -19,7 +20,7 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { reason } = body;
+    const reason = sanitizeInput(body?.reason || "");
 
     await connectDB();
 
@@ -48,7 +49,7 @@ export async function POST(
 
     await booking.save();
 
-    sendCancellationEmail({
+    await sendCancellationEmail({
       name: booking.name,
       bookingId: booking.bookingId,
       date: booking.date,
@@ -59,7 +60,7 @@ export async function POST(
       email: session.user.email || "",
     }).catch(e => console.error("Could not send cancellation email:", e));
 
-    sendCancellationWhatsApp({
+    await sendCancellationWhatsApp({
       bookingId: booking.bookingId,
       name: booking.name,
       phone: booking.phone,

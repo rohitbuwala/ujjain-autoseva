@@ -63,6 +63,9 @@ export const authOptions: NextAuthOptions = {
           return Promise.reject("INVALID_PASSWORD");
         }
 
+        if (!user.verified) {
+          return Promise.reject("EMAIL_NOT_VERIFIED");
+        }
 
         return {
           id: user._id.toString(),

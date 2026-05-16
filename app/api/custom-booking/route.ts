@@ -3,12 +3,16 @@ import { getServerSession } from "next-auth";
 import { randomBytes } from "crypto";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
+import Temple from "@/models/Temple";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { z } from "zod";
 import { sendAdminNotification } from "@/lib/sendWhatsApp";
 import { sendPendingEmail } from "@/lib/mail";
 import { rateLimit, rateLimitResponse, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/sanitize";
+
+const FIVE_TEMPLE_PRICE = 650;
+const CITY_TOUR_PRICE = 850;
 
 const customBookingSchema = z.object({
   packageType: z.string().min(1, "Package type is required"),
@@ -57,8 +61,38 @@ export async function POST(req: Request) {
     await connectDB();
 
     const bookingId = `UA-${randomBytes(3).toString("hex").toUpperCase()}`;
+    const selectedTempleIds = validatedData.temples
+      .map((temple) => temple._id)
+      .filter((id) => id && id !== "package_default");
 
-    const templeNames = validatedData.temples.map(t => t.name).join(", ");
+    const dbTemples = selectedTempleIds.length > 0
+      ? await Temple.find({ _id: { $in: selectedTempleIds }, activeStatus: true })
+      : [];
+
+    const serverTemples = dbTemples.map((temple) => ({
+      _id: temple._id.toString(),
+      name: temple.name,
+      price: temple.price ?? temple.basePrice ?? 0,
+    }));
+
+    const serverPrice = validatedData.packageType === "five"
+      ? FIVE_TEMPLE_PRICE
+      : validatedData.packageType === "city-tour"
+        ? CITY_TOUR_PRICE
+        : serverTemples.reduce((sum, temple) => sum + temple.price, 0);
+
+    if (validatedData.packageType === "custom" && serverTemples.length === 0) {
+      return NextResponse.json(
+        { error: "Please select at least one valid temple" },
+        { status: 400 }
+      );
+    }
+
+    const templesForBooking = validatedData.packageType === "custom"
+      ? serverTemples
+      : validatedData.temples;
+
+    const templeNames = templesForBooking.map(t => t.name).join(", ");
     const dropText = validatedData.packageType === "five" 
       ? `5 Temple Darshan (${templeNames})`
       : validatedData.temples.length > 0 
@@ -76,11 +110,11 @@ export async function POST(req: Request) {
       route: `${sanitizeInput(validatedData.pickup)} → ${sanitizeInput(validatedData.packageName)}`,
       date: validatedData.date,
       time: validatedData.time,
-      price: validatedData.totalPrice.toString(),
+      price: serverPrice.toString(),
       status: "pending",
       packageType: sanitizeInput(validatedData.packageType),
       packageName: sanitizeInput(validatedData.packageName),
-      temples: validatedData.temples,
+      temples: templesForBooking,
       selectedTemples: validatedData.selectedTemples.length > 0 
         ? validatedData.selectedTemples.map(t => sanitizeInput(t)) 
         : validatedData.temples.map(t => sanitizeInput(t.name)),

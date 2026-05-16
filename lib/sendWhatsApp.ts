@@ -1,9 +1,28 @@
 import twilio from "twilio";
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!
-);
+const hasTwilioCreds =
+  process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN;
+
+const client = hasTwilioCreds
+  ? twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!)
+  : null;
+
+if (!hasTwilioCreds) {
+  console.warn("⚠️ Twilio credentials missing — WhatsApp messages disabled");
+}
+
+function formatWhatsAppNumber(phone?: string) {
+  if (!phone) return "";
+
+  const trimmed = phone.trim();
+  if (trimmed.startsWith("whatsapp:")) return trimmed;
+  if (trimmed.startsWith("+")) return `whatsapp:${trimmed}`;
+
+  return `whatsapp:+91${trimmed.replace(/\D/g, "")}`;
+}
+
+const twilioWhatsAppFrom = formatWhatsAppNumber(process.env.TWILIO_WHATSAPP_NUMBER);
+const adminWhatsAppTo = formatWhatsAppNumber(process.env.ADMIN_WHATSAPP_NUMBER);
 
 interface Temple {
   _id: string;
@@ -24,13 +43,18 @@ interface BookingData {
 }
 
 export async function sendAdminNotification(booking: BookingData) {
+  if (!client || !twilioWhatsAppFrom || !adminWhatsAppTo) {
+    console.warn("⚠️ WhatsApp disabled: no Twilio client");
+    return;
+  }
+
   try {
     const templeList = booking.temples?.map(t => t.name).join(", ") || "No temples selected";
     const packageInfo = booking.packageName || "Custom Booking";
     
     await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_NUMBER!,
-      to: process.env.ADMIN_WHATSAPP_NUMBER!,
+      from: twilioWhatsAppFrom,
+      to: adminWhatsAppTo,
       body: `🚗 New Booking
 
 🆔 Booking ID: ${booking.bookingId}
@@ -47,15 +71,20 @@ export async function sendAdminNotification(booking: BookingData) {
 💰 Price: ₹${booking.price}`,
     });
 
-    console.log("WhatsApp sent ✅");
+    console.log("Admin WhatsApp sent ✅");
   } catch (err) {
-    console.log("WhatsApp error ❌", err);
+    console.error("Admin WhatsApp error ❌ — Check: (1) Are recipient numbers opted into Twilio Sandbox? (2) Are credentials correct?", err);
   }
 }
 
 export async function sendUserConfirmation(booking: BookingData) {
+  if (!client || !twilioWhatsAppFrom) {
+    console.warn("⚠️ WhatsApp disabled: no Twilio client");
+    return;
+  }
+
   try {
-    const phone = booking.phone.startsWith("+") ? booking.phone : `+91${booking.phone}`;
+    const phone = formatWhatsAppNumber(booking.phone);
     const templeList = booking.temples?.map(t => t.name).join(", ") || "";
 
     let body = `✅ Booking Confirmed!
@@ -75,14 +104,14 @@ Hi ${booking.name}, your auto booking is confirmed.
     body += `\n\nOur driver will be there on time. For any queries, please call us. Have a divine darshan! 🙏`;
 
     await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_NUMBER!,
-      to: `whatsapp:${phone}`,
+      from: twilioWhatsAppFrom,
+      to: phone,
       body,
     });
 
     console.log("User confirmation WhatsApp sent ✅");
   } catch (err) {
-    console.log("User WhatsApp error ❌", err);
+    console.error("User WhatsApp error ❌ — Check: Is the user's number opted into Twilio Sandbox?", err);
   }
 }
 
@@ -94,12 +123,17 @@ export async function sendCancellationWhatsApp(booking: {
   date: string;
   time: string;
 }) {
+  if (!client || !twilioWhatsAppFrom) {
+    console.warn("⚠️ WhatsApp disabled: no Twilio client");
+    return;
+  }
+
   try {
-    const phone = booking.phone.startsWith("+") ? booking.phone : `+91${booking.phone}`;
+    const phone = formatWhatsAppNumber(booking.phone);
 
     await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_NUMBER!,
-      to: `whatsapp:${phone}`,
+      from: twilioWhatsAppFrom,
+      to: phone,
       body: `❌ Booking Cancelled
 
 Hi ${booking.name}, your booking has been cancelled.
@@ -114,6 +148,6 @@ If you have any questions, please contact us. 🙏`,
 
     console.log("Cancellation WhatsApp sent ✅");
   } catch (err) {
-    console.log("Cancellation WhatsApp error ❌", err);
+    console.error("Cancellation WhatsApp error ❌", err);
   }
 }

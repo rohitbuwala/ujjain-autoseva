@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 interface Temple {
   _id: string;

@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { sendUserConfirmation } from "@/lib/sendWhatsApp";
 
+const ALLOWED_UPDATES = ["status", "driverName", "driverPhone", "adminNote"] as const;
+
 export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string }> }
@@ -34,11 +36,24 @@ export async function PATCH(
       );
     }
 
+    const safeUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([key]) =>
+        ALLOWED_UPDATES.includes(key as (typeof ALLOWED_UPDATES)[number])
+      )
+    );
+
+    if (Object.keys(safeUpdates).length === 0) {
+      return NextResponse.json(
+        { error: "No valid update fields provided" },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
     const booking = await Booking.findByIdAndUpdate(
       id,
-      { $set: updates },
+      { $set: safeUpdates },
       { new: true }
     );
 
@@ -49,7 +64,7 @@ export async function PATCH(
       );
     }
 
-    if (updates.status === "confirmed") {
+    if (safeUpdates.status === "confirmed") {
       await sendUserConfirmation(booking).catch(e => console.error("Could not send confirmation to user:", e));
     }
 

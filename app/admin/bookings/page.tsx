@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   CheckCircle,
   XCircle,
@@ -78,11 +78,7 @@ export default function AdminBookings() {
 
   const [expandedTemples, setExpandedTemples] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    load();
-  }, [pagination.page, statusFilter]);
-
-  async function load() {
+  const load = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -98,7 +94,7 @@ export default function AdminBookings() {
       
       if (data.success) {
         setBookings(data.data.bookings || []);
-        setPagination(data.data.pagination || pagination);
+        setPagination((prev) => data.data.pagination || prev);
       } else {
         setBookings([]);
       }
@@ -108,7 +104,11 @@ export default function AdminBookings() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [pagination.page, statusFilter]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function updateBooking(id: string, payload: Partial<Booking>) {
     try {

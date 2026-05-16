@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Dialog, 
   DialogContent, 
@@ -21,8 +21,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Pencil, Trash2, X, Check, AlertCircle, ArrowLeft, MapPin, Calendar, Clock, Phone, IndianRupee } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Check, AlertCircle, ArrowLeft, MapPin } from "lucide-react";
 
 interface Temple {
   _id: string;
@@ -69,7 +68,7 @@ export default function CustomTripAdminPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/temples");
+      const res = await fetch("/api/admin/temples");
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setTemples(data.data.map((t: TempleResponse) => ({
@@ -80,7 +79,7 @@ export default function CustomTripAdminPage() {
       } else if (Array.isArray(data)) {
         setTemples(data);
       }
-    } catch (err) {
+    } catch {
       showToast("error", "Failed to load temples");
     } finally {
       setLoading(false);
@@ -123,7 +122,7 @@ export default function CustomTripAdminPage() {
     try {
       const url = editingTemple 
         ? `/api/admin/temples/${editingTemple._id}`
-        : "/api/temples";
+        : "/api/admin/temples";
       
       const method = editingTemple ? "PATCH" : "POST";
       
@@ -135,6 +134,7 @@ export default function CustomTripAdminPage() {
           price: Number(templeForm.price),
           category: "inside",
           active: templeForm.isActive,
+          activeStatus: templeForm.isActive,
         }),
       });
 
@@ -143,7 +143,7 @@ export default function CustomTripAdminPage() {
       showToast("success", editingTemple ? "Temple updated" : "Temple added");
       setTempleDialogOpen(false);
       loadData();
-    } catch (err) {
+    } catch {
       showToast("error", "Failed to save temple");
     } finally {
       setSaving(false);
@@ -169,7 +169,7 @@ export default function CustomTripAdminPage() {
       } else {
         throw new Error();
       }
-    } catch (err) {
+    } catch {
       // Revert on error
       setTemples(prev => prev.map(t => 
         t._id === temple._id ? { ...t, isActive: !newStatus } : t
@@ -188,7 +188,7 @@ export default function CustomTripAdminPage() {
       } else {
         throw new Error();
       }
-    } catch (err) {
+    } catch {
       showToast("error", "Failed to delete");
     } finally {
       setDeletingId(null);

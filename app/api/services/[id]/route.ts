@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Service from "@/models/Service";
 import { updateServiceSchema } from "@/lib/validators/service";
+import { requireAdminSession } from "@/lib/auth-utils";
 
 export async function GET(
   req: Request,
@@ -38,6 +39,9 @@ export async function PUT(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { response } = await requireAdminSession();
+    if (response) return response;
+
     const { id } = await context.params;
 
     await connectDB();

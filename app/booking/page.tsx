@@ -30,7 +30,6 @@ import {
   Clock,
   Phone,
   User,
-  TicketPercent,
   AlertCircle,
 } from "lucide-react";
 
@@ -223,7 +222,7 @@ export default function BookingPage() {
       const res = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, serviceId: selectedRouteId }),
       });
 
       if (!res.ok) {
