@@ -136,7 +136,7 @@ export default function RegisterPage() {
 
       /* ================= SUCCESS ================= */
 
-      setSuccess("Account created! Please check your email to verify your account.");
+      setSuccess(data.message || "Account created successfully. You can now login.");
 
       setTimeout(() => {
         router.push("/login");

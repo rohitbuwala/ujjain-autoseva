@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
-import { Resend } from "resend";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 import { registerSchema } from "@/lib/validators/auth";
 import { rateLimit, rateLimitResponse, getRateLimitIdentifier } from "@/lib/rate-limit";
-import { escapeHtml } from "@/lib/sanitize";
-
-const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
 export async function POST(req: Request) {
   try {
@@ -39,51 +34,20 @@ export async function POST(req: Request) {
     }
 
     const hash = await bcrypt.hash(data.password, 12);
-    const verifyToken = crypto.randomBytes(32).toString("hex");
 
     await User.create({
       name: data.name.trim(),
       email: data.email.toLowerCase(),
       password: hash,
       role: "user",
-      verified: false,
-      verifyToken,
-      verifyTokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
+      verified: true,
+      verifyToken: null,
+      verifyTokenExpiry: null,
     });
-
-    const verifyUrl = `${APP_URL}/verify?token=${verifyToken}&email=${data.email}`;
-
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-          from: "Ujjain AutoSeva <onboarding@resend.dev>",
-          to: data.email,
-          subject: "Verify Your Email - Ujjain AutoSeva",
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px;">
-              <h2 style="color: #ff8c00;">Welcome to Ujjain AutoSeva!</h2>
-              <p>Hello ${escapeHtml(data.name)},</p>
-              <p>Thank you for registering. Please verify your email address:</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verifyUrl}" style="background: #ff8c00; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                  Verify Email
-                </a>
-              </div>
-              <p style="color: #666; font-size: 14px;">
-                This link expires in 24 hours.
-              </p>
-            </div>
-          `,
-        });
-      } catch (emailError) {
-        console.error("Verification email error:", emailError);
-      }
-    }
 
     return NextResponse.json({
       success: true,
-      message: "Account created! Please check your email to verify your account.",
+      message: "Account created successfully. You can now login.",
     });
 
   } catch (err) {
