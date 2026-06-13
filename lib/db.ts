@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
-if(!MONGODB_URI){
-    throw new Error("Please add mongoDb_uri in .env");
+if (!MONGODB_URI) {
+  throw new Error("Please add MONGODB_URI in .env");
 }
 
 interface MongooseCache {
@@ -13,21 +13,27 @@ interface MongooseCache {
 
 const cached = global as unknown as { mongoose: MongooseCache };
 
-
 if (!cached.mongoose) {
   cached.mongoose = { conn: null, promise: null };
 }
 
-    async function connectDB() {
+async function connectDB() {
   if (cached.mongoose.conn) {
     return cached.mongoose.conn;
   }
 
   if (!cached.mongoose.promise) {
-    cached.mongoose.promise = mongoose.connect(MONGODB_URI);
+    cached.mongoose.promise = mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
   }
 
-   cached.mongoose.conn = await cached.mongoose.promise;
+  try {
+    cached.mongoose.conn = await cached.mongoose.promise;
+  } catch (error) {
+    cached.mongoose.promise = null;
+    throw error;
+  }
 
   return cached.mongoose.conn;
 }

@@ -87,18 +87,26 @@ export default function ServicesClient() {
   const router = useRouter();
   const [dbServices, setDbServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function loadServices() {
       try {
         const res = await fetch("/api/services");
         const data = await res.json();
+        if (!res.ok) {
+          setError(true);
+          return;
+        }
         const services = data.data || data;
         if (Array.isArray(services)) {
           setDbServices(services);
+        } else {
+          setError(true);
         }
       } catch (err) {
         console.error("Service Load Error:", err);
+        setError(true);
       } finally {
         setTimeout(() => setLoading(false), 400);
       }
@@ -141,6 +149,12 @@ export default function ServicesClient() {
           </div>
         </Link>
 
+        {!loading && error && (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">Unable to load services right now. Please try again later.</p>
+          </div>
+        )}
+
         <section>
           <div className="flex items-center gap-3 mb-10">
             <div className="h-8 w-1 bg-primary rounded-full" />
@@ -148,7 +162,7 @@ export default function ServicesClient() {
           </div>
           {loading ? (
             <ServiceSkeleton />
-          ) : (
+          ) : error ? null : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
               {dbServices
                 .filter((s) => s.category === "inside")
@@ -180,7 +194,7 @@ export default function ServicesClient() {
           </div>
           {loading ? (
             <ServiceSkeleton />
-          ) : (
+          ) : error ? null : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
               {dbServices
                 .filter((s) => s.category === "outside")

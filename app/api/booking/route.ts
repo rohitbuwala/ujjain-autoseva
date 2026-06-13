@@ -8,13 +8,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 import { successResponse, errorResponse } from "@/lib/api-utils";
 import { bookingSchema } from "@/lib/validators/booking";
-import { sendAdminNotification } from "@/lib/sendWhatsApp";
-import { sendPendingEmail } from "@/lib/mail";
+import { sendBookingCreatedEmails } from "@/lib/mail";
 import { rateLimit, rateLimitResponse, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/sanitize";
 
 export async function POST(req: Request) {
-
   try {
     const ip = getRateLimitIdentifier(req);
     const { success, reset } = rateLimit(ip, {
@@ -26,17 +24,13 @@ export async function POST(req: Request) {
       return rateLimitResponse(reset);
     }
 
-    // ✅ Session
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user?.email) {
       return errorResponse("Login Required", 401);
     }
 
-    // ✅ Body
     const body = await req.json();
-
-    // ✅ Zod validation
     const parsed = bookingSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -45,7 +39,6 @@ export async function POST(req: Request) {
 
     await connectDB();
 
-    // ✅ Generate unique Booking ID
     const bookingId = `UA-${randomBytes(3).toString("hex").toUpperCase()}`;
 
     const service = await Service.findOne({
@@ -57,24 +50,13 @@ export async function POST(req: Request) {
       return errorResponse("Please select a valid service", 400);
     }
 
-    // ✅ Extract and sanitize data
-    const {
-      name,
-      phone,
-      altPhone,
-      date,
-      time,
-    } = parsed.data;
-
-    const { packageName, selectedTemples, temples } = body;
+    const { name, phone, altPhone, date, time } = parsed.data;
+    const { packageName, selectedTemples, temples, paymentMethod } = body;
     const pickup = service.from || parsed.data.pickup;
     const drop = service.to || service.route || parsed.data.drop;
     const price = String(service.price);
+    const route = `${sanitizeInput(pickup)} -> ${sanitizeInput(drop)}`;
 
-    // ✅ Build route
-    const route = `${sanitizeInput(pickup)} → ${sanitizeInput(drop)}`;
-
-    // ✅ Save booking
     const booking = await Booking.create({
       bookingId,
       userId: session.user.id,
@@ -89,23 +71,13 @@ export async function POST(req: Request) {
       price,
       status: "pending",
       packageName: packageName ? sanitizeInput(packageName) : sanitizeInput(drop),
-      selectedTemples: Array.isArray(selectedTemples) ? selectedTemples.map(t => sanitizeInput(t)) : [],
-      temples: Array.isArray(temples) ? temples : []
+      selectedTemples: Array.isArray(selectedTemples)
+        ? selectedTemples.map(t => sanitizeInput(t))
+        : [],
+      temples: Array.isArray(temples) ? temples : [],
     });
 
-    console.log("Booking Data (Standard):", {
-      bookingId: booking.bookingId,
-      route: booking.route,
-      packageName: booking.packageName,
-      selectedTemples: booking.selectedTemples
-    });
-
-    await sendAdminNotification(booking).catch(e =>
-      console.error("Admin WhatsApp notification failed:", e)
-    );
-
-    // ✅ Send Pending Email to User
-    await sendPendingEmail({
+    await sendBookingCreatedEmails({
       name: booking.name,
       bookingId: booking.bookingId,
       date: booking.date,
@@ -113,14 +85,15 @@ export async function POST(req: Request) {
       route: booking.route,
       price: booking.price,
       email: session.user.email,
-    }).catch(e => console.error("Could not send pending email to user:", e));
+      customerEmail: session.user.email,
+      phone: booking.phone,
+      packageName: booking.packageName,
+      paymentMethod: typeof paymentMethod === "string" ? paymentMethod : undefined,
+    }).catch(e => console.error("Could not send booking emails:", e));
 
     return successResponse(booking, 201);
-
   } catch (err) {
-
     console.error("Booking Error:", err);
-
     return errorResponse("Server Error", 500);
   }
 }

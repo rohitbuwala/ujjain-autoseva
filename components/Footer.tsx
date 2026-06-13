@@ -86,7 +86,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row justify-center items-center gap-4 text-sm text-muted-foreground">
-          <p>© {currentYear} Ujjain AutoSeva. All rights reserved.</p>
+          <p>© {currentYear} Ujjain AutoSeva. All rights reserved..</p>
         </div>
       </div>
     </footer>

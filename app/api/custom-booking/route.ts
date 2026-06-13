@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { randomBytes } from "crypto";
+import { z } from "zod";
+
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import Temple from "@/models/Temple";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { z } from "zod";
-import { sendAdminNotification } from "@/lib/sendWhatsApp";
-import { sendPendingEmail } from "@/lib/mail";
+import { sendBookingCreatedEmails } from "@/lib/mail";
 import { rateLimit, rateLimitResponse, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/sanitize";
 
@@ -32,6 +32,7 @@ const customBookingSchema = z.object({
   pickup: z.string().min(1, "Pickup is required"),
   hotel: z.boolean().optional().default(false),
   notes: z.string().optional().default(""),
+  paymentMethod: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -47,14 +48,14 @@ export async function POST(req: Request) {
     }
 
     const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user?.id) {
+
+    if (!session || !session.user?.id || !session.user.email) {
       return NextResponse.json(
         { error: "Please login to book" },
         { status: 401 }
       );
     }
-    
+
     const body = await req.json();
     const validatedData = customBookingSchema.parse(body);
 
@@ -93,9 +94,9 @@ export async function POST(req: Request) {
       : validatedData.temples;
 
     const templeNames = templesForBooking.map(t => t.name).join(", ");
-    const dropText = validatedData.packageType === "five" 
+    const dropText = validatedData.packageType === "five"
       ? `5 Temple Darshan (${templeNames})`
-      : validatedData.temples.length > 0 
+      : validatedData.temples.length > 0
         ? `Custom: ${templeNames}`
         : "Custom Trip";
 
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
       altPhone: sanitizeInput(validatedData.altPhone || ""),
       pickup: sanitizeInput(validatedData.pickup),
       drop: dropText,
-      route: `${sanitizeInput(validatedData.pickup)} → ${sanitizeInput(validatedData.packageName)}`,
+      route: `${sanitizeInput(validatedData.pickup)} -> ${sanitizeInput(validatedData.packageName)}`,
       date: validatedData.date,
       time: validatedData.time,
       price: serverPrice.toString(),
@@ -115,46 +116,26 @@ export async function POST(req: Request) {
       packageType: sanitizeInput(validatedData.packageType),
       packageName: sanitizeInput(validatedData.packageName),
       temples: templesForBooking,
-      selectedTemples: validatedData.selectedTemples.length > 0 
-        ? validatedData.selectedTemples.map(t => sanitizeInput(t)) 
+      selectedTemples: validatedData.selectedTemples.length > 0
+        ? validatedData.selectedTemples.map(t => sanitizeInput(t))
         : validatedData.temples.map(t => sanitizeInput(t.name)),
       notes: sanitizeInput(validatedData.notes || ""),
-      hotel: validatedData.hotel
+      hotel: validatedData.hotel,
     });
 
-    console.log("Booking Data (Custom):", {
+    await sendBookingCreatedEmails({
       bookingId: booking.bookingId,
+      name: booking.name,
+      email: session.user.email,
+      customerEmail: session.user.email,
+      phone: booking.phone,
       route: booking.route,
+      time: booking.time,
+      date: booking.date,
+      price: booking.price,
       packageName: booking.packageName,
-      selectedTemples: booking.selectedTemples
-    });
-
-    if (booking) {
-      await sendAdminNotification({
-        bookingId: booking.bookingId,
-        name: booking.name,
-        phone: booking.phone,
-        route: booking.route,
-        time: booking.time,
-        date: booking.date,
-        price: booking.price,
-        temples: booking.temples,
-        packageName: booking.packageName
-      }).catch(e => console.error("WhatsApp Error:", e));
-
-      // ✅ Send Pending Email (if logged in)
-      if (session?.user?.email) {
-        await sendPendingEmail({
-          name: booking.name,
-          bookingId: booking.bookingId,
-          date: booking.date,
-          time: booking.time,
-          route: booking.route,
-          price: booking.price,
-          email: session.user.email,
-        }).catch(e => console.error("Email Error:", e));
-      }
-    }
+      paymentMethod: validatedData.paymentMethod,
+    }).catch(e => console.error("Booking Email Error:", e));
 
     return NextResponse.json({
       success: true,

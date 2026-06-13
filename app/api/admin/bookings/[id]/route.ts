@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
+import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { sendUserConfirmation } from "@/lib/sendWhatsApp";
+import { sendConfirmationEmail } from "@/lib/mail";
 
 const ALLOWED_UPDATES = ["status", "driverName", "driverPhone", "adminNote"] as const;
 
@@ -65,7 +66,19 @@ export async function PATCH(
     }
 
     if (safeUpdates.status === "confirmed") {
-      await sendUserConfirmation(booking).catch(e => console.error("Could not send confirmation to user:", e));
+      const user = await User.findById(booking.userId).select("email");
+
+      if (user?.email) {
+        await sendConfirmationEmail({
+          name: booking.name,
+          bookingId: booking.bookingId,
+          date: booking.date,
+          time: booking.time,
+          route: booking.route,
+          price: booking.price,
+          email: user.email,
+        }).catch(e => console.error("Could not send confirmation email to user:", e));
+      }
     }
 
     return NextResponse.json(booking);

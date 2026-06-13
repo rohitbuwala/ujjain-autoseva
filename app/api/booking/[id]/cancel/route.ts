@@ -4,7 +4,6 @@ import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { successResponse, errorResponse } from "@/lib/api-utils";
 import { sendCancellationEmail } from "@/lib/mail";
-import { sendCancellationWhatsApp } from "@/lib/sendWhatsApp";
 import { sanitizeInput } from "@/lib/sanitize";
 
 export async function POST(
@@ -59,15 +58,6 @@ export async function POST(
       reason: reason || "User requested cancellation",
       email: session.user.email || "",
     }).catch(e => console.error("Could not send cancellation email:", e));
-
-    await sendCancellationWhatsApp({
-      bookingId: booking.bookingId,
-      name: booking.name,
-      phone: booking.phone,
-      route: booking.route,
-      date: booking.date,
-      time: booking.time,
-    }).catch(e => console.error("Could not send cancellation WhatsApp:", e));
 
     return successResponse({
       message: "Booking cancelled successfully",
