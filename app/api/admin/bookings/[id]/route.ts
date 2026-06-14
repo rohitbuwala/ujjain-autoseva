@@ -1,12 +1,35 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import User from "@/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { sendConfirmationEmail } from "@/lib/mail";
+import {
+  sendCancellationEmail,
+  sendConfirmationEmail,
+  sendRejectionEmail,
+} from "@/lib/mail";
 
 const ALLOWED_UPDATES = ["status", "driverName", "driverPhone", "adminNote"] as const;
+
+async function getBookingRecipientEmail(booking: {
+  email?: string;
+  userId: string;
+  bookingId: string;
+}) {
+  if (booking.email?.trim()) {
+    return booking.email.trim();
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(booking.userId)) {
+    console.warn(`No stored booking email for ${booking.bookingId}; skipping user lookup for non-ObjectId userId.`);
+    return null;
+  }
+
+  const user = await User.findById(booking.userId).select("email").lean();
+  return user?.email ?? null;
+}
 
 export async function PATCH(
   req: Request,
@@ -52,9 +75,19 @@ export async function PATCH(
 
     await connectDB();
 
+    const updateData =
+      safeUpdates.status === "cancelled"
+        ? {
+            ...safeUpdates,
+            cancelledAt: new Date(),
+            cancelReason: "Cancelled by admin",
+            cancelledBy: "admin",
+          }
+        : safeUpdates;
+
     const booking = await Booking.findByIdAndUpdate(
       id,
-      { $set: safeUpdates },
+      { $set: updateData },
       { new: true }
     );
 
@@ -66,9 +99,9 @@ export async function PATCH(
     }
 
     if (safeUpdates.status === "confirmed") {
-      const user = await User.findById(booking.userId).select("email");
+      const recipientEmail = await getBookingRecipientEmail(booking);
 
-      if (user?.email) {
+      if (recipientEmail) {
         await sendConfirmationEmail({
           name: booking.name,
           bookingId: booking.bookingId,
@@ -76,8 +109,38 @@ export async function PATCH(
           time: booking.time,
           route: booking.route,
           price: booking.price,
-          email: user.email,
+          email: recipientEmail,
         }).catch(e => console.error("Could not send confirmation email to user:", e));
+      }
+    } else if (safeUpdates.status === "rejected") {
+      const recipientEmail = await getBookingRecipientEmail(booking);
+
+      if (recipientEmail) {
+        await sendRejectionEmail({
+          name: booking.name,
+          bookingId: booking.bookingId,
+          date: booking.date,
+          time: booking.time,
+          route: booking.route,
+          price: booking.price,
+          email: recipientEmail,
+        }).catch(e => console.error("Could not send rejection email to user:", e));
+      }
+    } else if (safeUpdates.status === "cancelled") {
+      const recipientEmail = await getBookingRecipientEmail(booking);
+
+      if (recipientEmail) {
+        await sendCancellationEmail({
+          name: booking.name,
+          bookingId: booking.bookingId,
+          date: booking.date,
+          time: booking.time,
+          route: booking.route,
+          price: booking.price,
+          cancelledBy: "Admin",
+          reason: booking.cancelReason || "Cancelled by admin",
+          email: recipientEmail,
+        }).catch(e => console.error("Could not send cancellation email to user:", e));
       }
     }
 

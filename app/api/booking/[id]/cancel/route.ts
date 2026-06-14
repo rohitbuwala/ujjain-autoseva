@@ -55,6 +55,7 @@ export async function POST(
       time: booking.time,
       route: booking.route,
       price: booking.price,
+      cancelledBy: "Customer",
       reason: reason || "User requested cancellation",
       email: session.user.email || "",
     }).catch(e => console.error("Could not send cancellation email:", e));

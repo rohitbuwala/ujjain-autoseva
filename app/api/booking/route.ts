@@ -52,6 +52,7 @@ export async function POST(req: Request) {
 
     const { name, phone, altPhone, date, time } = parsed.data;
     const { packageName, selectedTemples, temples, paymentMethod } = body;
+    const customerEmail = sanitizeInput(session.user.email.toLowerCase().trim());
     const pickup = service.from || parsed.data.pickup;
     const drop = service.to || service.route || parsed.data.drop;
     const price = String(service.price);
@@ -61,6 +62,7 @@ export async function POST(req: Request) {
       bookingId,
       userId: session.user.id,
       name: sanitizeInput(name),
+      email: customerEmail,
       phone: sanitizeInput(phone),
       altPhone: sanitizeInput(altPhone || ""),
       pickup: sanitizeInput(pickup),
@@ -84,8 +86,8 @@ export async function POST(req: Request) {
       time: booking.time,
       route: booking.route,
       price: booking.price,
-      email: session.user.email,
-      customerEmail: session.user.email,
+      email: customerEmail,
+      customerEmail,
       phone: booking.phone,
       packageName: booking.packageName,
       paymentMethod: typeof paymentMethod === "string" ? paymentMethod : undefined,

@@ -22,6 +22,13 @@ const bookingSchema = new mongoose.Schema({
     trim: true,
   },
 
+  email: {
+    type: String,
+    default: "",
+    lowercase: true,
+    trim: true,
+  },
+
   phone: {
     type: String,
     required: true,

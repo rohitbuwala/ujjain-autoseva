@@ -58,6 +58,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const validatedData = customBookingSchema.parse(body);
+    const customerEmail = sanitizeInput(session.user.email.toLowerCase().trim());
 
     await connectDB();
 
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
       bookingId,
       userId: session.user.id,
       name: sanitizeInput(validatedData.name),
+      email: customerEmail,
       phone: sanitizeInput(validatedData.phone),
       altPhone: sanitizeInput(validatedData.altPhone || ""),
       pickup: sanitizeInput(validatedData.pickup),
@@ -126,8 +128,8 @@ export async function POST(req: Request) {
     await sendBookingCreatedEmails({
       bookingId: booking.bookingId,
       name: booking.name,
-      email: session.user.email,
-      customerEmail: session.user.email,
+      email: customerEmail,
+      customerEmail,
       phone: booking.phone,
       route: booking.route,
       time: booking.time,

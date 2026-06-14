@@ -119,7 +119,7 @@ function bookingDetailsHtml(data: {
 export async function sendBookingCreatedEmails(data: BookingCreatedEmailData) {
   const customerHtml = `
     <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-      <h2 style="color: #ff8c00; text-align: center;">Booking Request Confirmed</h2>
+      <h2 style="color: #ff8c00; text-align: center;">Booking Request Received</h2>
       <p>Hello <b>${escapeHtml(data.name)}</b>,</p>
       <p>Thank you for choosing <b>${APP_NAME}</b>. We have received your booking request.</p>
       <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff8c00;">
@@ -138,7 +138,8 @@ export async function sendBookingCreatedEmails(data: BookingCreatedEmailData) {
         })}
       </div>
       <p style="color: #666;">Status: <b>PENDING</b></p>
-      <p>Our admin team will review the request and contact you if any detail is needed.</p>
+      <p>Your booking is currently pending and under admin review.</p>
+      <p>We will send you another email once the admin confirms or rejects your booking.</p>
       <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
       <p style="font-size: 12px; color: #888; text-align: center;">For help, call us at <b>${CONTACT_PHONE}</b></p>
     </div>
@@ -205,7 +206,9 @@ export const sendConfirmationEmail = async (data: BookingEmailData) => {
   await sendEmail(data.email, `Booking Confirmed - ${data.bookingId}`, html);
 };
 
-export const sendCancellationEmail = async (data: BookingEmailData & { reason: string }) => {
+export const sendCancellationEmail = async (
+  data: BookingEmailData & { reason: string; cancelledBy: "Customer" | "Admin" }
+) => {
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
       <h2 style="color: #dc3545; text-align: center;">Booking Cancelled</h2>
@@ -220,6 +223,7 @@ export const sendCancellationEmail = async (data: BookingEmailData & { reason: s
           time: data.time,
           route: data.route,
         })}
+        ${detailRow("Cancelled By", data.cancelledBy)}
         ${detailRow("Reason", data.reason)}
       </div>
       <p>If you did not request this cancellation or have any questions, please contact us immediately.</p>
@@ -229,6 +233,32 @@ export const sendCancellationEmail = async (data: BookingEmailData & { reason: s
   `;
 
   await sendEmail(data.email, `Booking Cancelled - ${data.bookingId}`, html);
+};
+
+export const sendRejectionEmail = async (data: BookingEmailData) => {
+  const html = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #dc3545; text-align: center;">Booking Rejected</h2>
+      <p>Hello <b>${escapeHtml(data.name)}</b>,</p>
+      <p>We regret to inform you that your booking with <b>${APP_NAME}</b> has been rejected by the admin.</p>
+      <div style="background: #fff5f5; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #feb2b2; border-left: 4px solid #dc3545;">
+        ${bookingDetailsHtml({
+          bookingId: data.bookingId,
+          name: data.name,
+          email: data.email,
+          date: data.date,
+          time: data.time,
+          route: data.route,
+          price: data.price,
+        })}
+      </div>
+      <p>If you have any questions, please contact us or book another service.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="font-size: 12px; color: #888; text-align: center;">For help, call us at <b>${CONTACT_PHONE}</b></p>
+    </div>
+  `;
+
+  await sendEmail(data.email, `Booking Rejected - ${data.bookingId}`, html);
 };
 
 export const sendMail = async (to: string, msg: string) => {
