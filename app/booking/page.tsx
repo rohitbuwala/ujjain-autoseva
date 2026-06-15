@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { bookingSchema } from "@/lib/validators/booking";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Card,
@@ -54,8 +54,10 @@ interface Errors {
 
 /* ================= PAGE ================= */
 
-export default function BookingPage() {
+function BookingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const routeFromQuery = searchParams.get("route")?.trim() || "";
 
   const [form, setForm] = useState<BookingForm>({
     name: "",
@@ -122,6 +124,18 @@ export default function BookingPage() {
 
     fetchRoutes();
   }, []);
+
+  useEffect(() => {
+    if (loadingRoutes || !routeFromQuery) {
+      return;
+    }
+
+    const matchedRoute = routes.find((route) => (route._id || route.id) === routeFromQuery);
+
+    if (matchedRoute) {
+      handleRouteChange(routeFromQuery);
+    }
+  }, [loadingRoutes, routeFromQuery, routes]);
 
   /* ================= ROUTE SELECT ================= */
 
@@ -387,6 +401,14 @@ export default function BookingPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center py-10">Loading...</div>}>
+      <BookingPageContent />
+    </Suspense>
   );
 }
 

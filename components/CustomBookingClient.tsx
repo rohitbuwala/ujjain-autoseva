@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { 
   Check, 
@@ -55,10 +55,19 @@ const PACKAGES = [
   { id: "custom", name: "Custom Selection", price: 0, icon: Settings, desc: "Choose temples and get instant fare", locked: false },
 ];
 
+function normalizePackageParam(value: string | null) {
+  if (value === "city-tour" || value === "five") {
+    return value;
+  }
+
+  return "custom";
+}
+
 function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initPkg = searchParams.get("package");
+  const selectedPackageFromQuery = normalizePackageParam(searchParams.get("package"));
+  const lastAppliedPackageRef = useRef<string | null>(null);
   
   const [step, setStep] = useState(1);
   const [loadingTemples, setLoadingTemples] = useState(true);
@@ -70,7 +79,7 @@ function BookingForm() {
   const [minDate, setMinDate] = useState("");
 
   const [formData, setFormData] = useState({
-    packageType: initPkg === "city-tour" ? "city-tour" : initPkg === "five" ? "five" : "custom",
+    packageType: selectedPackageFromQuery,
     selectedTemples: [] as string[],
     date: "",
     time: "",
@@ -89,28 +98,47 @@ function BookingForm() {
         const temples = (data as { data?: Temple[] }).data || data as Temple[] || [];
         if (Array.isArray(temples)) {
           setDbTemples(temples);
-          
-          if (initPkg === "five" || initPkg === "city-tour") {
-            const templeList = initPkg === "five" ? FIVE_TEMPLE_DARSHAN_TEMPLES : CITY_TOUR_TEMPLES;
-            const lockedTemples = temples.filter((t: Temple) => 
-              templeList.some(name => 
-                t.name.toLowerCase().includes(name.toLowerCase())
-              )
-            );
-            
-            if (lockedTemples.length > 0) {
-              setFormData(prev => ({
-                ...prev,
-                packageType: initPkg as string,
-                selectedTemples: lockedTemples.map((t: Temple) => t._id)
-              }));
-            }
-          }
         }
       })
       .catch(console.error)
       .finally(() => setLoadingTemples(false));
-  }, [initPkg]);
+  }, []);
+
+  useEffect(() => {
+    if (lastAppliedPackageRef.current === selectedPackageFromQuery) {
+      return;
+    }
+
+    if (selectedPackageFromQuery === "custom") {
+      setFormData(prev => ({
+        ...prev,
+        packageType: "custom",
+        selectedTemples: [],
+      }));
+      lastAppliedPackageRef.current = selectedPackageFromQuery;
+      return;
+    }
+
+    if (loadingTemples) {
+      return;
+    }
+
+    const templeList =
+      selectedPackageFromQuery === "five"
+        ? FIVE_TEMPLE_DARSHAN_TEMPLES
+        : CITY_TOUR_TEMPLES;
+
+    const lockedTemples = dbTemples.filter((temple) =>
+      templeList.some((name) => temple.name.toLowerCase().includes(name.toLowerCase()))
+    );
+
+    setFormData(prev => ({
+      ...prev,
+      packageType: selectedPackageFromQuery,
+      selectedTemples: lockedTemples.map((temple) => temple._id),
+    }));
+    lastAppliedPackageRef.current = selectedPackageFromQuery;
+  }, [dbTemples, loadingTemples, selectedPackageFromQuery]);
 
   useEffect(() => {
     const now = new Date();

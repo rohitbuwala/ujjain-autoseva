@@ -38,7 +38,7 @@ const packages = [
       "Pickup & drop",
     ],
     popular: false,
-    link: "/custom-booking",
+    link: "/custom-booking?package=city-tour",
   },
   {
     name: "5 Temple Darshan",
