@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { bookingSchema } from "@/lib/validators/booking";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Card,
@@ -52,10 +52,16 @@ interface Errors {
   [key: string]: string | undefined;
 }
 
+function getRouteId(route: Route) {
+  return String(route._id ?? route.id ?? "");
+}
+
 /* ================= PAGE ================= */
 
-export default function BookingPage() {
+function BookingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const routeFromQuery = searchParams.get("route")?.trim() || "";
 
   const [form, setForm] = useState<BookingForm>({
     name: "",
@@ -82,6 +88,7 @@ export default function BookingPage() {
 
   const [minDate, setMinDate] = useState("");
   const [minTime, setMinTime] = useState("");
+  const selectedRoute = routes.find((route) => getRouteId(route) === selectedRouteId);
 
   /* ================= DATE LIMIT ================= */
 
@@ -123,26 +130,33 @@ export default function BookingPage() {
     fetchRoutes();
   }, []);
 
-  /* ================= ROUTE SELECT ================= */
+  useEffect(() => {
+    setSelectedRouteId(routeFromQuery);
+  }, [routeFromQuery]);
 
-  const handleRouteChange = (routeId: string) => {
-    setSelectedRouteId(routeId);
-
-    const route = routes.find((r) => (r._id || r.id) === routeId);
-
-    if (!route) return;
+  useEffect(() => {
+    if (!selectedRouteId || !selectedRoute) {
+      setDiscount(null);
+      setForm((prev) => ({
+        ...prev,
+        pickup: "",
+        drop: "",
+        price: "",
+      }));
+      return;
+    }
 
     setForm((prev) => ({
       ...prev,
-      pickup: route.from || "Ujjain",
-      drop: route.to || route.route || "",
-      price: String(route.price),
+      pickup: selectedRoute.from || "Ujjain",
+      drop: selectedRoute.to || selectedRoute.route || "",
+      price: String(selectedRoute.price),
     }));
 
-    const price = Number(route.price);
+    const price = Number(selectedRoute.price);
     let markup = 1.3;
 
-    if (route.category === "outside") markup = 1.25;
+    if (selectedRoute.category === "outside") markup = 1.25;
 
     const original = Math.round(price * markup);
     const saved = original - price;
@@ -155,6 +169,12 @@ export default function BookingPage() {
     }
 
     setErrors((prev) => ({ ...prev, pickup: "", drop: "", price: "" }));
+  }, [selectedRoute, selectedRouteId]);
+
+  /* ================= ROUTE SELECT ================= */
+
+  const handleRouteChange = (routeId: string) => {
+    setSelectedRouteId(routeId);
   };
 
   /* ================= LIVE VALIDATION ================= */
@@ -285,8 +305,8 @@ export default function BookingPage() {
 
                       return (
                         <SelectItem
-                          key={route._id || route.id}
-                          value={route._id || route.id || ""}
+                          key={getRouteId(route)}
+                          value={getRouteId(route)}
                         >
                           {label} — ₹{route.price}
                         </SelectItem>
@@ -387,6 +407,14 @@ export default function BookingPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center py-10">Loading...</div>}>
+      <BookingPageContent />
+    </Suspense>
   );
 }
 
