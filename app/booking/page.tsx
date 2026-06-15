@@ -52,6 +52,10 @@ interface Errors {
   [key: string]: string | undefined;
 }
 
+function getRouteId(route: Route) {
+  return String(route._id ?? route.id ?? "");
+}
+
 /* ================= PAGE ================= */
 
 function BookingPageContent() {
@@ -84,6 +88,7 @@ function BookingPageContent() {
 
   const [minDate, setMinDate] = useState("");
   const [minTime, setMinTime] = useState("");
+  const selectedRoute = routes.find((route) => getRouteId(route) === selectedRouteId);
 
   /* ================= DATE LIMIT ================= */
 
@@ -126,37 +131,32 @@ function BookingPageContent() {
   }, []);
 
   useEffect(() => {
-    if (loadingRoutes || !routeFromQuery) {
+    setSelectedRouteId(routeFromQuery);
+  }, [routeFromQuery]);
+
+  useEffect(() => {
+    if (!selectedRouteId || !selectedRoute) {
+      setDiscount(null);
+      setForm((prev) => ({
+        ...prev,
+        pickup: "",
+        drop: "",
+        price: "",
+      }));
       return;
     }
 
-    const matchedRoute = routes.find((route) => (route._id || route.id) === routeFromQuery);
-
-    if (matchedRoute) {
-      handleRouteChange(routeFromQuery);
-    }
-  }, [loadingRoutes, routeFromQuery, routes]);
-
-  /* ================= ROUTE SELECT ================= */
-
-  const handleRouteChange = (routeId: string) => {
-    setSelectedRouteId(routeId);
-
-    const route = routes.find((r) => (r._id || r.id) === routeId);
-
-    if (!route) return;
-
     setForm((prev) => ({
       ...prev,
-      pickup: route.from || "Ujjain",
-      drop: route.to || route.route || "",
-      price: String(route.price),
+      pickup: selectedRoute.from || "Ujjain",
+      drop: selectedRoute.to || selectedRoute.route || "",
+      price: String(selectedRoute.price),
     }));
 
-    const price = Number(route.price);
+    const price = Number(selectedRoute.price);
     let markup = 1.3;
 
-    if (route.category === "outside") markup = 1.25;
+    if (selectedRoute.category === "outside") markup = 1.25;
 
     const original = Math.round(price * markup);
     const saved = original - price;
@@ -169,6 +169,12 @@ function BookingPageContent() {
     }
 
     setErrors((prev) => ({ ...prev, pickup: "", drop: "", price: "" }));
+  }, [selectedRoute, selectedRouteId]);
+
+  /* ================= ROUTE SELECT ================= */
+
+  const handleRouteChange = (routeId: string) => {
+    setSelectedRouteId(routeId);
   };
 
   /* ================= LIVE VALIDATION ================= */
@@ -299,8 +305,8 @@ function BookingPageContent() {
 
                       return (
                         <SelectItem
-                          key={route._id || route.id}
-                          value={route._id || route.id || ""}
+                          key={getRouteId(route)}
+                          value={getRouteId(route)}
                         >
                           {label} — ₹{route.price}
                         </SelectItem>
