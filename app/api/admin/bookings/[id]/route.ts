@@ -12,6 +12,8 @@ import {
 } from "@/lib/mail";
 
 const ALLOWED_UPDATES = ["status", "driverName", "driverPhone", "adminNote"] as const;
+const PAYMENT_DUE_HOURS = 24;
+const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
 async function getBookingRecipientEmail(booking: {
   email?: string;
@@ -75,6 +77,20 @@ export async function PATCH(
 
     await connectDB();
 
+    const existingBooking = await Booking.findById(id).select("price paymentAmount");
+
+    if (!existingBooking) {
+      return NextResponse.json(
+        { error: "Booking not found" },
+        { status: 404 }
+      );
+    }
+
+    const existingPaymentAmount =
+      typeof existingBooking.paymentAmount === "number" && existingBooking.paymentAmount > 0
+        ? existingBooking.paymentAmount
+        : Number(existingBooking.price) || 0;
+
     const updateData =
       safeUpdates.status === "cancelled"
         ? {
@@ -82,6 +98,15 @@ export async function PATCH(
             cancelledAt: new Date(),
             cancelReason: "Cancelled by admin",
             cancelledBy: "admin",
+          }
+        : safeUpdates.status === "confirmed"
+        ? {
+            ...safeUpdates,
+            paymentMethod: "none",
+            paymentStatus: "payment_pending",
+            paymentAmount: existingPaymentAmount,
+            paymentCurrency: "INR",
+            paymentDueAt: new Date(Date.now() + PAYMENT_DUE_HOURS * 60 * 60 * 1000),
           }
         : safeUpdates;
 
@@ -110,6 +135,8 @@ export async function PATCH(
           route: booking.route,
           price: booking.price,
           email: recipientEmail,
+          paymentStatus: booking.paymentStatus,
+          dashboardUrl: `${APP_URL}/dashboard/booking`,
         }).catch(e => console.error("Could not send confirmation email to user:", e));
       }
     } else if (safeUpdates.status === "rejected") {

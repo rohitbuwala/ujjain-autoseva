@@ -4,6 +4,23 @@ import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { successResponse, errorResponse } from "@/lib/api-utils";
 
+function withPaymentDefaults(booking: Record<string, unknown>) {
+  return {
+    ...booking,
+    paymentMethod: booking.paymentMethod || "none",
+    paymentStatus: booking.paymentStatus || "not_required",
+    paymentAmount:
+      typeof booking.paymentAmount === "number"
+        ? booking.paymentAmount
+        : Number(booking.price) || 0,
+    paymentCurrency: booking.paymentCurrency || "INR",
+    paymentDueAt: booking.paymentDueAt || null,
+    paidAt: booking.paidAt || null,
+    razorpayOrderId: booking.razorpayOrderId || "",
+    razorpayPaymentId: booking.razorpayPaymentId || "",
+  };
+}
+
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -36,7 +53,7 @@ export async function GET(req: Request) {
     ]);
 
     return successResponse({
-      bookings,
+      bookings: bookings.map(withPaymentDefaults),
       pagination: {
         page,
         limit,

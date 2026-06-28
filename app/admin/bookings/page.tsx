@@ -49,6 +49,12 @@ interface Booking {
   selectedTemples?: string[];
   hotel?: boolean;
   userId?: { email?: string };
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentAmount?: number;
+  paymentCurrency?: string;
+  paymentDueAt?: string | null;
+  paidAt?: string | null;
 }
 
 interface PaginationData {
@@ -56,6 +62,27 @@ interface PaginationData {
   limit: number;
   total: number;
   pages: number;
+}
+
+function formatPaymentLabel(value?: string) {
+  return (value || "not_required").replace(/_/g, " ");
+}
+
+function formatPaymentAmount(booking: Booking) {
+  const amount = booking.paymentAmount || Number(booking.price) || 0;
+  return `${booking.paymentCurrency || "INR"} ${amount}`;
+}
+
+function formatPaymentDate(value?: string | null) {
+  if (!value) return "Not set";
+
+  return new Date(value).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function AdminBookings() {
@@ -123,8 +150,10 @@ export default function AdminBookings() {
         return;
       }
 
+      const updatedBooking = await res.json();
+
       setBookings(prev =>
-        prev.map(b => (b._id === id ? { ...b, ...payload } : b))
+        prev.map(b => (b._id === id ? { ...b, ...updatedBooking } : b))
       );
 
       if (payload.status && !editId) {
@@ -250,6 +279,25 @@ export default function AdminBookings() {
                       "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                     }`}>{b.status}</span>
                   </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground font-bold">Payment Status</span>
+                    <p className="font-semibold capitalize">{formatPaymentLabel(b.paymentStatus)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground font-bold">Method</span>
+                    <p className="font-semibold capitalize">{formatPaymentLabel(b.paymentMethod || "none")}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground font-bold">Amount</span>
+                    <p className="font-semibold text-primary">{formatPaymentAmount(b)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs uppercase text-muted-foreground font-bold">Due</span>
+                    <p className="font-semibold">{formatPaymentDate(b.paymentDueAt)}</p>
+                  </div>
                 </div>
 
                 {/* Package Info */}

@@ -104,6 +104,49 @@ const bookingSchema = new mongoose.Schema({
     default: "pending",
   },
 
+  // Payment Status
+  paymentMethod: {
+    type: String,
+    enum: ["none", "online", "cash"],
+    default: "none",
+  },
+  paymentStatus: {
+    type: String,
+    enum: [
+      "not_required",
+      "payment_pending",
+      "online_order_created",
+      "paid",
+      "cash_pending",
+      "cash_collected",
+      "failed",
+    ],
+    default: "not_required",
+  },
+  paymentAmount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  paymentCurrency: {
+    type: String,
+    default: "INR",
+  },
+  paymentDueAt: {
+    type: Date,
+  },
+  paidAt: {
+    type: Date,
+  },
+  razorpayOrderId: {
+    type: String,
+    default: "",
+  },
+  razorpayPaymentId: {
+    type: String,
+    default: "",
+  },
+
   // Cancellation Info
   cancelledAt: {
     type: Date,

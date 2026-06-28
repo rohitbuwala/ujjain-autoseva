@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, CreditCard, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Booking {
@@ -20,6 +20,44 @@ interface Booking {
   packageName?: string;
   selectedTemples?: string[];
   createdAt?: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paymentAmount?: number;
+  paymentCurrency?: string;
+  paymentDueAt?: string | null;
+  paidAt?: string | null;
+}
+
+function formatPaymentStatus(status?: string) {
+  return (status || "not_required").replace(/_/g, " ");
+}
+
+function formatLabel(value?: string) {
+  if (!value) return "Not set";
+
+  return value
+    .replace(/_/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatAmount(booking: Booking) {
+  const amount = booking.paymentAmount || Number(booking.price) || 0;
+  return `${booking.paymentCurrency || "INR"} ${amount}`;
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "Not set";
+
+  return new Date(value).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function UserBookings() {
@@ -29,6 +67,11 @@ export default function UserBookings() {
   const [cancelModal, setCancelModal] = useState<{ show: boolean; booking: Booking | null }>({ show: false, booking: null });
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [cashSelectingBookingId, setCashSelectingBookingId] = useState<string | null>(null);
+  const [cashPaymentError, setCashPaymentError] = useState<{ bookingId: string | null; message: string }>({
+    bookingId: null,
+    message: "",
+  });
 
   useEffect(() => {
 
@@ -90,6 +133,47 @@ export default function UserBookings() {
       alert("Something went wrong");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleCashSelect = async (booking: Booking) => {
+    if (cashSelectingBookingId) return;
+
+    setCashSelectingBookingId(booking._id);
+    setCashPaymentError({ bookingId: null, message: "" });
+
+    try {
+      const res = await fetch("/api/payments/cash/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: booking._id }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setCashPaymentError({
+          bookingId: booking._id,
+          message: data?.error || data?.message || "Failed to select cash payment",
+        });
+        return;
+      }
+
+      setBookings(prev =>
+        prev.map(item =>
+          item._id === booking._id
+            ? { ...item, paymentMethod: "cash", paymentStatus: "cash_pending" }
+            : item
+        )
+      );
+    } catch (err) {
+      console.error("Cash payment error:", err);
+      setCashPaymentError({
+        bookingId: booking._id,
+        message: "Something went wrong while selecting cash payment",
+      });
+    } finally {
+      setCashSelectingBookingId(null);
     }
   };
 
@@ -172,7 +256,7 @@ export default function UserBookings() {
                     Route
                   </span>
 
-                  <span className="text-foreground font-medium break-words leading-relaxed">
+                  <span className="text-foreground font-medium wrap-break-word leading-relaxed">
                     {b.route}
                   </span>
                 </div>
@@ -205,6 +289,57 @@ export default function UserBookings() {
                   </span>
                 </div>
 
+                {/* PAYMENT */}
+
+                {b.status === "confirmed" && (b.paymentStatus === "payment_pending" || (b.paymentMethod === "cash" && b.paymentStatus === "cash_pending")) && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Payment Method</span>
+                      <span className="font-medium capitalize text-right">
+                        {formatLabel(b.paymentMethod || "none")}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Payment Status</span>
+                      <span className="font-medium capitalize text-right">
+                        {formatLabel(b.paymentStatus)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Amount</span>
+                      <span className="font-semibold text-primary">{formatAmount(b)}</span>
+                    </div>
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Due</span>
+                      <span className="text-right">{formatDateTime(b.paymentDueAt)}</span>
+                    </div>
+
+                    {b.paymentStatus === "payment_pending" && (
+                      <div className="pt-2 space-y-2">
+                        <Button disabled variant="outline" size="sm" className="w-full">
+                          <CreditCard size={16} className="mr-2" />
+                          Pay Online
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleCashSelect(b)}
+                          disabled={cashSelectingBookingId === b._id}
+                        >
+                          <Banknote size={16} className="mr-2" />
+                          {cashSelectingBookingId === b._id ? "Processing..." : "Pay Cash"}
+                        </Button>
+                        {cashPaymentError.bookingId === b._id && cashPaymentError.message && (
+                          <p className="text-xs text-red-500">
+                            {cashPaymentError.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* DATE */}
 
                 <div className="flex gap-2">
@@ -222,8 +357,6 @@ export default function UserBookings() {
                 </div>
 
               </div>
-
-              {/* CANCEL BUTTON */}
 
               {(b.status === "pending" || b.status === "confirmed") && (
                 <div className="mt-4 pt-4 border-t">
