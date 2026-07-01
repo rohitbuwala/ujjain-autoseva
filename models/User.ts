@@ -1,5 +1,36 @@
 import { Schema, model, models } from "mongoose";
 
+const AuthProviderSchema = new Schema(
+  {
+    provider: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    providerAccountId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    providerEmail: {
+      type: String,
+      default: "",
+      lowercase: true,
+      trim: true,
+    },
+
+    linkedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const UserSchema = new Schema(
   {
     name: {
@@ -24,6 +55,11 @@ const UserSchema = new Schema(
     role: {
       type: String,
       default: "user",
+    },
+
+    authProviders: {
+      type: [AuthProviderSchema],
+      default: [],
     },
 
     // ✅ Forgot Password ke liye
