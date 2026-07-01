@@ -1,8 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, AlertTriangle, CreditCard, Banknote } from "lucide-react";
+import { X, AlertTriangle, CreditCard, Banknote, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+declare global {
+  interface Window {
+    Razorpay?: RazorpayConstructor;
+  }
+}
+
+const RAZORPAY_SCRIPT_ID = "razorpay-checkout-js";
+const RAZORPAY_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+
+let razorpayScriptPromise: Promise<boolean> | null = null;
+
+interface RazorpayCheckoutOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill?: {
+    name?: string;
+    email?: string;
+  };
+  notes?: Record<string, string>;
+  theme?: {
+    color?: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+  handler?: (response: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  }) => void;
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (
+    event: string,
+    callback: (response: { error?: { description?: string } }) => void
+  ) => void;
+}
+
+interface RazorpayConstructor {
+  new (options: RazorpayCheckoutOptions): RazorpayInstance;
+}
 
 interface Booking {
   _id: string;
@@ -26,10 +74,7 @@ interface Booking {
   paymentCurrency?: string;
   paymentDueAt?: string | null;
   paidAt?: string | null;
-}
-
-function formatPaymentStatus(status?: string) {
-  return (status || "not_required").replace(/_/g, " ");
+  email?: string;
 }
 
 function formatLabel(value?: string) {
@@ -60,6 +105,42 @@ function formatDateTime(value?: string | null) {
   });
 }
 
+function loadRazorpayScript() {
+  if (typeof window === "undefined") {
+    return Promise.resolve(false);
+  }
+
+  if (window.Razorpay) {
+    return Promise.resolve(true);
+  }
+
+  if (razorpayScriptPromise) {
+    return razorpayScriptPromise;
+  }
+
+  razorpayScriptPromise = new Promise<boolean>((resolve) => {
+    const script = document.getElementById(RAZORPAY_SCRIPT_ID) as HTMLScriptElement | null;
+
+    if (script) {
+      script.addEventListener("load", () => resolve(true), { once: true });
+      script.addEventListener("error", () => resolve(false), { once: true });
+      return;
+    }
+
+    const createdScript = document.createElement("script");
+    createdScript.id = RAZORPAY_SCRIPT_ID;
+    createdScript.src = RAZORPAY_SCRIPT_SRC;
+    createdScript.async = true;
+    createdScript.onload = () => resolve(true);
+    createdScript.onerror = () => resolve(false);
+    document.body.appendChild(createdScript);
+  }).finally(() => {
+    razorpayScriptPromise = null;
+  });
+
+  return razorpayScriptPromise;
+}
+
 export default function UserBookings() {
 
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -67,6 +148,11 @@ export default function UserBookings() {
   const [cancelModal, setCancelModal] = useState<{ show: boolean; booking: Booking | null }>({ show: false, booking: null });
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [onlineProcessingBookingId, setOnlineProcessingBookingId] = useState<string | null>(null);
+  const [onlinePaymentError, setOnlinePaymentError] = useState<{ bookingId: string | null; message: string }>({
+    bookingId: null,
+    message: "",
+  });
   const [cashSelectingBookingId, setCashSelectingBookingId] = useState<string | null>(null);
   const [cashPaymentError, setCashPaymentError] = useState<{ bookingId: string | null; message: string }>({
     bookingId: null,
@@ -133,6 +219,97 @@ export default function UserBookings() {
       alert("Something went wrong");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const clearOnlinePaymentState = (bookingId: string, message?: string) => {
+    setOnlineProcessingBookingId(null);
+    setOnlinePaymentError({
+      bookingId: message ? bookingId : null,
+      message: message || "",
+    });
+  };
+
+  const handleOnlinePay = async (booking: Booking) => {
+    if (onlineProcessingBookingId) return;
+
+    setOnlineProcessingBookingId(booking._id);
+    setOnlinePaymentError({ bookingId: null, message: "" });
+
+    try {
+      const res = await fetch("/api/payments/online/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId: booking._id }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        clearOnlinePaymentState(booking._id, data?.error || data?.message || "Failed to create Razorpay order");
+        return;
+      }
+
+      const order = data?.data?.order;
+      const publicKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+      if (!publicKey) {
+        clearOnlinePaymentState(booking._id, "Razorpay checkout is not configured");
+        return;
+      }
+
+      if (!order?.id || typeof order.amount !== "number" || !order.currency) {
+        clearOnlinePaymentState(booking._id, "Invalid Razorpay order response");
+        return;
+      }
+
+      const scriptReady = await loadRazorpayScript();
+
+      if (!scriptReady || !window.Razorpay) {
+        clearOnlinePaymentState(booking._id, "Unable to load Razorpay checkout");
+        return;
+      }
+
+      const checkout = new window.Razorpay({
+        key: publicKey,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Ujjain AutoSeva",
+        description: `Payment for ${booking.bookingId || booking._id}`,
+        order_id: order.id,
+        prefill: {
+          name: booking.name,
+          email: booking.email || "",
+        },
+        notes: {
+          bookingId: booking.bookingId || booking._id,
+          bookingMongoId: booking._id,
+        },
+        theme: {
+          color: "#0ea5e9",
+        },
+        modal: {
+          ondismiss: () => {
+            clearOnlinePaymentState(booking._id, "Checkout closed. You can try again.");
+          },
+        },
+        handler: () => {
+          setOnlineProcessingBookingId(null);
+          setOnlinePaymentError({ bookingId: null, message: "" });
+        },
+      });
+
+      checkout.on("payment.failed", (response: { error?: { description?: string } }) => {
+        clearOnlinePaymentState(
+          booking._id,
+          response?.error?.description || "Payment failed. Please try again."
+        );
+      });
+
+      checkout.open();
+    } catch (err) {
+      console.error("Online payment error:", err);
+      clearOnlinePaymentState(booking._id, "Something went wrong while starting checkout");
     }
   };
 
@@ -316,9 +493,19 @@ export default function UserBookings() {
 
                     {b.paymentStatus === "payment_pending" && (
                       <div className="pt-2 space-y-2">
-                        <Button disabled variant="outline" size="sm" className="w-full">
-                          <CreditCard size={16} className="mr-2" />
-                          Pay Online
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleOnlinePay(b)}
+                          disabled={onlineProcessingBookingId === b._id}
+                        >
+                          {onlineProcessingBookingId === b._id ? (
+                            <Loader2 size={16} className="mr-2 animate-spin" />
+                          ) : (
+                            <CreditCard size={16} className="mr-2" />
+                          )}
+                          {onlineProcessingBookingId === b._id ? "Opening Checkout..." : "Pay Online"}
                         </Button>
                         <Button
                           variant="outline"
@@ -333,6 +520,11 @@ export default function UserBookings() {
                         {cashPaymentError.bookingId === b._id && cashPaymentError.message && (
                           <p className="text-xs text-red-500">
                             {cashPaymentError.message}
+                          </p>
+                        )}
+                        {onlinePaymentError.bookingId === b._id && onlinePaymentError.message && (
+                          <p className="text-xs text-red-500">
+                            {onlinePaymentError.message}
                           </p>
                         )}
                       </div>
