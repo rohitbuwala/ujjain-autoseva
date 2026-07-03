@@ -37,7 +37,7 @@ interface RazorpayCheckoutOptions {
     razorpay_payment_id: string;
     razorpay_order_id: string;
     razorpay_signature: string;
-  }) => void;
+  }) => void | Promise<void>;
 }
 
 interface RazorpayInstance {
@@ -65,15 +65,27 @@ interface Booking {
   price: string;
   status: string;
   route?: string;
+  packageType?: string;
   packageName?: string;
+  notes?: string;
+  hotel?: boolean;
+  driverName?: string;
+  driverPhone?: string;
+  assignedDriver?: { name?: string; phone?: string } | null;
+  temples?: Array<{ _id?: string; name: string; price?: number }>;
   selectedTemples?: string[];
   createdAt?: string;
+  updatedAt?: string | null;
+  cancelledAt?: string | null;
+  cancelReason?: string;
   paymentMethod?: string;
   paymentStatus?: string;
   paymentAmount?: number;
   paymentCurrency?: string;
   paymentDueAt?: string | null;
   paidAt?: string | null;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
   email?: string;
 }
 
@@ -103,6 +115,18 @@ function formatDateTime(value?: string | null) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function getBookingTemples(booking: Booking) {
+  if (Array.isArray(booking.temples) && booking.temples.length > 0) {
+    return booking.temples
+      .map((temple) => temple?.name?.trim())
+      .filter((name): name is string => Boolean(name));
+  }
+
+  return Array.isArray(booking.selectedTemples)
+    ? booking.selectedTemples.filter(Boolean)
+    : [];
 }
 
 function loadRazorpayScript() {
@@ -145,6 +169,7 @@ export default function UserBookings() {
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [cancelModal, setCancelModal] = useState<{ show: boolean; booking: Booking | null }>({ show: false, booking: null });
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
@@ -160,21 +185,48 @@ export default function UserBookings() {
   });
 
   useEffect(() => {
+    if (!toast) return;
+
+    const timeout = window.setTimeout(() => {
+      setToast(null);
+    }, 3500);
+
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
+  const showToast = (type: "success" | "error", message: string) => {
+    setToast({ type, message });
+  };
+
+  const refreshBookings = async () => {
+    const res = await fetch("/api/booking/user");
+
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return false;
+    }
+
+    const data = await res.json();
+
+    if (Array.isArray(data?.data)) {
+      setBookings(data.data);
+      return true;
+    }
+
+    return false;
+  };
+
+  useEffect(() => {
 
     async function loadBookings() {
 
       try {
 
-        const res = await fetch("/api/booking/user");
+        const loaded = await refreshBookings();
 
-        if (res.status === 401) {
-          window.location.href = "/login";
-          return;
+        if (!loaded) {
+          setBookings([]);
         }
-
-        const data = await res.json();
-
-        setBookings(Array.isArray(data?.data) ? data.data : []);
 
       } catch (err) {
         console.error(err);
@@ -293,9 +345,56 @@ export default function UserBookings() {
             clearOnlinePaymentState(booking._id, "Checkout closed. You can try again.");
           },
         },
-        handler: () => {
-          setOnlineProcessingBookingId(null);
-          setOnlinePaymentError({ bookingId: null, message: "" });
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch("/api/payments/online/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                bookingId: booking._id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyRes.json().catch(() => null);
+
+            if (!verifyRes.ok) {
+              const message = verifyData?.error || verifyData?.message || "Payment verification failed";
+              clearOnlinePaymentState(booking._id, message);
+              showToast("error", message);
+              return;
+            }
+
+            setBookings(prev =>
+              prev.map(item =>
+                item._id === booking._id
+                  ? {
+                      ...item,
+                      paymentMethod: "online",
+                      paymentStatus: "paid",
+                      razorpayOrderId: response.razorpay_order_id,
+                      razorpayPaymentId: response.razorpay_payment_id,
+                      paidAt: new Date().toISOString(),
+                    }
+                  : item
+              )
+            );
+
+            await refreshBookings().catch((err) => {
+              console.error("Failed to refresh bookings after Razorpay verification:", err);
+              return false;
+            });
+
+            showToast("success", verifyData?.data?.message || "Payment verified successfully");
+            clearOnlinePaymentState(booking._id);
+          } catch (err) {
+            console.error("Razorpay verification error:", err);
+            const message = "Something went wrong while verifying payment";
+            clearOnlinePaymentState(booking._id, message);
+            showToast("error", message);
+          }
         },
       });
 
@@ -361,6 +460,20 @@ export default function UserBookings() {
   return (
 
     <div className="p-4 md:p-6 space-y-6">
+
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 rounded-lg border px-4 py-3 shadow-lg text-sm max-w-sm ${
+            toast.type === "success"
+              ? "border-green-500/20 bg-green-500 text-white"
+              : "border-red-500/20 bg-red-500 text-white"
+          }`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      )}
 
       {/* HEADER */}
 
@@ -439,17 +552,65 @@ export default function UserBookings() {
                 </div>
 
                 {/* TEMPLES */}
-                {b.selectedTemples && b.selectedTemples.length > 0 && (
+                {getBookingTemples(b).length > 0 && (
                   <div className="flex gap-2">
                     <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
                       Temples
                     </span>
                     <div className="text-sm text-muted-foreground">
                       <ul className="list-disc list-inside space-y-0.5">
-                        {b.selectedTemples.map((name, i) => (
+                        {getBookingTemples(b).map((name, i) => (
                           <li key={i}>{name}</li>
                         ))}
                       </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* PACKAGE */}
+                {(b.packageName || b.packageType) && (
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                      Package
+                    </span>
+                    <span className="text-foreground font-medium leading-relaxed">
+                      {b.packageName || formatLabel(b.packageType)}
+                    </span>
+                  </div>
+                )}
+
+                {/* DRIVER */}
+                {(b.driverName || b.driverPhone || b.assignedDriver) && (
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                      Driver
+                    </span>
+                    <div className="text-sm text-muted-foreground space-y-0.5">
+                      <div className="font-medium text-foreground">
+                        {b.assignedDriver?.name || b.driverName || "Not assigned"}
+                      </div>
+                      {(b.assignedDriver?.phone || b.driverPhone) && (
+                        <div>
+                          {b.assignedDriver?.phone || b.driverPhone}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* NOTES */}
+                {(b.notes || b.hotel !== undefined) && (
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                      Details
+                    </span>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      {typeof b.hotel === "boolean" && (
+                        <div>
+                          Hotel pickup: {b.hotel ? "Yes" : "No"}
+                        </div>
+                      )}
+                      {b.notes && <div>{b.notes}</div>}
                     </div>
                   </div>
                 )}
@@ -467,76 +628,115 @@ export default function UserBookings() {
                 </div>
 
                 {/* PAYMENT */}
-
-                {b.status === "confirmed" && (b.paymentStatus === "payment_pending" || (b.paymentMethod === "cash" && b.paymentStatus === "cash_pending")) && (
-                  <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
-                    <div className="flex justify-between gap-3 text-sm">
-                      <span className="text-muted-foreground">Payment Method</span>
-                      <span className="font-medium capitalize text-right">
-                        {formatLabel(b.paymentMethod || "none")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-3 text-sm">
-                      <span className="text-muted-foreground">Payment Status</span>
-                      <span className="font-medium capitalize text-right">
-                        {formatLabel(b.paymentStatus)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between gap-3 text-sm">
-                      <span className="text-muted-foreground">Amount</span>
-                      <span className="font-semibold text-primary">{formatAmount(b)}</span>
-                    </div>
-                    <div className="flex justify-between gap-3 text-sm">
-                      <span className="text-muted-foreground">Due</span>
-                      <span className="text-right">{formatDateTime(b.paymentDueAt)}</span>
-                    </div>
-
-                    {b.paymentStatus === "payment_pending" && (
-                      <div className="pt-2 space-y-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => handleOnlinePay(b)}
-                          disabled={onlineProcessingBookingId === b._id}
-                        >
-                          {onlineProcessingBookingId === b._id ? (
-                            <Loader2 size={16} className="mr-2 animate-spin" />
-                          ) : (
-                            <CreditCard size={16} className="mr-2" />
-                          )}
-                          {onlineProcessingBookingId === b._id ? "Opening Checkout..." : "Pay Online"}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => handleCashSelect(b)}
-                          disabled={cashSelectingBookingId === b._id}
-                        >
-                          <Banknote size={16} className="mr-2" />
-                          {cashSelectingBookingId === b._id ? "Processing..." : "Pay Cash"}
-                        </Button>
-                        {cashPaymentError.bookingId === b._id && cashPaymentError.message && (
-                          <p className="text-xs text-red-500">
-                            {cashPaymentError.message}
-                          </p>
-                        )}
-                        {onlinePaymentError.bookingId === b._id && onlinePaymentError.message && (
-                          <p className="text-xs text-red-500">
-                            {onlinePaymentError.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">Payment Method</span>
+                    <span className="font-medium capitalize text-right">
+                      {formatLabel(b.paymentMethod || "none")}
+                    </span>
                   </div>
-                )}
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">Payment Status</span>
+                    <span className="font-medium capitalize text-right">
+                      {formatLabel(b.paymentStatus)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="font-semibold text-primary">{formatAmount(b)}</span>
+                  </div>
+                  <div className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">Due</span>
+                    <span className="text-right">{formatDateTime(b.paymentDueAt)}</span>
+                  </div>
+                  {b.paidAt && (
+                    <div className="flex justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">Paid At</span>
+                      <span className="text-right">{formatDateTime(b.paidAt)}</span>
+                    </div>
+                  )}
+                  {(b.razorpayOrderId || b.razorpayPaymentId) && (
+                    <div className="space-y-1 text-xs text-muted-foreground break-all">
+                      {b.razorpayOrderId && <p>Order ID: {b.razorpayOrderId}</p>}
+                      {b.razorpayPaymentId && <p>Payment ID: {b.razorpayPaymentId}</p>}
+                    </div>
+                  )}
 
-                {/* DATE */}
+                  {b.paymentStatus === "payment_pending" && (
+                    <div className="pt-2 space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleOnlinePay(b)}
+                        disabled={onlineProcessingBookingId === b._id}
+                      >
+                        {onlineProcessingBookingId === b._id ? (
+                          <Loader2 size={16} className="mr-2 animate-spin" />
+                        ) : (
+                          <CreditCard size={16} className="mr-2" />
+                        )}
+                        {onlineProcessingBookingId === b._id ? "Opening Checkout..." : "Pay Online"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleCashSelect(b)}
+                        disabled={cashSelectingBookingId === b._id}
+                      >
+                        <Banknote size={16} className="mr-2" />
+                        {cashSelectingBookingId === b._id ? "Processing..." : "Pay Cash"}
+                      </Button>
+                      {cashPaymentError.bookingId === b._id && cashPaymentError.message && (
+                        <p className="text-xs text-red-500">
+                          {cashPaymentError.message}
+                        </p>
+                      )}
+                      {onlinePaymentError.bookingId === b._id && onlinePaymentError.message && (
+                        <p className="text-xs text-red-500">
+                          {onlinePaymentError.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {b.paymentStatus === "cash_pending" && (
+                    <p className="text-xs text-muted-foreground">
+                      Cash payment selected. Awaiting collection.
+                    </p>
+                  )}
+
+                  {b.paymentStatus === "paid" && (
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      Payment completed successfully.
+                    </p>
+                  )}
+
+                  {b.paymentStatus === "failed" && (
+                    <p className="text-xs text-red-500">
+                      Payment failed. You can retry when ready.
+                    </p>
+                  )}
+
+                  {b.paymentStatus === "cash_collected" && (
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      Cash has been collected.
+                    </p>
+                  )}
+
+                  {b.paymentStatus === "not_required" && (
+                    <p className="text-xs text-muted-foreground">
+                      Payment will be available after booking confirmation.
+                    </p>
+                  )}
+                </div>
+
+                {/* DATES */}
 
                 <div className="flex gap-2">
                   <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
-                    Date
+                    Booked
                   </span>
 
                   <span className="text-sm text-muted-foreground">
@@ -547,6 +747,21 @@ export default function UserBookings() {
                     }) : "N/A"}
                   </span>
                 </div>
+
+                {b.updatedAt && (
+                  <div className="flex gap-2">
+                    <span className="text-muted-foreground w-16 text-xs uppercase shrink-0">
+                      Updated
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(b.updatedAt).toLocaleDateString(undefined, {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                )}
 
               </div>
 

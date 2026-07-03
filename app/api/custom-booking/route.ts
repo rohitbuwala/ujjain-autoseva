@@ -6,13 +6,11 @@ import { z } from "zod";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import Temple from "@/models/Temple";
+import Route from "@/models/Route";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { sendBookingCreatedEmails } from "@/lib/mail";
 import { rateLimit, rateLimitResponse, getRateLimitIdentifier } from "@/lib/rate-limit";
 import { sanitizeInput } from "@/lib/sanitize";
-
-const FIVE_TEMPLE_PRICE = 650;
-const CITY_TOUR_PRICE = 850;
 
 const customBookingSchema = z.object({
   packageType: z.string().min(1, "Package type is required"),
@@ -77,11 +75,17 @@ export async function POST(req: Request) {
       price: temple.price ?? temple.basePrice ?? 0,
     }));
 
-    const serverPrice = validatedData.packageType === "five"
-      ? FIVE_TEMPLE_PRICE
-      : validatedData.packageType === "city-tour"
-        ? CITY_TOUR_PRICE
-        : serverTemples.reduce((sum, temple) => sum + temple.price, 0);
+    let serverPrice: number;
+    if (validatedData.packageType === "five" || validatedData.packageType === "city-tour") {
+      const fixedRoutes = await Route.find({ activeStatus: true, category: { $ne: "custom" } })
+        .sort({ displayOrder: 1, createdAt: 1 })
+        .lean();
+      const idx = validatedData.packageType === "city-tour" ? 0 : 1;
+      const routePrice = fixedRoutes[idx]?.totalPrice;
+      serverPrice = routePrice ?? (validatedData.packageType === "five" ? 650 : 850);
+    } else {
+      serverPrice = serverTemples.reduce((sum, temple) => sum + temple.price, 0);
+    }
 
     if (validatedData.packageType === "custom" && serverTemples.length === 0) {
       return NextResponse.json(

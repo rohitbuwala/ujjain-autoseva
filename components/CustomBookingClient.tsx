@@ -30,33 +30,17 @@ interface Temple {
   category: string;
 }
 
-const FIVE_TEMPLE_DARSHAN_TEMPLES = [
-  "Sandipani ashram",
-  "Mangalnath mandir",
-  "Kaal Bhairav",
-  "Gadkalika mandir",
-  "Ishthirman ganesh mandir"
-];
-
-const CITY_TOUR_TEMPLES = [
-  "Rinmukteshwar mahadev",
-  "Chintaman ganesh",
-  "ashtavinayak mandir",
-  "navgrah shani mandir",
-  "Iskcon mandir"
-];
-
-const FIVE_TEMPLE_PRICE = 650;
-const CITY_TOUR_PRICE = 850;
-
-const PACKAGES = [
-  { id: "city-tour", name: "Mahakal + City Tour", price: CITY_TOUR_PRICE, icon: Check, desc: "Most popular spiritual tour", locked: true },
-  { id: "five", name: "5 Temple Darshan", price: FIVE_TEMPLE_PRICE, icon: Check, desc: "Pre-selected temples at fixed price", locked: true },
-  { id: "custom", name: "Custom Selection", price: 0, icon: Settings, desc: "Choose temples and get instant fare", locked: false },
-];
+interface RoutePackage {
+  _id: string;
+  routeName: string;
+  templeList: Temple[];
+  totalPrice: number;
+  category: string;
+  displayOrder?: number;
+}
 
 function normalizePackageParam(value: string | null) {
-  if (value === "city-tour" || value === "five") {
+  if (value === "city-tour" || value === "five" || value === "custom") {
     return value;
   }
 
@@ -70,8 +54,9 @@ function BookingForm() {
   const lastAppliedPackageRef = useRef<string | null>(null);
   
   const [step, setStep] = useState(1);
-  const [loadingTemples, setLoadingTemples] = useState(true);
+  const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [dbTemples, setDbTemples] = useState<Temple[]>([]);
+  const [routePackages, setRoutePackages] = useState<RoutePackage[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -92,16 +77,34 @@ function BookingForm() {
   });
 
   useEffect(() => {
-    fetch("/api/temples")
-      .then(res => res.json())
-      .then((data) => {
-        const temples = (data as { data?: Temple[] }).data || data as Temple[] || [];
+    async function loadCatalog() {
+      try {
+        const [templeRes, routeRes] = await Promise.all([
+          fetch("/api/temples"),
+          fetch("/api/routes"),
+        ]);
+
+        const templeData = await templeRes.json().catch(() => null);
+        const routeData = await routeRes.json().catch(() => null);
+
+        const temples = (templeData as { data?: Temple[] })?.data || (templeData as Temple[]) || [];
+        const routes = (routeData as { data?: RoutePackage[] })?.data || (routeData as RoutePackage[]) || [];
+
         if (Array.isArray(temples)) {
           setDbTemples(temples);
         }
-      })
-      .catch(console.error)
-      .finally(() => setLoadingTemples(false));
+
+        if (Array.isArray(routes)) {
+          setRoutePackages(routes);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoadingCatalog(false);
+      }
+    }
+
+    loadCatalog();
   }, []);
 
   useEffect(() => {
@@ -119,26 +122,28 @@ function BookingForm() {
       return;
     }
 
-    if (loadingTemples) {
+    if (loadingCatalog) {
       return;
     }
 
-    const templeList =
-      selectedPackageFromQuery === "five"
-        ? FIVE_TEMPLE_DARSHAN_TEMPLES
-        : CITY_TOUR_TEMPLES;
+    const fixedPackages = routePackages
+      .filter((route) => route.category !== "custom")
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.routeName.localeCompare(b.routeName))
+      .slice(0, 2);
 
-    const lockedTemples = dbTemples.filter((temple) =>
-      templeList.some((name) => temple.name.toLowerCase().includes(name.toLowerCase()))
-    );
+    const selectedPackage = selectedPackageFromQuery === "five"
+      ? fixedPackages[1]
+      : selectedPackageFromQuery === "city-tour"
+        ? fixedPackages[0]
+        : null;
 
     setFormData(prev => ({
       ...prev,
       packageType: selectedPackageFromQuery,
-      selectedTemples: lockedTemples.map((temple) => temple._id),
+      selectedTemples: selectedPackage?.templeList.map((temple) => temple._id) || [],
     }));
     lastAppliedPackageRef.current = selectedPackageFromQuery;
-  }, [dbTemples, loadingTemples, selectedPackageFromQuery]);
+  }, [loadingCatalog, routePackages, selectedPackageFromQuery]);
 
   useEffect(() => {
     const now = new Date();
@@ -150,21 +155,65 @@ function BookingForm() {
     setFormData(prev => ({ ...prev, date: todayStr }));
   }, []);
 
-  const calculateTotal = () => {
-    if (formData.packageType === "five") {
-      return FIVE_TEMPLE_PRICE;
-    }
-    if (formData.packageType === "city-tour") {
-      return CITY_TOUR_PRICE;
-    }
-    return formData.selectedTemples.reduce((sum, id) => {
-      const temple = dbTemples.find(t => t._id === id);
-      return sum + (temple?.price || 200);
-    }, 0);
-  };
+  const fixedPackages = routePackages
+    .filter((route) => route.category !== "custom")
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.routeName.localeCompare(b.routeName))
+    .slice(0, 2);
+
+  const cityTourData = fixedPackages[0];
+  const fiveTempleData = fixedPackages[1];
+
+  const packageCatalog: Array<{
+    id: string;
+    name: string;
+    price: number;
+    icon: typeof Check | typeof Settings;
+    desc: string;
+    locked: boolean;
+    templeList: Temple[];
+  }> = [
+    {
+      id: "city-tour",
+      name: cityTourData ? cityTourData.routeName : "Mahakal + City Tour",
+      price: cityTourData ? cityTourData.totalPrice : 850,
+      icon: Check,
+      desc: cityTourData ? `${cityTourData.templeList.length} temples from MongoDB` : "Perfect for a quick spiritual visit",
+      locked: true,
+      templeList: cityTourData ? cityTourData.templeList : [],
+    },
+    {
+      id: "five",
+      name: fiveTempleData ? fiveTempleData.routeName : "5 Temple Darshan",
+      price: fiveTempleData ? fiveTempleData.totalPrice : 650,
+      icon: Check,
+      desc: fiveTempleData ? `${fiveTempleData.templeList.length} temples from MongoDB` : "Comfortable Half-Day Tour",
+      locked: true,
+      templeList: fiveTempleData ? fiveTempleData.templeList : [],
+    },
+    {
+      id: "custom",
+      name: "Custom Selection",
+      price: 0,
+      icon: Settings,
+      desc: "Choose temples from the live catalog",
+      locked: false,
+      templeList: [] as Temple[],
+    },
+  ];
 
   const getPackageDetails = (id: string) => {
-    return PACKAGES.find(p => p.id === id) || PACKAGES[2];
+    return packageCatalog.find(p => p.id === id) || packageCatalog.find(p => p.id === "custom")!;
+  };
+
+  const calculateTotal = () => {
+    if (formData.packageType === "five" || formData.packageType === "city-tour") {
+      return getPackageDetails(formData.packageType)?.price || 0;
+    }
+
+    return formData.selectedTemples.reduce((sum, templeId) => {
+      const temple = dbTemples.find((item) => item._id === templeId);
+      return sum + (temple?.price || 200);
+    }, 0);
   };
 
   const isFixedPlan = formData.packageType === "five" || formData.packageType === "city-tour";
@@ -242,14 +291,11 @@ function BookingForm() {
         return t ? t.name : "";
       }).filter(Boolean);
 
-      // Fallback for fixed packages if matching failed
       if (finalSelectedTemples.length === 0) {
-        if (formData.packageType === "five") {
-          finalSelectedTemples = FIVE_TEMPLE_DARSHAN_TEMPLES;
-          finalTemples = FIVE_TEMPLE_DARSHAN_TEMPLES.map(name => ({ _id: "package_default", name, price: 0 }));
-        } else if (formData.packageType === "city-tour") {
-          finalSelectedTemples = CITY_TOUR_TEMPLES;
-          finalTemples = CITY_TOUR_TEMPLES.map(name => ({ _id: "package_default", name, price: 0 }));
+        const pkg = packageCatalog.find(p => p.id === formData.packageType);
+        if (pkg && pkg.locked && pkg.templeList.length > 0) {
+          finalTemples = pkg.templeList.map(t => ({ _id: t._id, name: t.name, price: t.price }));
+          finalSelectedTemples = pkg.templeList.map(t => t.name);
         }
       }
       
@@ -376,21 +422,15 @@ function BookingForm() {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold">Select Package Type</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {PACKAGES.map((pkg) => (
+                      {packageCatalog.map((pkg) => (
                         <div 
                           key={pkg.id}
                           onClick={() => {
                             if (pkg.locked) {
-                              const templeList = pkg.id === "five" ? FIVE_TEMPLE_DARSHAN_TEMPLES : CITY_TOUR_TEMPLES;
-                              const lockedTemples = dbTemples.filter(t => 
-                                templeList.some(name => 
-                                  t.name.toLowerCase().includes(name.toLowerCase())
-                                )
-                              );
                               setFormData({ 
                                 ...formData, 
                                 packageType: pkg.id, 
-                                selectedTemples: lockedTemples.map(t => t._id)
+                                selectedTemples: pkg.templeList.map(t => t._id)
                               });
                             } else {
                               setFormData({ 
@@ -416,9 +456,9 @@ function BookingForm() {
                               <div className="mt-3 space-y-1">
                                 <p className="text-[10px] uppercase font-bold text-primary tracking-wider">Includes:</p>
                                 <div className="flex flex-wrap gap-x-2 gap-y-1">
-                                  {(pkg.id === "five" ? FIVE_TEMPLE_DARSHAN_TEMPLES : CITY_TOUR_TEMPLES).map((t, i) => (
+                                  {pkg.templeList.map((t, i) => (
                                     <span key={i} className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                                      {t}
+                                      {t.name}
                                     </span>
                                   ))}
                                 </div>
@@ -453,7 +493,7 @@ function BookingForm() {
                           .join(", ")}
                       </p>
                     )}
-                    {loadingTemples ? (
+                    {loadingCatalog ? (
                       <div className="h-32 flex items-center justify-center text-muted-foreground animate-pulse">Loading temples...</div>
                     ) : (
                       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">

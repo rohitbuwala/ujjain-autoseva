@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import SchemaMarkup from "@/components/SchemaMarkup";
+import connectDB from "@/lib/db";
+import Route from "@/models/Route";
+import "@/models/Temple";
 
 export const metadata: Metadata = {
   title: "Transparent Pricing | Ujjain Auto Taxi & Temple Tour Rates",
@@ -15,56 +18,82 @@ export const metadata: Metadata = {
   }
 };
 
-const FIVE_TEMPLE_DARSHAN_TEMPLES = [
-  "Sandipani ashram",
-  "Mangalnath mandir",
-  "Kaal Bhairav",
-  "Gadkalika mandir",
-  "Ishthirman ganesh mandir"
-];
+interface PricingRoute {
+  _id: string;
+  routeName: string;
+  slug: string;
+  templeList: Array<{ _id: string; name: string }>;
+  totalPrice: number;
+  packageType: string;
+  category: string;
+  displayOrder?: number;
+  description?: string;
+}
 
-const packages = [
-  {
-    name: "Mahakal + City Tour",
-    tag: "Best for Families",
-    price: "₹850",
-    description: "Perfect for a quick spiritual visit",
-    features: [
-      "Rinmukteshwar mahadev",
-      "Chintaman ganesh",
-      "ashtavinayak mandir",
-      "navgrah shani mandir",
-      "Iskcon mandir",
-      "Pickup & drop",
-    ],
-    popular: false,
-    link: "/custom-booking?package=city-tour",
-  },
-  {
-    name: "5 Temple Darshan",
-    tag: "Recommended",
-    price: "₹650",
-    description: "Comfortable Half-Day Tour",
-    features: FIVE_TEMPLE_DARSHAN_TEMPLES,
-    popular: true,
-    link: "/custom-booking?package=five",
-  },
-  {
-    name: "Custom Selection",
-    tag: "Most Flexible",
-    price: "Custom",
-    description: "Select temples & get instant price",
-    features: [
-      "Temple-based pricing",
-      "Flexible itinerary",
-      "Experienced driver",
-      "Hotel pickup & drop",
-    ],
-    link: "/custom-booking?package=custom",
-  },
-];
+export default async function PricingPage() {
+  await connectDB();
 
-export default function PricingPage() {
+  const routes = await Route.find({ activeStatus: true })
+    .populate("templeList", "name _id")
+    .sort({ displayOrder: 1, createdAt: 1 })
+    .lean<PricingRoute[]>();
+
+  const cityTourRoute = routes.find((r) => r.slug === "mahakal-city-tour" || r.packageType === "CITY_TOUR");
+  const fiveTempleRoute = routes.find((r) => r.slug === "five-temple-darshan" || r.packageType === "FIVE_TEMPLE");
+
+  const packages = [
+    {
+      id: "city-tour",
+      name: cityTourRoute?.routeName || "Mahakal + City Tour",
+      tag: "Best for Families",
+      price: cityTourRoute ? `₹${cityTourRoute.totalPrice}` : "₹850",
+      description: cityTourRoute
+        ? `${cityTourRoute.templeList.length} temples for a complete city tour`
+        : "Perfect for a quick spiritual visit",
+      features: cityTourRoute && cityTourRoute.templeList.length > 0
+        ? cityTourRoute.templeList.map((t) => t.name)
+        : ["City temple tour package"],
+      popular: false,
+      link: "/custom-booking?package=city-tour",
+    },
+    {
+      id: "five",
+      name: fiveTempleRoute?.routeName || "5 Temple Darshan",
+      tag: "Recommended",
+      price: fiveTempleRoute ? `₹${fiveTempleRoute.totalPrice}` : "₹650",
+      description: fiveTempleRoute
+        ? `${fiveTempleRoute.templeList.length} temples for a half-day darshan`
+        : "Comfortable Half-Day Tour",
+      features: fiveTempleRoute && fiveTempleRoute.templeList.length > 0
+        ? fiveTempleRoute.templeList.map((t) => t.name)
+        : ["Half-day darshan package"],
+      popular: true,
+      link: "/custom-booking?package=five",
+    },
+    {
+      id: "custom",
+      name: "Custom Selection",
+      tag: "Most Flexible",
+      price: "Custom",
+      description: "Select temples & get instant price",
+      features: [
+        "Temple-based pricing",
+        "Flexible itinerary",
+        "Experienced driver",
+        "Hotel pickup & drop",
+      ],
+      popular: false,
+      link: "/custom-booking?package=custom",
+    },
+  ];
+
+  const activeRoutePrices = [cityTourRoute, fiveTempleRoute]
+    .filter((r): r is PricingRoute => !!r)
+    .map((r) => r.totalPrice);
+  const minPrice = activeRoutePrices.length > 0
+    ? Math.min(...activeRoutePrices)
+    : 0;
+
   return (
     <>
       <SchemaMarkup 
@@ -74,8 +103,8 @@ export default function PricingPage() {
           "@type": "PriceSpecification",
           "name": "Ujjain Auto Tour Pricing",
           "priceCurrency": "INR",
-          "minPrice": "400",
-          "description": "Starting from ₹400 for city tours."
+          "minPrice": String(minPrice),
+          "description": "Live MongoDB pricing for active route packages."
         }} 
       />
       <div className="min-h-screen pt-24 pb-20 bg-background">
@@ -92,9 +121,9 @@ export default function PricingPage() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-          {packages.map((pkg, idx) => (
+          {packages.map((pkg) => (
             <Card
-              key={idx}
+              key={pkg.id}
               className={`relative flex flex-col transition-all duration-300 hover:shadow-2xl h-full border-2 ${
                 pkg.popular ? "border-primary shadow-xl scale-[1.02]" : "border-border/60"
               }`}
