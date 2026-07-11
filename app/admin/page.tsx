@@ -9,6 +9,7 @@ import {
   FaClipboardList,
   FaMap,
 } from "react-icons/fa";
+import { IndianRupee } from "lucide-react";
 import AdminSkeleton from "@/components/AdminSkeleton";
 
 
@@ -194,8 +195,13 @@ export default function AdminDashboard() {
         </button>
 
 
-
-
+        <button
+          onClick={() => router.push("/admin/pricing")}
+          className="card-safe p-5 hover:scale-105 transition text-center"
+        >
+          <IndianRupee className="mx-auto mb-2" size={26} />
+          Pricing Config
+        </button>
       </div>
 
 

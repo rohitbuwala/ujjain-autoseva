@@ -10,7 +10,7 @@ export type PricingSlotKey = (typeof PRICING_SLOT_KEYS)[number];
 
 const pricingSlotSchema = z.object({
   key: z.string().min(1, "Slot key is required"),
-  route: z.string().min(1, "Route ID is required"),
+  route: z.string().nullable().default(null),
   enabled: z.boolean().default(true),
 });
 
@@ -27,7 +27,9 @@ export const pricingConfigurationSchema = z
   )
   .refine(
     (data) => {
-      const routeIds = data.slots.map((s) => s.route);
+      const routeIds = data.slots
+        .map((s) => s.route)
+        .filter((r): r is string => r !== null);
       return routeIds.length === new Set(routeIds).size;
     },
     { message: "Duplicate routes are not allowed across slots" }

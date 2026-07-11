@@ -89,18 +89,25 @@ export async function PUT(req: Request) {
 
     await connectDB();
 
-    const routeIds = parsed.data.slots.map((s) => s.route);
-    const existingRoutes = await Route.find({
-      _id: { $in: routeIds },
-    }).select("_id");
+    const routeIds = parsed.data.slots
+      .map((s) => s.route)
+      .filter((r): r is string => r !== null);
 
-    if (existingRoutes.length !== routeIds.length) {
-      const foundIds = new Set(existingRoutes.map((r) => r._id.toString()));
-      const missing = routeIds.filter((id) => !foundIds.has(id));
-      return NextResponse.json(
-        { error: `Routes not found: ${missing.join(", ")}` },
-        { status: 400 }
-      );
+    if (routeIds.length > 0) {
+      const existingRoutes = await Route.find({
+        _id: { $in: routeIds },
+      }).select("_id");
+
+      if (existingRoutes.length !== routeIds.length) {
+        const foundIds = new Set(
+          existingRoutes.map((r) => r._id.toString())
+        );
+        const missing = routeIds.filter((id) => !foundIds.has(id));
+        return NextResponse.json(
+          { error: `Routes not found: ${missing.join(", ")}` },
+          { status: 400 }
+        );
+      }
     }
 
     const config = await PricingConfiguration.findOneAndUpdate(

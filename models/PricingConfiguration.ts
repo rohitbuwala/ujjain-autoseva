@@ -9,7 +9,8 @@ const PricingSlotSchema = new Schema(
     route: {
       type: Schema.Types.ObjectId,
       ref: "Route",
-      required: true,
+      required: false,
+      default: null,
     },
     enabled: {
       type: Boolean,
