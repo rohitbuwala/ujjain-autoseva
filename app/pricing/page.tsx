@@ -33,13 +33,12 @@ interface PricingRoute {
 export default async function PricingPage() {
   await connectDB();
 
-  const routes = await Route.find({ activeStatus: true })
+  const routes = await Route.find({ activeStatus: true, packageType: { $in: ["CITY_TOUR", "FIVE_TEMPLE"] } })
     .populate("templeList", "name _id")
-    .sort({ displayOrder: 1, createdAt: 1 })
     .lean<PricingRoute[]>();
 
-  const cityTourRoute = routes.find((r) => r.slug === "mahakal-city-tour" || r.packageType === "CITY_TOUR");
-  const fiveTempleRoute = routes.find((r) => r.slug === "five-temple-darshan" || r.packageType === "FIVE_TEMPLE");
+  const cityTourRoute = routes.find((r) => r.packageType === "CITY_TOUR");
+  const fiveTempleRoute = routes.find((r) => r.packageType === "FIVE_TEMPLE");
 
   const packages = [
     {
@@ -47,9 +46,9 @@ export default async function PricingPage() {
       name: cityTourRoute?.routeName || "Mahakal + City Tour",
       tag: "Best for Families",
       price: cityTourRoute ? `₹${cityTourRoute.totalPrice}` : "₹850",
-      description: cityTourRoute
+      description: cityTourRoute?.description || (cityTourRoute
         ? `${cityTourRoute.templeList.length} temples for a complete city tour`
-        : "Perfect for a quick spiritual visit",
+        : "Perfect for a quick spiritual visit"),
       features: cityTourRoute && cityTourRoute.templeList.length > 0
         ? cityTourRoute.templeList.map((t) => t.name)
         : ["City temple tour package"],
@@ -61,9 +60,9 @@ export default async function PricingPage() {
       name: fiveTempleRoute?.routeName || "5 Temple Darshan",
       tag: "Recommended",
       price: fiveTempleRoute ? `₹${fiveTempleRoute.totalPrice}` : "₹650",
-      description: fiveTempleRoute
+      description: fiveTempleRoute?.description || (fiveTempleRoute
         ? `${fiveTempleRoute.templeList.length} temples for a half-day darshan`
-        : "Comfortable Half-Day Tour",
+        : "Comfortable Half-Day Tour"),
       features: fiveTempleRoute && fiveTempleRoute.templeList.length > 0
         ? fiveTempleRoute.templeList.map((t) => t.name)
         : ["Half-day darshan package"],
@@ -87,12 +86,8 @@ export default async function PricingPage() {
     },
   ];
 
-  const activeRoutePrices = [cityTourRoute, fiveTempleRoute]
-    .filter((r): r is PricingRoute => !!r)
-    .map((r) => r.totalPrice);
-  const minPrice = activeRoutePrices.length > 0
-    ? Math.min(...activeRoutePrices)
-    : 0;
+  const routePrices = [cityTourRoute, fiveTempleRoute].filter(Boolean).map((r) => r!.totalPrice);
+  const minPrice = routePrices.length > 0 ? Math.min(...routePrices) : 0;
 
   return (
     <>

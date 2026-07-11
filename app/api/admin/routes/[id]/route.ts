@@ -14,8 +14,17 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     const { id } = await context.params;
     const body = await req.json();
 
+    const updateData: Record<string, unknown> = {};
+    if (body.routeName !== undefined) updateData.routeName = body.routeName;
+    if (body.totalPrice !== undefined) updateData.totalPrice = Number(body.totalPrice);
+    if (body.category !== undefined) updateData.category = body.category;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.activeStatus !== undefined) updateData.activeStatus = body.activeStatus;
+    if (body.displayOrder !== undefined) updateData.displayOrder = Number(body.displayOrder);
+    if (body.templeList !== undefined) updateData.templeList = body.templeList;
+
     await connectDB();
-    const route = await Route.findByIdAndUpdate(id, body, { new: true })
+    const route = await Route.findByIdAndUpdate(id, updateData, { new: true })
       .populate("templeList", "name _id");
     
     if (!route) {

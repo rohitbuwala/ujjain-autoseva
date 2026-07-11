@@ -14,7 +14,7 @@ export async function GET() {
     await connectDB();
     const temples = await Temple.find().sort({ createdAt: -1 });
     
-    return NextResponse.json({ data: temples });
+    return NextResponse.json({ success: true, data: temples });
   } catch (error) {
     console.error("ADMIN TEMPLES GET ERROR:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     
     // Validate required fields
-    if (!body.name || body.price === undefined || !body.category) {
+    if (!body.name || (body.basePrice === undefined && body.price === undefined) || !body.category) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -39,9 +39,9 @@ export async function POST(req: Request) {
     
     const temple = await Temple.create({
       name: body.name,
-      price: body.price,
       category: body.category,
-      basePrice: body.basePrice || 0,
+      basePrice: body.basePrice ?? body.price ?? 0,
+      displayOrder: body.displayOrder ?? 0,
       activeStatus: body.activeStatus ?? true,
       routeGroup: body.routeGroup || "",
       description: body.description || ""
