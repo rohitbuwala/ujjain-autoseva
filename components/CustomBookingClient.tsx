@@ -33,25 +33,20 @@ interface Temple {
 interface RoutePackage {
   _id: string;
   routeName: string;
+  slug: string;
+  description?: string;
   templeList: Temple[];
   totalPrice: number;
   category: string;
+  packageType: string;
   displayOrder?: number;
-}
-
-function normalizePackageParam(value: string | null) {
-  if (value === "city-tour" || value === "five" || value === "custom") {
-    return value;
-  }
-
-  return "custom";
 }
 
 function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedPackageFromQuery = normalizePackageParam(searchParams.get("package"));
-  const lastAppliedPackageRef = useRef<string | null>(null);
+  const routeSlug = searchParams.get("route");
+  const appliedSlugRef = useRef<string | null>(null);
   
   const [step, setStep] = useState(1);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
@@ -64,7 +59,7 @@ function BookingForm() {
   const [minDate, setMinDate] = useState("");
 
   const [formData, setFormData] = useState({
-    packageType: selectedPackageFromQuery,
+    packageType: "custom",
     selectedTemples: [] as string[],
     date: "",
     time: "",
@@ -107,43 +102,33 @@ function BookingForm() {
     loadCatalog();
   }, []);
 
+  const fixedPackages = routePackages
+    .filter((route) => route.category !== "custom")
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.routeName.localeCompare(b.routeName))
+    .slice(0, 2);
+
   useEffect(() => {
-    if (lastAppliedPackageRef.current === selectedPackageFromQuery) {
+    if (loadingCatalog || routePackages.length === 0) return;
+
+    if (!routeSlug) {
+      if (appliedSlugRef.current !== null) {
+        appliedSlugRef.current = null;
+      }
       return;
     }
 
-    if (selectedPackageFromQuery === "custom") {
-      setFormData(prev => ({
-        ...prev,
-        packageType: "custom",
-        selectedTemples: [],
-      }));
-      lastAppliedPackageRef.current = selectedPackageFromQuery;
-      return;
-    }
+    if (appliedSlugRef.current === routeSlug) return;
 
-    if (loadingCatalog) {
-      return;
-    }
+    const matchedRoute = routePackages.find((r) => r.slug === routeSlug);
+    if (!matchedRoute) return;
 
-    const fixedPackages = routePackages
-      .filter((route) => route.category !== "custom")
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.routeName.localeCompare(b.routeName))
-      .slice(0, 2);
-
-    const selectedPackage = selectedPackageFromQuery === "five"
-      ? fixedPackages[1]
-      : selectedPackageFromQuery === "city-tour"
-        ? fixedPackages[0]
-        : null;
-
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      packageType: selectedPackageFromQuery,
-      selectedTemples: selectedPackage?.templeList.map((temple) => temple._id) || [],
+      packageType: matchedRoute._id,
+      selectedTemples: matchedRoute.templeList.map((t) => t._id),
     }));
-    lastAppliedPackageRef.current = selectedPackageFromQuery;
-  }, [loadingCatalog, routePackages, selectedPackageFromQuery]);
+    appliedSlugRef.current = routeSlug;
+  }, [loadingCatalog, routePackages, routeSlug]);
 
   useEffect(() => {
     const now = new Date();
@@ -155,14 +140,6 @@ function BookingForm() {
     setFormData(prev => ({ ...prev, date: todayStr }));
   }, []);
 
-  const fixedPackages = routePackages
-    .filter((route) => route.category !== "custom")
-    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.routeName.localeCompare(b.routeName))
-    .slice(0, 2);
-
-  const cityTourData = fixedPackages[0];
-  const fiveTempleData = fixedPackages[1];
-
   const packageCatalog: Array<{
     id: string;
     name: string;
@@ -171,25 +148,20 @@ function BookingForm() {
     desc: string;
     locked: boolean;
     templeList: Temple[];
+    slug: string;
+    packageType: string;
   }> = [
-    {
-      id: "city-tour",
-      name: cityTourData ? cityTourData.routeName : "Mahakal + City Tour",
-      price: cityTourData ? cityTourData.totalPrice : 850,
+    ...fixedPackages.map((r) => ({
+      id: r._id,
+      name: r.routeName,
+      price: r.totalPrice,
       icon: Check,
-      desc: cityTourData ? `${cityTourData.templeList.length} temples from MongoDB` : "Perfect for a quick spiritual visit",
+      desc: r.description || `${r.templeList.length} temples`,
       locked: true,
-      templeList: cityTourData ? cityTourData.templeList : [],
-    },
-    {
-      id: "five",
-      name: fiveTempleData ? fiveTempleData.routeName : "5 Temple Darshan",
-      price: fiveTempleData ? fiveTempleData.totalPrice : 650,
-      icon: Check,
-      desc: fiveTempleData ? `${fiveTempleData.templeList.length} temples from MongoDB` : "Comfortable Half-Day Tour",
-      locked: true,
-      templeList: fiveTempleData ? fiveTempleData.templeList : [],
-    },
+      templeList: r.templeList,
+      slug: r.slug,
+      packageType: r.packageType,
+    })),
     {
       id: "custom",
       name: "Custom Selection",
@@ -198,6 +170,8 @@ function BookingForm() {
       desc: "Choose temples from the live catalog",
       locked: false,
       templeList: [] as Temple[],
+      slug: "",
+      packageType: "custom",
     },
   ];
 
@@ -206,9 +180,8 @@ function BookingForm() {
   };
 
   const calculateTotal = () => {
-    if (formData.packageType === "five" || formData.packageType === "city-tour") {
-      return getPackageDetails(formData.packageType)?.price || 0;
-    }
+    const pkg = packageCatalog.find(p => p.id === formData.packageType);
+    if (pkg && pkg.locked) return pkg.price;
 
     return formData.selectedTemples.reduce((sum, templeId) => {
       const temple = dbTemples.find((item) => item._id === templeId);
@@ -216,7 +189,7 @@ function BookingForm() {
     }, 0);
   };
 
-  const isFixedPlan = formData.packageType === "five" || formData.packageType === "city-tour";
+  const isFixedPlan = packageCatalog.find(p => p.id === formData.packageType)?.locked ?? false;
 
   const handleNext = () => {
     setSubmitError("");
@@ -299,8 +272,10 @@ function BookingForm() {
         }
       }
       
+      const apiPackageType = packageCatalog.find(p => p.id === formData.packageType)?.packageType || "custom";
+
       const payload = {
-        packageType: formData.packageType,
+        packageType: apiPackageType,
         packageName: packageDetails.name,
         temples: finalTemples,
         selectedTemples: finalSelectedTemples,
@@ -336,8 +311,8 @@ function BookingForm() {
   };
 
   const toggleTemple = (id: string) => {
-    if (formData.packageType === "five") return;
-    
+    if (isFixedPlan) return;
+
     setFormData(prev => ({
       ...prev,
       selectedTemples: prev.selectedTemples.includes(id)

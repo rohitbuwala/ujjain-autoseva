@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import SchemaMarkup from "@/components/SchemaMarkup";
 import connectDB from "@/lib/db";
-import Route from "@/models/Route";
+import PricingConfiguration from "@/models/PricingConfiguration";
+import "@/models/Route";
 import "@/models/Temple";
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
   }
 };
 
-interface PricingRoute {
+interface PopulatedRoute {
   _id: string;
   routeName: string;
   slug: string;
@@ -26,81 +27,101 @@ interface PricingRoute {
   totalPrice: number;
   packageType: string;
   category: string;
-  displayOrder?: number;
-  description?: string;
+  description: string;
+  activeStatus: boolean;
+}
+
+interface PopulatedSlot {
+  key: string;
+  route: PopulatedRoute | null;
+  enabled: boolean;
+}
+
+interface PricingCard {
+  id: string;
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  tag?: string;
+  popular?: boolean;
+  link: string;
 }
 
 export default async function PricingPage() {
   await connectDB();
 
-  const routes = await Route.find({ activeStatus: true, packageType: { $in: ["CITY_TOUR", "FIVE_TEMPLE"] } })
-    .populate("templeList", "name _id")
-    .lean<PricingRoute[]>();
+  const config = await PricingConfiguration.findOne({ key: "pricing-page" })
+    .populate({
+      path: "slots.route",
+      match: { activeStatus: true },
+      populate: { path: "templeList", select: "name _id" },
+    })
+    .lean<{ slots: PopulatedSlot[] } | null>();
 
-  const cityTourRoute = routes.find((r) => r.packageType === "CITY_TOUR");
-  const fiveTempleRoute = routes.find((r) => r.packageType === "FIVE_TEMPLE");
+  const slots = config?.slots || [];
 
-  const packages = [
-    {
-      id: "city-tour",
-      name: cityTourRoute?.routeName || "Mahakal + City Tour",
-      tag: "Best for Families",
-      price: cityTourRoute ? `₹${cityTourRoute.totalPrice}` : "₹850",
-      description: cityTourRoute?.description || (cityTourRoute
-        ? `${cityTourRoute.templeList.length} temples for a complete city tour`
-        : "Perfect for a quick spiritual visit"),
-      features: cityTourRoute && cityTourRoute.templeList.length > 0
-        ? cityTourRoute.templeList.map((t) => t.name)
-        : ["City temple tour package"],
-      popular: false,
-      link: "/custom-booking?package=city-tour",
-    },
-    {
-      id: "five",
-      name: fiveTempleRoute?.routeName || "5 Temple Darshan",
-      tag: "Recommended",
-      price: fiveTempleRoute ? `₹${fiveTempleRoute.totalPrice}` : "₹650",
-      description: fiveTempleRoute?.description || (fiveTempleRoute
-        ? `${fiveTempleRoute.templeList.length} temples for a half-day darshan`
-        : "Comfortable Half-Day Tour"),
-      features: fiveTempleRoute && fiveTempleRoute.templeList.length > 0
-        ? fiveTempleRoute.templeList.map((t) => t.name)
-        : ["Half-day darshan package"],
-      popular: true,
-      link: "/custom-booking?package=five",
-    },
-    {
-      id: "custom",
-      name: "Custom Selection",
-      tag: "Most Flexible",
-      price: "Custom",
-      description: "Select temples & get instant price",
-      features: [
-        "Temple-based pricing",
-        "Flexible itinerary",
-        "Experienced driver",
-        "Hotel pickup & drop",
-      ],
-      popular: false,
-      link: "/custom-booking?package=custom",
-    },
-  ];
+  const routeCards: PricingCard[] = slots
+    .filter((slot): slot is PopulatedSlot & { route: PopulatedRoute } =>
+      slot.enabled && slot.route !== null
+    )
+    .map((slot) => {
+      const route = slot.route;
+      return {
+        id: slot.key,
+        name: route.routeName,
+        price: `₹${route.totalPrice}`,
+        description: route.description || (route.templeList.length > 0
+          ? `${route.templeList.length} temples for a complete tour`
+          : "Curated temple tour package"),
+        features: route.templeList.length > 0
+          ? route.templeList.map((t) => t.name)
+          : ["Temple tour package"],
+        link: `/custom-booking?route=${route.slug}`,
+      };
+    });
 
-  const routePrices = [cityTourRoute, fiveTempleRoute].filter(Boolean).map((r) => r!.totalPrice);
+  const fallbackCard: PricingCard = {
+    id: "custom",
+    name: "Custom Selection",
+    tag: "Most Flexible",
+    price: "Custom",
+    description: "Select temples & get instant price",
+    features: [
+      "Temple-based pricing",
+      "Flexible itinerary",
+      "Experienced driver",
+      "Hotel pickup & drop",
+    ],
+    popular: false,
+    link: "/custom-booking",
+  };
+
+  const customSlot = slots.find((s) => s.key === "pricing-custom");
+  const showCustomFallback =
+    customSlot?.enabled === true && customSlot?.route === null;
+  const packages = config
+    ? (showCustomFallback ? [...routeCards, fallbackCard] : routeCards)
+    : [fallbackCard];
+
+  const routePrices = routeCards.map((c) => {
+    const match = c.price.match(/[\d,]+/);
+    return match ? parseInt(match[0].replace(/,/g, ""), 10) : 0;
+  });
   const minPrice = routePrices.length > 0 ? Math.min(...routePrices) : 0;
 
   return (
     <>
-      <SchemaMarkup 
-        schemaType="LocalBusiness" 
+      <SchemaMarkup
+        schemaType="LocalBusiness"
         data={{
           "@context": "https://schema.org",
           "@type": "PriceSpecification",
           "name": "Ujjain Auto Tour Pricing",
           "priceCurrency": "INR",
           "minPrice": String(minPrice),
-          "description": "Live MongoDB pricing for active route packages."
-        }} 
+          "description": "Live pricing for active route packages."
+        }}
       />
       <div className="min-h-screen pt-24 pb-20 bg-background">
       <div className="container-custom">
