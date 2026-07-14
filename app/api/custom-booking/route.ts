@@ -76,15 +76,18 @@ export async function POST(req: Request) {
     }));
 
     let serverPrice: number;
-    if (validatedData.packageType === "five" || validatedData.packageType === "city-tour") {
-      const fixedRoutes = await Route.find({ activeStatus: true, category: { $ne: "custom" } })
-        .sort({ displayOrder: 1, createdAt: 1 })
-        .lean();
-      const idx = validatedData.packageType === "city-tour" ? 0 : 1;
-      const routePrice = fixedRoutes[idx]?.totalPrice;
-      serverPrice = routePrice ?? (validatedData.packageType === "five" ? 650 : 850);
-    } else {
+    if (validatedData.packageType === "custom") {
       serverPrice = serverTemples.reduce((sum, temple) => sum + temple.price, 0);
+    } else {
+      const matchedRoute = await Route.findOne({ slug: validatedData.packageType, activeStatus: true }).lean()
+        ?? await Route.findOne({ packageType: validatedData.packageType, activeStatus: true }).lean();
+      if (!matchedRoute) {
+        return NextResponse.json(
+          { error: "Invalid route" },
+          { status: 400 }
+        );
+      }
+      serverPrice = matchedRoute.totalPrice;
     }
 
     if (validatedData.packageType === "custom" && serverTemples.length === 0) {

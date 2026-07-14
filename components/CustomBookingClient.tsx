@@ -103,7 +103,7 @@ function BookingForm() {
   }, []);
 
   const fixedPackages = routePackages
-    .filter((route) => route.category !== "custom")
+    .filter((route) => route.category !== "custom" && route.slug)
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0) || a.routeName.localeCompare(b.routeName))
     .slice(0, 2);
 
@@ -124,7 +124,7 @@ function BookingForm() {
 
     setFormData((prev) => ({
       ...prev,
-      packageType: matchedRoute._id,
+      packageType: matchedRoute.slug,
       selectedTemples: matchedRoute.templeList.map((t) => t._id),
     }));
     appliedSlugRef.current = routeSlug;
@@ -148,18 +148,16 @@ function BookingForm() {
     desc: string;
     locked: boolean;
     templeList: Temple[];
-    slug: string;
     packageType: string;
   }> = [
     ...fixedPackages.map((r) => ({
-      id: r._id,
+      id: r.slug,
       name: r.routeName,
       price: r.totalPrice,
       icon: Check,
       desc: r.description || `${r.templeList.length} temples`,
       locked: true,
       templeList: r.templeList,
-      slug: r.slug,
       packageType: r.packageType,
     })),
     {
@@ -170,7 +168,6 @@ function BookingForm() {
       desc: "Choose temples from the live catalog",
       locked: false,
       templeList: [] as Temple[],
-      slug: "",
       packageType: "custom",
     },
   ];
@@ -272,10 +269,8 @@ function BookingForm() {
         }
       }
       
-      const apiPackageType = packageCatalog.find(p => p.id === formData.packageType)?.packageType || "custom";
-
       const payload = {
-        packageType: apiPackageType,
+        packageType: formData.packageType || "custom",
         packageName: packageDetails.name,
         temples: finalTemples,
         selectedTemples: finalSelectedTemples,
