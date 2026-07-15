@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
 
@@ -68,6 +68,13 @@ const bookingSchema = new mongoose.Schema({
   route: {
     type: String,
     default: "",
+  },
+
+  // Reference to Route document (only for fixed-package bookings)
+  routeId: {
+    type: Schema.Types.ObjectId,
+    ref: "Route",
+    default: null,
   },
 
   // Custom Booking Fields
@@ -189,6 +196,7 @@ bookingSchema.index({ createdAt: -1 });
 
 bookingSchema.index({ date: 1 });
 bookingSchema.index({ phone: 1 });
+bookingSchema.index({ routeId: 1 }, { sparse: true });
 
 export default mongoose.models.Booking ||
   mongoose.model("Booking", bookingSchema);

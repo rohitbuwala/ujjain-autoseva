@@ -76,10 +76,11 @@ export async function POST(req: Request) {
     }));
 
     let serverPrice: number;
+    let matchedRoute: Awaited<ReturnType<typeof Route.findOne>> = null;
     if (validatedData.packageType === "custom") {
       serverPrice = serverTemples.reduce((sum, temple) => sum + temple.price, 0);
     } else {
-      const matchedRoute = await Route.findOne({ slug: validatedData.packageType, activeStatus: true }).lean()
+      matchedRoute = await Route.findOne({ slug: validatedData.packageType, activeStatus: true }).lean()
         ?? await Route.findOne({ packageType: validatedData.packageType, activeStatus: true }).lean();
       if (!matchedRoute) {
         return NextResponse.json(
@@ -118,6 +119,7 @@ export async function POST(req: Request) {
       pickup: sanitizeInput(validatedData.pickup),
       drop: dropText,
       route: `${sanitizeInput(validatedData.pickup)} -> ${sanitizeInput(validatedData.packageName)}`,
+      routeId: matchedRoute?._id ?? null,
       date: validatedData.date,
       time: validatedData.time,
       price: serverPrice.toString(),
