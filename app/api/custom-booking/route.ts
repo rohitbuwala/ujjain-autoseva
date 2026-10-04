@@ -72,7 +72,7 @@ export async function POST(req: Request) {
     const serverTemples = dbTemples.map((temple) => ({
       _id: temple._id.toString(),
       name: temple.name,
-      price: temple.price ?? temple.basePrice ?? 0,
+      price: temple.basePrice ?? 0,
     }));
 
     let serverPrice: number;
