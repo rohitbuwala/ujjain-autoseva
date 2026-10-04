@@ -21,30 +21,17 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Loader2, Plus, Pencil, Trash2, Check, AlertCircle, ArrowLeft, MapPin } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Check, AlertCircle, MapPin } from "lucide-react";
 
 interface Temple {
   _id: string;
   name: string;
-  price: number;
-  basePrice?: number;
-  isActive: boolean;
-  activeStatus?: boolean;
-  description?: string;
-  category?: string;
+  basePrice: number;
+  category: string;
+  activeStatus: boolean;
+  displayOrder: number;
+  description: string;
   createdAt: string;
-}
-
-interface TempleResponse {
-  _id: string;
-  name: string;
-  price?: number;
-  basePrice?: number;
-  isActive?: boolean;
-  activeStatus?: boolean;
-  description?: string;
-  category?: string;
-  createdAt?: string;
 }
 
 export default function CustomTripAdminPage() {
@@ -60,9 +47,11 @@ export default function CustomTripAdminPage() {
 
   const [templeForm, setTempleForm] = useState({
     name: "",
-    price: "",
+    basePrice: "",
+    category: "inside",
+    displayOrder: "",
     description: "",
-    isActive: true,
+    activeStatus: true,
   });
 
   const loadData = useCallback(async () => {
@@ -71,13 +60,16 @@ export default function CustomTripAdminPage() {
       const res = await fetch("/api/admin/temples");
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        setTemples(data.data.map((t: TempleResponse) => ({
-          ...t,
-          price: t.basePrice ?? t.price ?? 0,
-          isActive: t.activeStatus ?? t.isActive ?? true
+        setTemples(data.data.map((t: Temple) => ({
+          _id: t._id,
+          name: t.name,
+          basePrice: t.basePrice ?? 0,
+          category: t.category || "inside",
+          activeStatus: t.activeStatus ?? true,
+          displayOrder: t.displayOrder ?? 0,
+          description: t.description || "",
+          createdAt: t.createdAt,
         })));
-      } else if (Array.isArray(data)) {
-        setTemples(data);
       }
     } catch {
       showToast("error", "Failed to load temples");
@@ -97,7 +89,7 @@ export default function CustomTripAdminPage() {
 
   function openAddTemple() {
     setEditingTemple(null);
-    setTempleForm({ name: "", price: "", description: "", isActive: true });
+    setTempleForm({ name: "", basePrice: "", category: "inside", displayOrder: "", description: "", activeStatus: true });
     setTempleDialogOpen(true);
   }
 
@@ -105,15 +97,17 @@ export default function CustomTripAdminPage() {
     setEditingTemple(temple);
     setTempleForm({
       name: temple.name,
-      price: String(temple.price),
+      basePrice: String(temple.basePrice),
+      category: temple.category || "inside",
+      displayOrder: String(temple.displayOrder || 0),
       description: temple.description || "",
-      isActive: temple.isActive,
+      activeStatus: temple.activeStatus ?? true,
     });
     setTempleDialogOpen(true);
   }
 
   async function saveTemple() {
-    if (!templeForm.name || !templeForm.price) {
+    if (!templeForm.name || !templeForm.basePrice) {
       showToast("error", "Please fill all required fields");
       return;
     }
@@ -131,10 +125,11 @@ export default function CustomTripAdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: templeForm.name,
-          price: Number(templeForm.price),
-          category: "inside",
-          active: templeForm.isActive,
-          activeStatus: templeForm.isActive,
+          basePrice: Number(templeForm.basePrice),
+          category: templeForm.category,
+          displayOrder: Number(templeForm.displayOrder || 0),
+          description: templeForm.description,
+          activeStatus: templeForm.activeStatus,
         }),
       });
 
@@ -151,17 +146,16 @@ export default function CustomTripAdminPage() {
   }
 
   async function toggleTempleStatus(temple: Temple) {
-    const newStatus = !temple.isActive;
+    const newStatus = !temple.activeStatus;
     try {
-      // Optimistic update
       setTemples(prev => prev.map(t => 
-        t._id === temple._id ? { ...t, isActive: newStatus } : t
+        t._id === temple._id ? { ...t, activeStatus: newStatus } : t
       ));
 
       const res = await fetch(`/api/admin/temples/${temple._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: newStatus }),
+        body: JSON.stringify({ activeStatus: newStatus }),
       });
 
       if (res.ok) {
@@ -170,9 +164,8 @@ export default function CustomTripAdminPage() {
         throw new Error();
       }
     } catch {
-      // Revert on error
       setTemples(prev => prev.map(t => 
-        t._id === temple._id ? { ...t, isActive: !newStatus } : t
+        t._id === temple._id ? { ...t, activeStatus: !newStatus } : t
       ));
       showToast("error", "Failed to update status");
     }
@@ -210,19 +203,9 @@ export default function CustomTripAdminPage() {
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="rounded-full hover:bg-slate-200 dark:hover:bg-slate-800"
-            onClick={() => router.push("/admin")}
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">Manage Locations</h1>
-            <p className="text-slate-500 text-sm sm:text-base">Add or edit temples for custom trips. Bookings are handled in the <span className="font-bold text-primary cursor-pointer hover:underline" onClick={() => router.push("/admin/bookings")}>Main Bookings</span> page.</p>
-          </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">Manage Custom Trips</h1>
+          <p className="text-slate-500 text-sm sm:text-base">Add, edit, or remove temples for custom trip bookings.</p>
         </div>
 
         {/* Main Content Area */}
@@ -251,62 +234,70 @@ export default function CustomTripAdminPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
-                      <TableRow>
-                        <TableHead className="font-bold">Temple Name</TableHead>
-                        <TableHead className="font-bold">Base Price</TableHead>
-                        <TableHead className="font-bold">Status</TableHead>
-                        <TableHead className="text-right font-bold">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {temples.map((temple) => (
-                        <TableRow key={temple._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
-                          <TableCell className="font-semibold py-4">{temple.name}</TableCell>
-                          <TableCell className="py-4">
-                            <span className="flex items-center font-mono">₹{temple.price}</span>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <button 
-                              onClick={() => toggleTempleStatus(temple)}
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold transition-all ${
-                                temple.isActive 
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
-                                  : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${temple.isActive ? "bg-green-500" : "bg-slate-400"}`}></span>
-                              {temple.isActive ? "ACTIVE" : "INACTIVE"}
-                            </button>
-                          </TableCell>
-                          <TableCell className="text-right py-4">
-                            <div className="flex justify-end gap-1.5">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9 border-slate-200 dark:border-slate-700 hover:text-blue-600 hover:border-blue-300"
-                                onClick={() => openEditTemple(temple)}
-                              >
-                                <Pencil size={16} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9 border-slate-200 dark:border-slate-700 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                                onClick={() => {
-                                  setDeletingId(temple._id);
-                                  setDeleteDialogOpen(true);
-                                }}
-                              >
-                                <Trash2 size={16} />
-                              </Button>
-                            </div>
-                          </TableCell>
+                    <Table>
+                      <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
+                        <TableRow>
+                          <TableHead className="font-bold">Temple Name</TableHead>
+                          <TableHead className="font-bold">Category</TableHead>
+                          <TableHead className="font-bold">Base Price</TableHead>
+                          <TableHead className="font-bold">Display Order</TableHead>
+                          <TableHead className="font-bold">Status</TableHead>
+                          <TableHead className="text-right font-bold">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {temples.map((temple) => (
+                          <TableRow key={temple._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
+                            <TableCell className="font-semibold py-4">{temple.name}</TableCell>
+                            <TableCell className="py-4 capitalize">
+                              <span className="text-muted-foreground">{temple.category}</span>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <span className="flex items-center font-mono">₹{temple.basePrice}</span>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <span className="font-mono text-sm text-muted-foreground">{temple.displayOrder}</span>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <button 
+                                onClick={() => toggleTempleStatus(temple)}
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold transition-all ${
+                                  temple.activeStatus 
+                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                                    : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${temple.activeStatus ? "bg-green-500" : "bg-slate-400"}`}></span>
+                                {temple.activeStatus ? "ACTIVE" : "INACTIVE"}
+                              </button>
+                            </TableCell>
+                            <TableCell className="text-right py-4">
+                              <div className="flex justify-end gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-9 w-9 border-slate-200 dark:border-slate-700 hover:text-blue-600 hover:border-blue-300"
+                                  onClick={() => openEditTemple(temple)}
+                                >
+                                  <Pencil size={16} />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-9 w-9 border-slate-200 dark:border-slate-700 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                  onClick={() => {
+                                    setDeletingId(temple._id);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                 </div>
               )}
             </CardContent>
@@ -333,20 +324,46 @@ export default function CustomTripAdminPage() {
                 className="h-11 rounded-lg"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category" className="text-sm font-bold">Category</Label>
+              <select
+                id="category"
+                value={templeForm.category}
+                onChange={(e) => setTempleForm({ ...templeForm, category: e.target.value })}
+                className="w-full h-11 rounded-lg border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="inside">Inside City</option>
+                <option value="outside">Outside City</option>
+                <option value="custom">Custom Only</option>
+              </select>
+            </div>
             
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-sm font-bold">Base Price (₹) *</Label>
+              <Label htmlFor="basePrice" className="text-sm font-bold">Base Price (₹) *</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
                 <Input
-                  id="price"
+                  id="basePrice"
                   type="number"
-                  value={templeForm.price}
-                  onChange={(e) => setTempleForm({ ...templeForm, price: e.target.value })}
+                  value={templeForm.basePrice}
+                  onChange={(e) => setTempleForm({ ...templeForm, basePrice: e.target.value })}
                   className="pl-7 h-11 font-mono rounded-lg"
                   placeholder="0"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="displayOrder" className="text-sm font-bold">Display Order</Label>
+              <Input
+                id="displayOrder"
+                type="number"
+                value={templeForm.displayOrder}
+                onChange={(e) => setTempleForm({ ...templeForm, displayOrder: e.target.value })}
+                className="h-11 rounded-lg font-mono"
+                placeholder="0"
+              />
             </div>
             
             <div className="space-y-2">
@@ -363,12 +380,12 @@ export default function CustomTripAdminPage() {
             <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
               <input
                 type="checkbox"
-                id="isActive"
-                checked={templeForm.isActive}
-                onChange={(e) => setTempleForm({ ...templeForm, isActive: e.target.checked })}
+                id="activeStatus"
+                checked={templeForm.activeStatus}
+                onChange={(e) => setTempleForm({ ...templeForm, activeStatus: e.target.checked })}
                 className="w-5 h-5 accent-blue-600 rounded cursor-pointer"
               />
-              <Label htmlFor="isActive" className="cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="activeStatus" className="cursor-pointer font-medium text-slate-700 dark:text-slate-300">
                 Visible for custom booking
               </Label>
             </div>

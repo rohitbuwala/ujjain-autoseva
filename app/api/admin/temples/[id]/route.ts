@@ -16,10 +16,13 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 
     const updateData: Record<string, unknown> = {};
     if (body.name !== undefined) updateData.name = body.name;
-    if (body.price !== undefined) updateData.basePrice = Number(body.price);
+    if (body.basePrice !== undefined) updateData.basePrice = Number(body.basePrice);
+    else if (body.price !== undefined) updateData.basePrice = Number(body.price);
     if (body.active !== undefined) updateData.activeStatus = body.active;
     if (body.isActive !== undefined) updateData.activeStatus = body.isActive;
+    if (body.activeStatus !== undefined) updateData.activeStatus = body.activeStatus;
     if (body.category !== undefined) updateData.category = body.category;
+    if (body.displayOrder !== undefined) updateData.displayOrder = Number(body.displayOrder);
     if (body.description !== undefined) updateData.description = body.description;
 
     await connectDB();

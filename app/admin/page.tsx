@@ -7,8 +7,9 @@ import {
   FaTaxi,
   FaUsers,
   FaClipboardList,
-  FaHome,
+  FaMap,
 } from "react-icons/fa";
+import { IndianRupee } from "lucide-react";
 import AdminSkeleton from "@/components/AdminSkeleton";
 
 
@@ -177,6 +178,15 @@ export default function AdminDashboard() {
 
 
         <button
+          onClick={() => router.push("/admin/config")}
+          className="card-safe p-5 hover:scale-105 transition text-center"
+        >
+          <FaMap className="mx-auto mb-2" size={26} />
+          Manage Routes
+        </button>
+
+
+        <button
           onClick={() => router.push("/admin/bookings")}
           className="card-safe p-5 hover:scale-105 transition text-center"
         >
@@ -186,13 +196,12 @@ export default function AdminDashboard() {
 
 
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/admin/pricing")}
           className="card-safe p-5 hover:scale-105 transition text-center"
         >
-          <FaHome className="mx-auto mb-2" size={26} />
-          Go to Website
+          <IndianRupee className="mx-auto mb-2" size={26} />
+          Pricing Config
         </button>
-
       </div>
 
 

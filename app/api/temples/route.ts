@@ -14,7 +14,7 @@ export async function GET() {
       const item = temple.toObject();
       return {
         ...item,
-        price: item.price ?? item.basePrice ?? 0,
+        price: item.basePrice ?? 0,
       };
     });
 

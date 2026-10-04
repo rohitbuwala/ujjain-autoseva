@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { 
-  Building, 
   Map, 
   Plus, 
   Trash2, 
@@ -26,109 +25,48 @@ interface Temple {
 interface TravelRoute {
   _id: string;
   routeName: string;
+  slug: string;
+  packageType: string;
   templeList: { _id: string; name: string }[];
   totalPrice: number;
   category: string;
+  description: string;
   activeStatus: boolean;
   displayOrder: number;
 }
 
 export default function AdminConfigDashboard() {
-  const [activeTab, setActiveTab] = useState<"temples" | "routes">("temples");
-  
   // Data State
   const [temples, setTemples] = useState<Temple[]>([]);
   const [routes, setRoutes] = useState<TravelRoute[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Form State - Temple
-  const [isEditingTemple, setIsEditingTemple] = useState(false);
-  const [templeForm, setTempleForm] = useState<Partial<Temple>>({ category: "inside", activeStatus: true, price: 0, basePrice: 0, displayOrder: 0 });
-  const [templeFormId, setTempleFormId] = useState("");
-
   // Form State - Route
   const [isEditingRoute, setIsEditingRoute] = useState(false);
-  const [routeForm, setRouteForm] = useState<Partial<TravelRoute>>({ activeStatus: true, totalPrice: 0, category: "inside", templeList: [], displayOrder: 0 });
+  const [routeForm, setRouteForm] = useState<Partial<TravelRoute>>({ activeStatus: true, totalPrice: 0, category: "inside", description: "", templeList: [], displayOrder: 0 });
   const [routeFormId, setRouteFormId] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      if (activeTab === "temples") {
-        const res = await fetch("/api/admin/temples");
-        const json = await res.json();
-        setTemples(json.data || []);
-      } else {
-        // Fetch routes AND temples (to select for routes)
-        const [resRoutes, resTemples] = await Promise.all([
-          fetch("/api/admin/routes"),
-          fetch("/api/admin/temples")
-        ]);
-        const jsonRoutes = await resRoutes.json();
-        const jsonTemples = await resTemples.json();
-        setRoutes(jsonRoutes.data || []);
-        setTemples(jsonTemples.data || []);
-      }
+      const [resRoutes, resTemples] = await Promise.all([
+        fetch("/api/admin/routes"),
+        fetch("/api/admin/temples")
+      ]);
+      const jsonRoutes = await resRoutes.json();
+      const jsonTemples = await resTemples.json();
+      setRoutes(jsonRoutes.data || []);
+      setTemples(jsonTemples.data || []);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  /* ================= TEMPLE FUNCTIONS ================= */
-  async function submitTemple(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      const url = isEditingTemple 
-        ? `/api/admin/temples/${templeFormId}` 
-        : `/api/admin/temples`;
-      const method = isEditingTemple ? "PATCH" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(templeForm)
-      });
-      
-      if (!res.ok) throw new Error("Failed to save temple");
-      
-      alert(isEditingTemple ? "Temple Updated!" : "Temple Created!");
-      setIsEditingTemple(false);
-      setTempleForm({ category: "inside", activeStatus: true, price: 0, basePrice: 0 });
-      fetchData();
-    } catch {
-      alert("Error saving temple");
-    }
-  }
-
-  async function deleteTemple(id: string) {
-    if (!confirm("Are you sure?")) return;
-    try {
-      const res = await fetch(`/api/admin/temples/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
-      setTemples(temples.filter(t => t._id !== id));
-    } catch {
-      alert("Error deleting temple");
-    }
-  }
-
-  function editTemple(t: Temple) {
-    setIsEditingTemple(true);
-    setTempleFormId(t._id);
-    setTempleForm({
-      name: t.name,
-      price: t.price,
-      category: t.category,
-      basePrice: t.basePrice,
-      activeStatus: t.activeStatus,
-      displayOrder: t.displayOrder || 0
-    });
-  }
 
   /* ================= ROUTE FUNCTIONS ================= */
   async function submitRoute(e: React.FormEvent) {
@@ -179,6 +117,7 @@ export default function AdminConfigDashboard() {
       routeName: r.routeName,
       totalPrice: r.totalPrice,
       category: r.category,
+      description: r.description || "",
       templeList: r.templeList,
       activeStatus: r.activeStatus,
       displayOrder: r.displayOrder || 0
@@ -203,134 +142,14 @@ export default function AdminConfigDashboard() {
       <div className="text-center mb-10 max-w-2xl mx-auto">
         <h1 className="flex items-center justify-center gap-3 text-3xl sm:text-4xl font-extrabold mb-4 gradient-text">
           <Settings size={36} className="text-primary" />
-          SaaS Configuration
+          Manage Routes
         </h1>
-        <p className="text-muted-foreground">Manage dynamic routing architectures, pricing algorithms, and active temple database.</p>
+        <p className="text-muted-foreground">Create and manage booking packages, pricing, temple mappings and active status.</p>
       </div>
 
       <div className="max-w-6xl mx-auto">
-        
-        {/* Tabs */}
-        <div className="flex justify-center gap-4 mb-8">
-          <button 
-            onClick={() => { setActiveTab("temples"); setIsEditingTemple(false); }}
-            className={`px-8 py-3 rounded-full font-bold transition-all ${activeTab === "temples" ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
-          >
-            Manage Temples
-          </button>
-          <button 
-            onClick={() => { setActiveTab("routes"); setIsEditingRoute(false); }}
-            className={`px-8 py-3 rounded-full font-bold transition-all ${activeTab === "routes" ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
-          >
-            Manage Routes (Packages)
-          </button>
-        </div>
 
-
-        {/* ================= TEMPLES VIEW ================= */}
-        {activeTab === "temples" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            {/* Editor Form */}
-            <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-2xl p-6 border shadow-sm sticky top-24">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                {isEditingTemple ? <Edit size={20}/> : <Plus size={20}/>}
-                {isEditingTemple ? "Edit Temple" : "Add New Temple"}
-              </h2>
-              
-              <form onSubmit={submitTemple} className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold mb-1 block">Temple Name</label>
-                  <input required placeholder="E.g., Mahakaleshwar" value={templeForm.name || ""} onChange={e => setTempleForm({...templeForm, name: e.target.value})} className="w-full h-12 px-4 rounded-xl border bg-transparent focus:ring-2 focus:ring-primary outline-none" />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Category</label>
-                    <select value={templeForm.category} onChange={e => setTempleForm({...templeForm, category: e.target.value})} className="w-full h-12 px-4 rounded-xl border bg-transparent focus:ring-2 focus:ring-primary outline-none">
-                      <option value="inside" className="text-slate-900">Inside City</option>
-                      <option value="outside" className="text-slate-900">Outside City</option>
-                      <option value="custom" className="text-slate-900">Custom Only</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Display Order</label>
-                    <input type="number" value={templeForm.displayOrder || 0} onChange={e => setTempleForm({...templeForm, displayOrder: Number(e.target.value)})} className="w-full h-12 px-4 rounded-xl border bg-transparent focus:ring-2 focus:ring-primary outline-none" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Custom Add-on Price (₹)</label>
-                    <input type="number" required value={templeForm.price || 0} onChange={e => setTempleForm({...templeForm, price: Number(e.target.value)})} className="w-full h-12 px-4 rounded-xl border bg-transparent focus:ring-2 focus:ring-primary outline-none" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Base Price (₹)</label>
-                    <input type="number" required value={templeForm.basePrice || 0} onChange={e => setTempleForm({...templeForm, basePrice: Number(e.target.value)})} className="w-full h-12 px-4 rounded-xl border bg-transparent focus:ring-2 focus:ring-primary outline-none" />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <input type="checkbox" id="t-active" checked={templeForm.activeStatus} onChange={e => setTempleForm({...templeForm, activeStatus: e.target.checked})} className="w-5 h-5 rounded text-primary"/>
-                  <label htmlFor="t-active" className="font-medium cursor-pointer">Temple is Active / Open</label>
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button type="submit" className="flex-1 bg-primary text-white h-12 rounded-xl font-bold hover:bg-primary/90 transition-colors">
-                    Save Temple
-                  </button>
-                  {isEditingTemple && (
-                    <button type="button" onClick={() => { setIsEditingTemple(false); setTempleForm({ category: "inside", activeStatus: true, price: 0, basePrice: 0, displayOrder: 0 }); }} className="px-5 bg-muted rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
-                      Cancel
-                    </button>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            {/* List */}
-            <div className="lg:col-span-2 space-y-4">
-              {loading ? <p className="text-center py-10">Loading DB...</p> : temples.map(t => (
-                <div key={t._id} className="bg-white dark:bg-slate-900 border rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all hover:border-primary/50">
-                  <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${t.activeStatus ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                      <Building size={20} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg flex items-center gap-2">
-                        {t.name}
-                        {!t.activeStatus && <span className="text-[10px] uppercase tracking-wider bg-red-100 dark:bg-red-900/40 text-red-600 px-2 py-0.5 rounded-full">Inactive</span>}
-                      </h3>
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <span className="capitalize">{t.category} City</span> • ₹{t.price} Add-on
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button onClick={() => editTemple(t)} className="w-10 h-10 rounded-lg flex items-center justify-center bg-muted hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
-                      <Edit size={16} />
-                    </button>
-                    <button onClick={() => deleteTemple(t._id)} className="w-10 h-10 rounded-lg flex items-center justify-center bg-muted hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 transition-colors">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {temples.length === 0 && !loading && (
-                <div className="text-center py-20 border-2 border-dashed rounded-3xl text-muted-foreground">
-                  <Building size={48} className="mx-auto mb-4 opacity-20" />
-                  No temples configured. Add one above.
-                </div>
-              )}
-            </div>
-            
-          </div>
-        )}
-
-        {/* ================= ROUTES VIEW ================= */}
-        {activeTab === "routes" && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
             
             {/* Editor Form */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border shadow-sm sticky top-24">
@@ -366,6 +185,11 @@ export default function AdminConfigDashboard() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="text-sm font-semibold mb-1 block">Description</label>
+                  <textarea rows={2} value={routeForm.description || ""} onChange={e => setRouteForm({...routeForm, description: e.target.value})} className="w-full px-4 py-3 rounded-xl border bg-transparent focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Short description shown on pricing card" />
+                </div>
+
                 <div className="border border-border rounded-xl overflow-hidden bg-muted/20">
                   <div className="bg-muted px-4 py-3 border-b flex justify-between items-center">
                     <label className="text-sm font-bold m-0 text-foreground">Assigned Temples</label>
@@ -398,7 +222,7 @@ export default function AdminConfigDashboard() {
                     {isEditingRoute ? "Deploy Route Update" : "Publish Route"}
                   </button>
                   {isEditingRoute && (
-                    <button type="button" onClick={() => { setIsEditingRoute(false); setRouteForm({ activeStatus: true, totalPrice: 0, category: "inside", templeList: [], displayOrder: 0 }); }} className="px-5 bg-muted rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                    <button type="button" onClick={() => { setIsEditingRoute(false); setRouteForm({ activeStatus: true, totalPrice: 0, category: "inside", description: "", templeList: [], displayOrder: 0 }); }} className="px-5 bg-muted rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
                       Cancel
                     </button>
                   )}
@@ -448,7 +272,6 @@ export default function AdminConfigDashboard() {
             </div>
 
           </div>
-        )}
 
       </div>
     </div>

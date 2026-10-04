@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
 
@@ -70,6 +70,13 @@ const bookingSchema = new mongoose.Schema({
     default: "",
   },
 
+  // Reference to Route document (only for fixed-package bookings)
+  routeId: {
+    type: Schema.Types.ObjectId,
+    ref: "Route",
+    default: null,
+  },
+
   // Custom Booking Fields
   packageType: {
     type: String,
@@ -102,6 +109,49 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "confirmed", "rejected", "cancelled"],
     default: "pending",
+  },
+
+  // Payment Status
+  paymentMethod: {
+    type: String,
+    enum: ["none", "online", "cash"],
+    default: "none",
+  },
+  paymentStatus: {
+    type: String,
+    enum: [
+      "not_required",
+      "payment_pending",
+      "online_order_created",
+      "paid",
+      "cash_pending",
+      "cash_collected",
+      "failed",
+    ],
+    default: "not_required",
+  },
+  paymentAmount: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  paymentCurrency: {
+    type: String,
+    default: "INR",
+  },
+  paymentDueAt: {
+    type: Date,
+  },
+  paidAt: {
+    type: Date,
+  },
+  razorpayOrderId: {
+    type: String,
+    default: "",
+  },
+  razorpayPaymentId: {
+    type: String,
+    default: "",
   },
 
   // Cancellation Info
@@ -146,6 +196,7 @@ bookingSchema.index({ createdAt: -1 });
 
 bookingSchema.index({ date: 1 });
 bookingSchema.index({ phone: 1 });
+bookingSchema.index({ routeId: 1 }, { sparse: true });
 
 export default mongoose.models.Booking ||
   mongoose.model("Booking", bookingSchema);

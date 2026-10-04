@@ -9,6 +9,7 @@ const FROM_NODEMAILER = process.env.MAIL_USER
   : "ankitbuwala@gmail.com";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "ankitbuwala@gmail.com";
 const CONTACT_PHONE = "+91 62631 89202";
+const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 let nodemailerTransporter: nodemailer.Transporter | null = null;
@@ -21,6 +22,8 @@ interface BookingEmailData {
   route: string;
   price: string;
   email: string;
+  paymentStatus?: string;
+  dashboardUrl?: string;
 }
 
 interface BookingCreatedEmailData extends BookingEmailData {
@@ -181,11 +184,14 @@ export const sendPendingEmail = async (data: BookingEmailData) => {
 };
 
 export const sendConfirmationEmail = async (data: BookingEmailData) => {
+  const dashboardUrl = data.dashboardUrl || `${APP_URL}/dashboard/booking`;
+  const paymentStatus = data.paymentStatus || "payment_pending";
+
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-      <h2 style="color: #28a745; text-align: center;">Booking Confirmed</h2>
+      <h2 style="color: #28a745; text-align: center;">Booking Approved</h2>
       <p>Hello <b>${escapeHtml(data.name)}</b>,</p>
-      <p>Your booking with <b>${APP_NAME}</b> has been confirmed.</p>
+      <p>Your booking with <b>${APP_NAME}</b> has been approved by our admin team.</p>
       <div style="background: #f0fff4; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #c6f6d5; border-left: 4px solid #28a745;">
         ${bookingDetailsHtml({
           bookingId: data.bookingId,
@@ -196,14 +202,20 @@ export const sendConfirmationEmail = async (data: BookingEmailData) => {
           route: data.route,
           price: data.price,
         })}
+        ${detailRow("Payment Status", paymentStatus.replace(/_/g, " "))}
       </div>
-      <p>Have a peaceful journey in Ujjain.</p>
+      <p style="color: #333;">Please open your dashboard to choose a payment option for this booking.</p>
+      <p style="text-align: center; margin: 24px 0;">
+        <a href="${escapeHtml(dashboardUrl)}" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          Open Booking Dashboard
+        </a>
+      </p>
       <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
       <p style="font-size: 12px; color: #888; text-align: center;">Emergency Contact: <b>${CONTACT_PHONE}</b></p>
     </div>
   `;
 
-  await sendEmail(data.email, `Booking Confirmed - ${data.bookingId}`, html);
+  await sendEmail(data.email, `Booking Approved - Payment Required - ${data.bookingId}`, html);
 };
 
 export const sendCancellationEmail = async (

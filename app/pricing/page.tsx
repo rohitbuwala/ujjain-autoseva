@@ -4,6 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import SchemaMarkup from "@/components/SchemaMarkup";
+import connectDB from "@/lib/db";
+import PricingConfiguration from "@/models/PricingConfiguration";
+import "@/models/Route";
+import "@/models/Temple";
 
 export const metadata: Metadata = {
   title: "Transparent Pricing | Ujjain Auto Taxi & Temple Tour Rates",
@@ -15,41 +19,70 @@ export const metadata: Metadata = {
   }
 };
 
-const FIVE_TEMPLE_DARSHAN_TEMPLES = [
-  "Sandipani ashram",
-  "Mangalnath mandir",
-  "Kaal Bhairav",
-  "Gadkalika mandir",
-  "Ishthirman ganesh mandir"
-];
+interface PopulatedRoute {
+  _id: string;
+  routeName: string;
+  slug: string;
+  templeList: Array<{ _id: string; name: string }>;
+  totalPrice: number;
+  packageType: string;
+  category: string;
+  description: string;
+  activeStatus: boolean;
+}
 
-const packages = [
-  {
-    name: "Mahakal + City Tour",
-    tag: "Best for Families",
-    price: "₹850",
-    description: "Perfect for a quick spiritual visit",
-    features: [
-      "Rinmukteshwar mahadev",
-      "Chintaman ganesh",
-      "ashtavinayak mandir",
-      "navgrah shani mandir",
-      "Iskcon mandir",
-      "Pickup & drop",
-    ],
-    popular: false,
-    link: "/custom-booking?package=city-tour",
-  },
-  {
-    name: "5 Temple Darshan",
-    tag: "Recommended",
-    price: "₹650",
-    description: "Comfortable Half-Day Tour",
-    features: FIVE_TEMPLE_DARSHAN_TEMPLES,
-    popular: true,
-    link: "/custom-booking?package=five",
-  },
-  {
+interface PopulatedSlot {
+  key: string;
+  route: PopulatedRoute | null;
+  enabled: boolean;
+}
+
+interface PricingCard {
+  id: string;
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  tag?: string;
+  popular?: boolean;
+  link: string;
+}
+
+export default async function PricingPage() {
+  await connectDB();
+
+  const config = await PricingConfiguration.findOne({ key: "pricing-page" })
+    .populate({
+      path: "slots.route",
+      match: { activeStatus: true },
+      populate: { path: "templeList", select: "name _id" },
+    })
+    .lean<{ slots: PopulatedSlot[] } | null>();
+
+  const slots = config?.slots || [];
+
+  const routeCards: PricingCard[] = slots
+    .filter((slot): slot is PopulatedSlot & { route: PopulatedRoute } =>
+      slot.enabled && slot.route !== null
+    )
+    .map((slot) => {
+      const route = slot.route;
+      return {
+        id: slot.key,
+        name: route.routeName,
+        price: `₹${route.totalPrice}`,
+        description: route.description || (route.templeList.length > 0
+          ? `${route.templeList.length} temples for a complete tour`
+          : "Curated temple tour package"),
+        features: route.templeList.length > 0
+          ? route.templeList.map((t) => t.name)
+          : ["Temple tour package"],
+        link: `/custom-booking?route=${route.slug}`,
+      };
+    });
+
+  const fallbackCard: PricingCard = {
+    id: "custom",
     name: "Custom Selection",
     tag: "Most Flexible",
     price: "Custom",
@@ -60,23 +93,35 @@ const packages = [
       "Experienced driver",
       "Hotel pickup & drop",
     ],
-    link: "/custom-booking?package=custom",
-  },
-];
+    popular: false,
+    link: "/custom-booking",
+  };
 
-export default function PricingPage() {
+  const customSlot = slots.find((s) => s.key === "pricing-custom");
+  const showCustomFallback =
+    customSlot?.enabled === true && customSlot?.route === null;
+  const packages = config
+    ? (showCustomFallback ? [...routeCards, fallbackCard] : routeCards)
+    : [fallbackCard];
+
+  const routePrices = routeCards.map((c) => {
+    const match = c.price.match(/[\d,]+/);
+    return match ? parseInt(match[0].replace(/,/g, ""), 10) : 0;
+  });
+  const minPrice = routePrices.length > 0 ? Math.min(...routePrices) : 0;
+
   return (
     <>
-      <SchemaMarkup 
-        schemaType="LocalBusiness" 
+      <SchemaMarkup
+        schemaType="LocalBusiness"
         data={{
           "@context": "https://schema.org",
           "@type": "PriceSpecification",
           "name": "Ujjain Auto Tour Pricing",
           "priceCurrency": "INR",
-          "minPrice": "400",
-          "description": "Starting from ₹400 for city tours."
-        }} 
+          "minPrice": String(minPrice),
+          "description": "Live pricing for active route packages."
+        }}
       />
       <div className="min-h-screen pt-24 pb-20 bg-background">
       <div className="container-custom">
@@ -92,9 +137,9 @@ export default function PricingPage() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
-          {packages.map((pkg, idx) => (
+          {packages.map((pkg) => (
             <Card
-              key={idx}
+              key={pkg.id}
               className={`relative flex flex-col transition-all duration-300 hover:shadow-2xl h-full border-2 ${
                 pkg.popular ? "border-primary shadow-xl scale-[1.02]" : "border-border/60"
               }`}

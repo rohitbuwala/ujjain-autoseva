@@ -40,10 +40,13 @@ export async function POST(req: Request) {
     
     const route = await Route.create({
       routeName: body.routeName,
+      packageType: body.packageType || "",
       templeList: body.templeList || [],
       totalPrice: body.totalPrice,
       category: body.category || "inside",
-      activeStatus: body.activeStatus ?? true
+      description: body.description || "",
+      activeStatus: body.activeStatus ?? true,
+      displayOrder: body.displayOrder ?? 0
     });
 
     const populatedRoute = await Route.findById(route._id).populate("templeList", "name _id");

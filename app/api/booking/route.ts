@@ -72,6 +72,10 @@ export async function POST(req: Request) {
       time,
       price,
       status: "pending",
+      paymentMethod: "none",
+      paymentStatus: "not_required",
+      paymentAmount: service.price,
+      paymentCurrency: "INR",
       packageName: packageName ? sanitizeInput(packageName) : sanitizeInput(drop),
       selectedTemples: Array.isArray(selectedTemples)
         ? selectedTemples.map(t => sanitizeInput(t))
