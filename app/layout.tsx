@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import FloatingContact from "@/components/FloatingContact";
 import SchemaMarkup from "@/components/SchemaMarkup";
 import { SITE_CONFIG } from "@/lib/constants";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
   title: {
@@ -75,6 +76,7 @@ export default function RootLayout({
 
         </Providers>
 
+        <Analytics />
       </body>
     </html>
   );
