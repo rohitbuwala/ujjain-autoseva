@@ -46,6 +46,9 @@ export async function POST(req: Request) {
         status: "confirmed",
         paymentStatus: "payment_pending",
         paymentMethod: "none",
+        paidAt: null,
+        razorpayOrderId: { $in: ["", null] },
+        razorpayPaymentId: { $in: ["", null] },
       },
       {
         $set: {
@@ -100,6 +103,9 @@ export async function POST(req: Request) {
         status: "confirmed",
         paymentStatus: "payment_pending",
         paymentMethod: "none",
+        paidAt: null,
+        razorpayOrderId: { $in: ["", null] },
+        razorpayPaymentId: { $in: ["", null] },
       },
       {
         $set: {

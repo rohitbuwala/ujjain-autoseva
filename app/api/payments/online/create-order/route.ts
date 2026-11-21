@@ -4,330 +4,191 @@ import { z } from "zod";
 
 import { requireSession } from "@/lib/auth-utils";
 import { errorResponse, successResponse } from "@/lib/api-utils";
+import {
+  bookingMinorUnits,
+  linkReservedOrder,
+  orderMatchesBooking,
+  RAZORPAY_ORDER_ID,
+  RAZORPAY_RESERVATION_PREFIX,
+  razorpayPaymentSchema,
+  recordCapturedPayment,
+  verifiedBookingResponse,
+  type PaymentBooking,
+} from "@/lib/booking-payments";
 import connectDB from "@/lib/db";
-import Booking from "@/models/Booking";
 import {
   buildRazorpayReceipt,
   createRazorpayOrder,
   fetchRazorpayOrder,
-  RazorpayOrderSummary,
+  fetchRazorpayOrderPayments,
+  findRazorpayOrderByReceipt,
+  type RazorpayOrderSummary,
 } from "@/lib/razorpay";
+import Booking from "@/models/Booking";
 
-const PENDING_ORDER_PREFIX = "__razorpay_pending__";
-const FINALIZE_RETRY_COUNT = 3;
-const RECOVERY_RETRY_COUNT = 3;
+const createOrderSchema = z.object({
+  bookingId: z.string().min(1).max(128).optional(),
+  id: z.string().min(1).max(128).optional(),
+}).refine((data) => Boolean(data.bookingId || data.id));
 
-const createOrderSchema = z
-  .object({
-    bookingId: z.string().min(1).optional(),
-    id: z.string().min(1).optional(),
-  })
-  .refine((data) => Boolean(data.bookingId || data.id), {
-    message: "Booking ID is required",
-  });
-
-function isPendingMarker(value?: string) {
-  return Boolean(value && value.startsWith(PENDING_ORDER_PREFIX));
+function reconciliationRequired() {
+  return errorResponse("Payment status could not be confirmed. Check again before trying to pay.", 409);
 }
 
-function buildPendingMarker() {
-  return `${PENDING_ORDER_PREFIX}:${Date.now()}:${randomUUID()}`;
-}
+async function checkoutResponse(booking: PaymentBooking, order: RazorpayOrderSummary) {
+  if (order.id !== booking.razorpayOrderId || !orderMatchesBooking(order, booking)) {
+    return reconciliationRequired();
+  }
 
-async function retryBookingUpdate<T>(
-  attempt: () => Promise<T>,
-  retries: number
-) {
-  let lastError: unknown;
-
-  for (let index = 0; index < retries; index += 1) {
-    try {
-      return await attempt();
-    } catch (error) {
-      lastError = error;
+  if (order.status !== "created" || order.amount_paid !== 0) {
+    const parsed = z.array(razorpayPaymentSchema).safeParse(await fetchRazorpayOrderPayments(order.id));
+    if (!parsed.success || parsed.data.some((attempt) => attempt.order_id !== order.id)) {
+      return reconciliationRequired();
+    }
+    const captures = parsed.data.filter((attempt) => attempt.captured && attempt.status === "captured");
+    if (captures.length === 1) {
+      const result = await recordCapturedPayment(booking, captures[0]);
+      return result
+        ? successResponse(verifiedBookingResponse(result.booking, "Payment already recorded"))
+        : reconciliationRequired();
+    }
+    // An authorization, an incomplete provider response, or a paid order is unsafe to reopen.
+    if (order.status !== "attempted" || order.amount_paid !== 0 || !parsed.data.length
+        || parsed.data.some((attempt) => attempt.status !== "failed" || attempt.captured)) {
+      return reconciliationRequired();
     }
   }
 
-  throw lastError;
+  const payable = await Booking.findOne({
+    _id: booking._id,
+    userId: booking.userId,
+    status: "confirmed",
+    paymentMethod: "online",
+    paymentStatus: { $in: ["online_order_created", "failed"] },
+    razorpayOrderId: order.id,
+    paymentAmount: booking.paymentAmount,
+    paymentCurrency: booking.paymentCurrency,
+    paidAt: null,
+  }).lean();
+  if (!payable) return errorResponse("Booking is no longer eligible for checkout", 409);
+
+  return successResponse({
+    message: "Razorpay order ready",
+    bookingId: booking.bookingId,
+    order: { id: order.id, amount: order.amount, currency: order.currency },
+  });
 }
 
-async function finalizeRazorpayBooking(params: {
-  bookingId: mongoose.Types.ObjectId;
-  userId: string;
-  pendingMarker: string;
-  orderId: string;
-}) {
-  return retryBookingUpdate(
-    () =>
-      Booking.findOneAndUpdate(
-        {
-          _id: params.bookingId,
-          userId: params.userId,
-          paymentMethod: "online",
-          paymentStatus: "online_order_created",
-          razorpayOrderId: params.pendingMarker,
-        },
-        {
-          $set: {
-            razorpayOrderId: params.orderId,
-          },
-        },
-        { new: true }
-      ).lean(),
-    FINALIZE_RETRY_COUNT
-  );
-}
+async function resolveOrder(booking: PaymentBooking, mayCreate: boolean) {
+  if (booking.status !== "confirmed" || booking.paymentMethod !== "online") {
+    return errorResponse("Booking is no longer eligible for checkout", 409);
+  }
+  if (booking.paymentStatus === "paid") {
+    return successResponse(verifiedBookingResponse(booking, "Payment already recorded"));
+  }
+  if (booking.paymentStatus !== "online_order_created" && booking.paymentStatus !== "failed") {
+    return errorResponse("Booking is not eligible for online payment", 409);
+  }
 
-async function recoverRazorpayReservation(params: {
-  bookingId: mongoose.Types.ObjectId;
-  userId: string;
-  pendingMarker: string;
-}) {
-  return retryBookingUpdate(
-    () =>
-      Booking.findOneAndUpdate(
-        {
-          _id: params.bookingId,
-          userId: params.userId,
-          paymentMethod: "online",
-          paymentStatus: "online_order_created",
-          razorpayOrderId: params.pendingMarker,
-        },
-        {
-          $set: {
-            paymentMethod: "none",
-            paymentStatus: "payment_pending",
-            razorpayOrderId: "",
-          },
-        }
-      ),
-    RECOVERY_RETRY_COUNT
-  );
-}
+  const storedId = booking.razorpayOrderId || "";
+  if (RAZORPAY_ORDER_ID.test(storedId)) {
+    return checkoutResponse(booking, await fetchRazorpayOrder(storedId));
+  }
+  if (!storedId.startsWith(RAZORPAY_RESERVATION_PREFIX)) return reconciliationRequired();
 
-function asOrderResponse(order: RazorpayOrderSummary) {
-  return {
-    id: order.id,
-    amount: order.amount,
-    currency: order.currency,
-    receipt: order.receipt || null,
-    status: order.status || null,
-    attempts: order.attempts || 0,
-    notes: order.notes || {},
-    createdAt: order.created_at || null,
-  };
+  if (!mayCreate) {
+    await Booking.updateOne({
+      _id: booking._id,
+      razorpayOrderId: storedId,
+      reconciliationNextAt: null,
+      reconciliationNeedsReview: { $ne: true },
+    }, { $set: { reconciliationNextAt: new Date() } }).catch(() => {
+      console.error("Could not schedule payment reservation recovery");
+    });
+  }
+
+  const receipt = buildRazorpayReceipt(booking.bookingId);
+  let order = await findRazorpayOrderByReceipt(receipt);
+  if (!order) {
+    // An existing reservation may represent a provider request with an unknown outcome.
+    if (!mayCreate) return reconciliationRequired();
+
+    const active = await Booking.findOne({
+      _id: booking._id,
+      userId: booking.userId,
+      status: "confirmed",
+      paymentStatus: "online_order_created",
+      paymentMethod: "online",
+      razorpayOrderId: storedId,
+      paymentAmount: booking.paymentAmount,
+      paymentCurrency: booking.paymentCurrency,
+    }).lean();
+    if (!active) return errorResponse("Booking is no longer eligible for checkout", 409);
+
+    order = await createRazorpayOrder({
+      amount: active.paymentAmount,
+      currency: active.paymentCurrency,
+      receipt,
+      notes: { bookingId: booking.bookingId, bookingMongoId: String(booking._id), userId: booking.userId },
+    });
+  }
+
+  // Keep the order associated even if a concurrent cancellation won before this write.
+  const linked = await linkReservedOrder(booking, order);
+  if (!linked) return reconciliationRequired();
+  if (linked.status !== "confirmed") return errorResponse("Booking is no longer eligible for checkout", 409);
+  if (linked.paymentStatus === "paid") {
+    return successResponse(verifiedBookingResponse(linked, "Payment already recorded"));
+  }
+  return checkoutResponse(linked, order);
 }
 
 export async function POST(req: Request) {
   const sessionResult = await requireSession();
-
-  if (sessionResult.response) {
-    return sessionResult.response;
-  }
-
-  const session = sessionResult.session;
+  if (sessionResult.response) return sessionResult.response;
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const parsed = createOrderSchema.safeParse(body);
+    const parsed = createOrderSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) return errorResponse("Booking ID is required", 400);
 
-    if (!parsed.success) {
-      return errorResponse(parsed.error.issues[0]?.message || "Invalid request", 400);
-    }
-
-    const selector = parsed.data.bookingId || parsed.data.id || "";
-
+    const id = parsed.data.bookingId || parsed.data.id;
     await connectDB();
+    const selector = mongoose.isObjectIdOrHexString(id) ? { _id: id } : { bookingId: id };
+    const booking = await Booking.findOne(selector).lean();
+    if (!booking) return errorResponse("Booking not found", 404);
+    if (booking.userId !== sessionResult.session.user.id) return errorResponse("Forbidden", 403);
+    if (booking.status !== "confirmed") return errorResponse("Only confirmed bookings can be paid online", 409);
+    if (bookingMinorUnits(booking) === null) return errorResponse("Invalid booking amount or currency", 409);
+    if (booking.paymentMethod === "online") return await resolveOrder(booking, false);
 
-    const bookingFilter = mongoose.isValidObjectId(selector)
-      ? { _id: selector }
-      : { bookingId: selector };
-
-    const booking = await Booking.findOne(bookingFilter).lean();
-
-    if (!booking) {
-      return errorResponse("Booking not found", 404);
-    }
-
-    if (booking.userId !== session.user.id) {
-      return errorResponse("Forbidden", 403);
-    }
-
-    if (booking.status !== "confirmed") {
-      return errorResponse("Order can only be created for confirmed bookings", 409);
-    }
-
-    if (booking.paymentStatus !== "payment_pending" || booking.paymentMethod !== "none") {
-      if (
-        booking.paymentMethod === "online" &&
-        booking.paymentStatus === "online_order_created" &&
-        booking.razorpayOrderId &&
-        !isPendingMarker(booking.razorpayOrderId)
-      ) {
-        try {
-          const existingOrder = await fetchRazorpayOrder(booking.razorpayOrderId);
-          return successResponse({
-            message: "Existing Razorpay order returned",
-            bookingId: booking.bookingId,
-            order: asOrderResponse(existingOrder),
-          });
-        } catch (error) {
-          console.error("Razorpay fetch error:", error);
-          return errorResponse("Existing Razorpay order could not be loaded", 409);
-        }
-      }
-
-      if (
-        booking.paymentMethod === "online" &&
-        booking.paymentStatus === "online_order_created" &&
-        isPendingMarker(booking.razorpayOrderId)
-      ) {
-        return errorResponse("Razorpay order creation is already in progress", 409);
-      }
-
-      return errorResponse("Booking is not eligible for online payment", 409);
-    }
-
-    const paymentAmount = typeof booking.paymentAmount === "number" ? booking.paymentAmount : 0;
-
-    if (paymentAmount <= 0) {
-      return errorResponse("Invalid payment amount", 409);
-    }
-
-    const currency = booking.paymentCurrency || "INR";
-    const pendingMarker = buildPendingMarker();
-
-    const reservedBooking = await Booking.findOneAndUpdate(
+    const filter = { _id: booking._id, userId: booking.userId };
+    const reserved = await Booking.findOneAndUpdate(
       {
-        _id: booking._id,
-        userId: session.user.id,
+        ...filter,
         status: "confirmed",
         paymentStatus: "payment_pending",
         paymentMethod: "none",
-        $or: [
-          { razorpayOrderId: { $exists: false } },
-          { razorpayOrderId: "" },
-          { razorpayOrderId: null },
-        ],
+        paymentAmount: booking.paymentAmount,
+        paymentCurrency: booking.paymentCurrency,
+        paymentDueAt: booking.paymentDueAt ?? null,
+        paidAt: null,
+        razorpayOrderId: { $in: ["", null] },
+        razorpayPaymentId: { $in: ["", null] },
       },
-      {
-        $set: {
-          paymentMethod: "online",
-          paymentStatus: "online_order_created",
-          razorpayOrderId: pendingMarker,
-        },
-      },
-      { new: true }
+      { $set: {
+        paymentMethod: "online",
+        paymentStatus: "online_order_created",
+        razorpayOrderId: `${RAZORPAY_RESERVATION_PREFIX}${Date.now()}:${randomUUID()}`,
+        reconciliationNextAt: new Date(Date.now() + 60_000),
+      } },
+      { returnDocument: "after" }
     ).lean();
+    if (reserved) return await resolveOrder(reserved, true);
 
-    if (!reservedBooking) {
-      const latestBooking = await Booking.findById(booking._id).lean();
-
-      if (!latestBooking) {
-        return errorResponse("Booking not found", 404);
-      }
-
-      if (latestBooking.userId !== session.user.id) {
-        return errorResponse("Forbidden", 403);
-      }
-
-      if (
-        latestBooking.paymentMethod === "online" &&
-        latestBooking.paymentStatus === "online_order_created" &&
-        latestBooking.razorpayOrderId &&
-        !isPendingMarker(latestBooking.razorpayOrderId)
-      ) {
-        try {
-          const existingOrder = await fetchRazorpayOrder(latestBooking.razorpayOrderId);
-          return successResponse({
-            message: "Existing Razorpay order returned",
-            bookingId: latestBooking.bookingId,
-            order: asOrderResponse(existingOrder),
-          });
-        } catch (error) {
-          console.error("Razorpay fetch error:", error);
-          return errorResponse("Existing Razorpay order could not be loaded", 409);
-        }
-      }
-
-      if (
-        latestBooking.paymentMethod === "online" &&
-        latestBooking.paymentStatus === "online_order_created" &&
-        isPendingMarker(latestBooking.razorpayOrderId)
-      ) {
-        return errorResponse("Razorpay order creation is already in progress", 409);
-      }
-
-      return errorResponse("Booking is not eligible for online payment", 409);
-    }
-
-    const receipt = buildRazorpayReceipt(String(reservedBooking.bookingId || reservedBooking._id));
-
-    try {
-      const order = await createRazorpayOrder({
-        amount: paymentAmount,
-        currency,
-        receipt,
-        notes: {
-          bookingId: String(reservedBooking.bookingId),
-          bookingMongoId: String(reservedBooking._id),
-          userId: String(session.user.id),
-        },
-      });
-
-      const finalizedBooking = await finalizeRazorpayBooking({
-        bookingId: reservedBooking._id,
-        userId: String(session.user.id),
-        pendingMarker,
-        orderId: order.id,
-      });
-
-      if (!finalizedBooking) {
-        console.error("Failed to persist Razorpay order id after creation", {
-          bookingId: reservedBooking.bookingId,
-          orderId: order.id,
-        });
-
-        try {
-          await recoverRazorpayReservation({
-            bookingId: reservedBooking._id,
-            userId: String(session.user.id),
-            pendingMarker,
-          });
-        } catch (recoveryError) {
-          console.error("Failed to recover Razorpay reservation after finalize failure", {
-            bookingId: reservedBooking.bookingId,
-            orderId: order.id,
-            recoveryError,
-          });
-        }
-
-        return errorResponse("Razorpay order created but could not be attached to booking", 500);
-      }
-
-      return successResponse({
-        message: "Razorpay order created successfully",
-        bookingId: finalizedBooking.bookingId,
-        order: asOrderResponse(order),
-      });
-    } catch (error) {
-      await recoverRazorpayReservation({
-        bookingId: reservedBooking._id,
-        userId: String(session.user.id),
-        pendingMarker,
-      }).catch((revertError) => {
-        console.error("Failed to revert booking after Razorpay error:", {
-          bookingId: reservedBooking.bookingId,
-          orderId: null,
-          revertError,
-        });
-      });
-
-      console.error("Razorpay create order error:", error);
-      return errorResponse("Failed to create Razorpay order", 502);
-    }
-  } catch (error) {
-    console.error("Create Order Error:", error);
-    return errorResponse("Server Error", 500);
+    const latest = await Booking.findOne(filter).lean();
+    return latest ? await resolveOrder(latest, false) : errorResponse("Booking not found", 404);
+  } catch {
+    console.error("Razorpay checkout preparation failed");
+    return errorResponse("Could not confirm checkout status. Please check again before paying.", 502);
   }
 }

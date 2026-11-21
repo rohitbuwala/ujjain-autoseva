@@ -1,207 +1,95 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import mongoose from "mongoose";
+import { z } from "zod";
 
 import { errorResponse, successResponse } from "@/lib/api-utils";
+import {
+  linkReservedOrder,
+  matchesRazorpaySignature,
+  paymentMatchesBooking,
+  RAZORPAY_RESERVATION_PREFIX,
+  razorpayPaymentSchema,
+  recordCapturedPayment,
+  recordFailedAttempt,
+  reservedOrderMatchesBooking,
+} from "@/lib/booking-payments";
 import connectDB from "@/lib/db";
-import { normalizeCurrency, toRazorpayMinorUnits } from "@/lib/razorpay";
+import { fetchRazorpayOrder } from "@/lib/razorpay";
+import { enqueueRefundWebhook, isRefundWebhookEvent, parseRefundWebhook } from "@/lib/refund-webhook-inbox";
+import { RefundError } from "@/lib/refunds";
 import Booking from "@/models/Booking";
 
-interface RazorpayPaymentEntity {
-  id: string;
-  order_id?: string;
-  amount: number;
-  currency: string;
-  status: string;
-  captured?: boolean;
-}
-
-interface RazorpayWebhookPayload {
-  event?: string;
-  payload?: {
-    payment?: {
-      entity?: RazorpayPaymentEntity;
-    };
-  };
-}
-
-function getWebhookSecret() {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-
-  if (!secret) {
-    throw new Error("Razorpay webhook is not configured");
-  }
-
-  return secret;
-}
-
-function verifyWebhookSignature(body: string, signature: string) {
-  const expectedSignature = createHmac("sha256", getWebhookSecret())
-    .update(body)
-    .digest("hex");
-
-  const expectedBuffer = Buffer.from(expectedSignature, "hex");
-  const receivedBuffer = Buffer.from(signature, "hex");
-
-  return (
-    expectedBuffer.length === receivedBuffer.length &&
-    timingSafeEqual(expectedBuffer, receivedBuffer)
-  );
-}
-
-function paymentMatchesBooking(payment: RazorpayPaymentEntity, booking: {
-  razorpayOrderId?: string;
-  paymentAmount?: number;
-  paymentCurrency?: string;
-}) {
-  const expectedAmount = typeof booking.paymentAmount === "number" ? booking.paymentAmount : 0;
-
-  return (
-    payment.order_id === booking.razorpayOrderId &&
-    payment.amount === toRazorpayMinorUnits(expectedAmount) &&
-    normalizeCurrency(payment.currency) === normalizeCurrency(booking.paymentCurrency || "INR")
-  );
-}
+const webhookSchema = z.object({ event: z.string().min(1), payload: z.unknown() });
+const paymentPayloadSchema = z.object({ payment: z.object({ entity: razorpayPaymentSchema }) });
 
 export async function POST(req: Request) {
   try {
     const signature = req.headers.get("x-razorpay-signature");
+    if (!signature) return errorResponse("Missing Razorpay webhook signature", 400);
 
-    if (!signature) {
-      return errorResponse("Missing Razorpay webhook signature", 400);
-    }
-
-    const rawBody = await req.text();
-
-    if (!verifyWebhookSignature(rawBody, signature)) {
+    const rawBody = Buffer.from(await req.arrayBuffer());
+    if (!matchesRazorpaySignature(rawBody, signature, process.env.RAZORPAY_WEBHOOK_SECRET)) {
       return errorResponse("Invalid Razorpay webhook signature", 400);
     }
 
-    const body = JSON.parse(rawBody) as RazorpayWebhookPayload;
-    const event = body.event;
+    let json: unknown;
+    try {
+      json = JSON.parse(rawBody.toString("utf8"));
+    } catch {
+      return errorResponse("Invalid Razorpay webhook payload", 400);
+    }
+    const envelope = webhookSchema.safeParse(json);
+    if (!envelope.success) return errorResponse("Invalid Razorpay webhook payload", 400);
 
+    const { event, payload } = envelope.data;
+    if (isRefundWebhookEvent(event)) {
+      const record = parseRefundWebhook(json, req.headers.get("x-razorpay-event-id"), rawBody);
+      await connectDB();
+      await enqueueRefundWebhook(record);
+      return successResponse({ message: "Refund webhook recorded" });
+    }
     if (event !== "payment.captured" && event !== "payment.failed") {
       return successResponse({ message: "Webhook event ignored" });
     }
 
-    const payment = body.payload?.payment?.entity;
-
-    if (!payment?.id || !payment.order_id) {
-      return errorResponse("Invalid Razorpay webhook payload", 400);
+    const parsed = paymentPayloadSchema.safeParse(payload);
+    if (!parsed.success) return errorResponse("Invalid Razorpay payment payload", 400);
+    const payment = parsed.data.payment.entity;
+    if (event === "payment.captured" && (payment.status !== "captured" || !payment.captured)) {
+      return errorResponse("Invalid Razorpay capture payload", 400);
+    }
+    if (event === "payment.failed" && (payment.status !== "failed" || payment.captured || !payment.created_at)) {
+      return errorResponse("Invalid Razorpay failure payload", 400);
     }
 
     await connectDB();
-
-    const booking = await Booking.findOne({
-      razorpayOrderId: payment.order_id,
-      paymentMethod: "online",
-    }).lean();
-
+    let booking = await Booking.findOne({ razorpayOrderId: payment.order_id, paymentMethod: "online" }).lean();
     if (!booking) {
-      return errorResponse("Booking not found for Razorpay order", 404);
-    }
-
-    if (!paymentMatchesBooking(payment, booking)) {
-      return errorResponse("Razorpay payment does not match booking", 409);
-    }
-
-    if (event === "payment.captured") {
-      if (payment.status !== "captured" || payment.captured !== true) {
-        return errorResponse("Razorpay payment is not captured", 409);
-      }
-
-      if (
-        booking.paymentStatus === "paid" &&
-        booking.razorpayPaymentId === payment.id
-      ) {
-        return successResponse({ message: "Payment already marked paid" });
-      }
-
-      const updatedBooking = await Booking.findOneAndUpdate(
-        {
-          _id: booking._id,
-          status: "confirmed",
-          paymentMethod: "online",
-          paymentStatus: "online_order_created",
-          razorpayOrderId: payment.order_id,
-          $or: [
-            { razorpayPaymentId: { $exists: false } },
-            { razorpayPaymentId: "" },
-            { razorpayPaymentId: null },
-          ],
-        },
-        {
-          $set: {
-            paymentStatus: "paid",
-            paymentMethod: "online",
-            razorpayPaymentId: payment.id,
-            paidAt: new Date(),
-          },
-        },
-        { new: true }
-      ).lean();
-
-      if (!updatedBooking) {
-        const latestBooking = await Booking.findById(booking._id).lean();
-
-        if (
-          latestBooking?.paymentStatus === "paid" &&
-          latestBooking.razorpayPaymentId === payment.id
-        ) {
-          return successResponse({ message: "Payment already marked paid" });
+      // A webhook can arrive before the order creation request attaches the order ID.
+      const order = await fetchRazorpayOrder(payment.order_id);
+      const bookingId = order.notes?.bookingMongoId;
+      if (order.id === payment.order_id && mongoose.isObjectIdOrHexString(bookingId)) {
+        const reserved = await Booking.findById(bookingId).lean();
+        if (reserved?.razorpayOrderId?.startsWith(RAZORPAY_RESERVATION_PREFIX)
+            && reservedOrderMatchesBooking(order, reserved)
+            && payment.amount === order.amount && payment.currency === order.currency) {
+          booking = await linkReservedOrder(reserved, order);
         }
-
-        return errorResponse("Unable to mark payment paid", 409);
       }
+    }
+    if (!booking) return errorResponse("Booking not found for Razorpay order", 404);
+    if (!paymentMatchesBooking(payment, booking)) return errorResponse("Payment does not match booking", 409);
 
-      return successResponse({ message: "Payment marked paid" });
+    if (event === "payment.failed") {
+      if (payment.created_at !== undefined) await recordFailedAttempt(booking, { ...payment, created_at: payment.created_at });
+      return successResponse({ message: "Payment attempt handled" });
     }
 
-    if (
-      booking.paymentStatus === "paid" ||
-      booking.paymentStatus === "cash_collected"
-    ) {
-      return successResponse({ message: "Paid booking ignored" });
-    }
-
-    if (
-      booking.paymentStatus === "failed" &&
-      booking.razorpayPaymentId === payment.id
-    ) {
-      return successResponse({ message: "Payment already marked failed" });
-    }
-
-    const updatedBooking = await Booking.findOneAndUpdate(
-      {
-        _id: booking._id,
-        status: "confirmed",
-        paymentMethod: "online",
-        paymentStatus: "online_order_created",
-        razorpayOrderId: payment.order_id,
-      },
-      {
-        $set: {
-          paymentStatus: "failed",
-          razorpayPaymentId: payment.id,
-        },
-      },
-      { new: true }
-    ).lean();
-
-    if (!updatedBooking) {
-      const latestBooking = await Booking.findById(booking._id).lean();
-
-      if (
-        latestBooking?.paymentStatus === "failed" &&
-        latestBooking.razorpayPaymentId === payment.id
-      ) {
-        return successResponse({ message: "Payment already marked failed" });
-      }
-
-      return errorResponse("Unable to mark payment failed", 409);
-    }
-
-    return successResponse({ message: "Payment marked failed" });
+    const result = await recordCapturedPayment(booking, payment);
+    if (!result) return errorResponse("Unable to record captured payment", 409);
+    return successResponse({ message: result.recorded ? "Payment recorded" : "Payment already recorded" });
   } catch (error) {
-    console.error("Razorpay Webhook Error:", error);
+    if (error instanceof RefundError) return errorResponse(error.message, error.status);
+    console.error("Razorpay webhook processing failed");
     return errorResponse("Server Error", 500);
   }
 }

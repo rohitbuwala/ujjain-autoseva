@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import { bookingEvent, publicBooking } from "@/lib/booking-notification-events";
 import { getServerSession } from "next-auth";
 import { randomBytes } from "crypto";
 
@@ -58,7 +60,11 @@ export async function POST(req: Request) {
     const price = String(service.price);
     const route = `${sanitizeInput(pickup)} -> ${sanitizeInput(drop)}`;
 
+    const identity = { _id: new mongoose.Types.ObjectId(), bookingId, userId: session.user.id };
+    const notificationOutbox = await bookingEvent(identity, "created");
     const booking = await Booking.create({
+      _id: identity._id,
+      notificationOutbox,
       bookingId,
       userId: session.user.id,
       name: sanitizeInput(name),
@@ -97,7 +103,7 @@ export async function POST(req: Request) {
       paymentMethod: typeof paymentMethod === "string" ? paymentMethod : undefined,
     }).catch(e => console.error("Could not send booking emails:", e));
 
-    return successResponse(booking, 201);
+    return successResponse(publicBooking(booking.toObject()), 201);
   } catch (err) {
     console.error("Booking Error:", err);
     return errorResponse("Server Error", 500);

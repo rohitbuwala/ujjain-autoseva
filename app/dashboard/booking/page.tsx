@@ -1,5 +1,7 @@
 "use client";
 
+import RefundPanel from "@/components/RefundPanel";
+
 import { useEffect, useState } from "react";
 import { X, AlertTriangle, CreditCard, Banknote, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -83,6 +85,7 @@ interface Booking {
   paymentAmount?: number;
   paymentCurrency?: string;
   paymentDueAt?: string | null;
+  paymentReviewRequired?: boolean;
   paidAt?: string | null;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
@@ -253,10 +256,11 @@ export default function UserBookings() {
       });
 
       if (res.ok) {
+        const result = await res.json().catch(() => null);
         setBookings(prev =>
           prev.map(b =>
             b._id === cancelModal.booking?._id
-              ? { ...b, status: "cancelled" }
+              ? { ...b, status: "cancelled", paymentReviewRequired: result?.data?.paymentReviewRequired ?? b.paymentReviewRequired }
               : b
           )
         );
@@ -299,6 +303,23 @@ export default function UserBookings() {
 
       if (!res.ok) {
         clearOnlinePaymentState(booking._id, data?.error || data?.message || "Failed to create Razorpay order");
+        return;
+      }
+
+      if (data?.data?.paymentStatus === "paid") {
+        const payment = data.data;
+        setBookings((previous) => previous.map((item) => item._id === booking._id ? {
+          ...item,
+          paymentStatus: "paid",
+          paymentMethod: "online",
+          paidAt: payment.paidAt,
+          razorpayOrderId: payment.razorpayOrderId,
+          razorpayPaymentId: payment.razorpayPaymentId,
+          paymentReviewRequired: payment.paymentReviewRequired,
+        } : item));
+        await refreshBookings().catch(() => false);
+        showToast("success", payment.message || "Payment already recorded");
+        clearOnlinePaymentState(booking._id);
         return;
       }
 
@@ -376,7 +397,8 @@ export default function UserBookings() {
                       paymentStatus: "paid",
                       razorpayOrderId: response.razorpay_order_id,
                       razorpayPaymentId: response.razorpay_payment_id,
-                      paidAt: new Date().toISOString(),
+                      paidAt: verifyData?.data?.paidAt ?? item.paidAt,
+                      paymentReviewRequired: verifyData?.data?.paymentReviewRequired === true,
                     }
                   : item
               )
@@ -460,6 +482,10 @@ export default function UserBookings() {
   return (
 
     <div className="p-4 md:p-6 space-y-6">
+
+      <RefundPanel bookings={bookings.filter((booking) => booking.status === "cancelled" &&
+        booking.paymentMethod === "online" && booking.paymentStatus === "paid" && booking.paidAt && booking.razorpayPaymentId)
+        .map((booking) => ({ id: booking._id, code: booking.bookingId || booking._id }))} />
 
       {toast && (
         <div
@@ -662,7 +688,8 @@ export default function UserBookings() {
                     </div>
                   )}
 
-                  {b.paymentStatus === "payment_pending" && (
+                  {b.status === "confirmed" && (b.paymentStatus === "payment_pending" ||
+                    (b.paymentMethod === "online" && (b.paymentStatus === "online_order_created" || b.paymentStatus === "failed"))) && (
                     <div className="pt-2 space-y-2">
                       <Button
                         variant="outline"
@@ -676,9 +703,10 @@ export default function UserBookings() {
                         ) : (
                           <CreditCard size={16} className="mr-2" />
                         )}
-                        {onlineProcessingBookingId === b._id ? "Opening Checkout..." : "Pay Online"}
+                        {onlineProcessingBookingId === b._id ? "Checking Payment..." :
+                          b.paymentStatus === "payment_pending" ? "Pay Online" : "Resume Online Payment"}
                       </Button>
-                      <Button
+                      {b.paymentStatus === "payment_pending" && <Button
                         variant="outline"
                         size="sm"
                         className="w-full"
@@ -687,7 +715,7 @@ export default function UserBookings() {
                       >
                         <Banknote size={16} className="mr-2" />
                         {cashSelectingBookingId === b._id ? "Processing..." : "Pay Cash"}
-                      </Button>
+                      </Button>}
                       {cashPaymentError.bookingId === b._id && cashPaymentError.message && (
                         <p className="text-xs text-red-500">
                           {cashPaymentError.message}
@@ -707,13 +735,17 @@ export default function UserBookings() {
                     </p>
                   )}
 
-                  {b.paymentStatus === "paid" && (
+                  {b.paymentReviewRequired && (
+                    <p className="text-xs text-muted-foreground">Payment received and under review. Contact support for an update.</p>
+                  )}
+
+                  {b.paymentStatus === "paid" && !b.paymentReviewRequired && (
                     <p className="text-xs text-green-600 dark:text-green-400">
                       Payment completed successfully.
                     </p>
                   )}
 
-                  {b.paymentStatus === "failed" && (
+                  {b.paymentStatus === "failed" && b.status === "confirmed" && (
                     <p className="text-xs text-red-500">
                       Payment failed. You can retry when ready.
                     </p>

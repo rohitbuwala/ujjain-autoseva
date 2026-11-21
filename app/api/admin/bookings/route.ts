@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { successResponse, errorResponse } from "@/lib/api-utils";
+import { RAZORPAY_ORDER_ID } from "@/lib/booking-payments";
 
 function withPaymentDefaults(booking: Record<string, unknown>) {
   return {
@@ -16,7 +17,8 @@ function withPaymentDefaults(booking: Record<string, unknown>) {
     paymentCurrency: booking.paymentCurrency || "INR",
     paymentDueAt: booking.paymentDueAt || null,
     paidAt: booking.paidAt || null,
-    razorpayOrderId: booking.razorpayOrderId || "",
+    razorpayOrderId: typeof booking.razorpayOrderId === "string" && RAZORPAY_ORDER_ID.test(booking.razorpayOrderId)
+      ? booking.razorpayOrderId : "",
     razorpayPaymentId: booking.razorpayPaymentId || "",
   };
 }

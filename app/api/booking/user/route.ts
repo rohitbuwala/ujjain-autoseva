@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/lib/db";
 import Booking from "@/models/Booking";
 import { successResponse, errorResponse } from "@/lib/api-utils";
+import { RAZORPAY_ORDER_ID } from "@/lib/booking-payments";
 
 function getString(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -55,7 +56,8 @@ function normalizeBooking(booking: Record<string, unknown>) {
     paymentCurrency: booking.paymentCurrency ?? "INR",
     paymentDueAt: booking.paymentDueAt ?? null,
     paidAt: booking.paidAt ?? null,
-    razorpayOrderId: booking.razorpayOrderId ?? "",
+    razorpayOrderId: typeof booking.razorpayOrderId === "string" && RAZORPAY_ORDER_ID.test(booking.razorpayOrderId)
+      ? booking.razorpayOrderId : "",
     razorpayPaymentId: booking.razorpayPaymentId ?? "",
     packageType: booking.packageType ?? null,
     packageName: booking.packageName ?? null,

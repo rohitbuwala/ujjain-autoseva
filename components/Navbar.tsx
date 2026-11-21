@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, LayoutDashboard, Shield } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import NotificationInbox from "@/components/NotificationInbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const notificationUserId = status === "authenticated" ? session?.user?.id : undefined;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
@@ -47,26 +49,26 @@ export default function Navbar() {
         </div>
 
         {/* DESKTOP NAV */}
-        <div className="hidden md:flex items-center gap-6">
-          <div className="flex items-center gap-1">
-            {navLinks.map((nav) => (
-              <Button
-                key={nav.title}
-                variant="ghost"
-                onClick={() => router.push(nav.link)}
-                className={`text-sm font-medium ${pathname === nav.link
-                  ? "text-primary bg-accent/50"
-                  : "text-muted-foreground hover:text-primary"
-                  }`}
-              >
-                {nav.title}
-              </Button>
-            ))}
-          </div>
+        <div className="hidden items-center gap-1 lg:flex">
+          {navLinks.map((nav) => (
+            <Button
+              key={nav.title}
+              variant="ghost"
+              onClick={() => router.push(nav.link)}
+              className={`text-sm font-medium ${pathname === nav.link
+                ? "text-primary bg-accent/50"
+                : "text-muted-foreground hover:text-primary"
+                }`}
+            >
+              {nav.title}
+            </Button>
+          ))}
+        </div>
 
-          <div className="flex items-center gap-3 pl-4 border-l border-border">
-            <ThemeToggle />
-
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:border-l lg:border-border lg:pl-4">
+          <ThemeToggle />
+          {notificationUserId && <NotificationInbox key={notificationUserId} recipientId={notificationUserId} />}
+          <div className="hidden lg:block">
             {session ? (
               <UserDropdown session={session} />
             ) : (
@@ -79,14 +81,12 @@ export default function Navbar() {
               </Button>
             )}
           </div>
-        </div>
-
-        {/* MOBILE TOGGLE */}
-        <div className="flex items-center gap-3 md:hidden">
-          <ThemeToggle />
           <button
+            type="button"
+            aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
+            aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 text-foreground hover:bg-accent rounded-md"
+            className="rounded-md p-2 text-foreground hover:bg-accent lg:hidden"
           >
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -95,7 +95,7 @@ export default function Navbar() {
 
       {/* MOBILE MENU */}
       {mobileOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-background border-b border-border shadow-lg animate-in slide-in-from-top-2">
+        <div className="absolute top-16 left-0 w-full border-b border-border bg-background shadow-lg motion-safe:animate-in motion-safe:slide-in-from-top-2 lg:hidden">
           <div className="p-4 flex flex-col gap-2">
             {navLinks.map((nav) => (
               <Button

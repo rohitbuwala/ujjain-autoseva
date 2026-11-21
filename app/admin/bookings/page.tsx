@@ -1,5 +1,7 @@
 "use client";
 
+import RefundPanel from "@/components/RefundPanel";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   CheckCircle,
@@ -54,6 +56,7 @@ interface Booking {
   paymentAmount?: number;
   paymentCurrency?: string;
   paymentDueAt?: string | null;
+  paymentReviewRequired?: boolean;
   paidAt?: string | null;
 }
 
@@ -219,6 +222,8 @@ export default function AdminBookings() {
         Booking Management
       </h1>
 
+      <RefundPanel admin />
+
       {/* Filters */}
       <div className="max-w-5xl mx-auto mb-6 flex items-center gap-4">
         <div className="flex items-center gap-2">
@@ -285,6 +290,7 @@ export default function AdminBookings() {
                   <div>
                     <span className="text-xs uppercase text-muted-foreground font-bold">Payment Status</span>
                     <p className="font-semibold capitalize">{formatPaymentLabel(b.paymentStatus)}</p>
+                    {b.paymentReviewRequired && <p className="text-sm font-medium text-destructive">Payment requires review</p>}
                   </div>
                   <div>
                     <span className="text-xs uppercase text-muted-foreground font-bold">Method</span>

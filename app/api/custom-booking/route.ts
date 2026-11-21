@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import { bookingEvent, publicBooking } from "@/lib/booking-notification-events";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { randomBytes } from "crypto";
@@ -109,7 +111,11 @@ export async function POST(req: Request) {
         ? `Custom: ${templeNames}`
         : "Custom Trip";
 
+    const identity = { _id: new mongoose.Types.ObjectId(), bookingId, userId: session.user.id };
+    const notificationOutbox = await bookingEvent(identity, "created");
     const booking = await Booking.create({
+      _id: identity._id,
+      notificationOutbox,
       bookingId,
       userId: session.user.id,
       name: sanitizeInput(validatedData.name),
@@ -154,7 +160,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      data: booking,
+      data: publicBooking(booking.toObject()),
     });
   } catch (error) {
     console.error("Custom Booking POST Error:", error);
